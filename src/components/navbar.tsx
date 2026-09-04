@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
-import { Menu, X } from 'lucide-react';
-import { useRouter, usePathname } from 'next/navigation';
-import { Brand } from './academy-brand';
-import { LanguageSwitch } from './language-switch';
-import { getMockUserRole } from '@/lib/user';
-import Link from 'next/link';
+import { useEffect, useRef, useState } from "react";
+import { Menu, X } from "lucide-react";
+import { useRouter, usePathname } from "next/navigation";
+import { Brand } from "./academy-brand";
+import { LanguageSwitch } from "./language-switch";
+import { useCurrentUser } from "@/hooks/auth/use-user";
+import Link from "next/link";
+import { useLogout } from "@/hooks/auth/use-logout";
 
 export function Navbar() {
   const [open, setOpen] = useState(false);
@@ -12,33 +13,49 @@ export function Navbar() {
   const accountMenuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const pathname = usePathname();
-  const isAuth = pathname === '/login' || pathname === '/register';
+  const isAuth = pathname === "/login" || pathname === "/register";
+  const { data: user, isLoading, isError } = useCurrentUser();
+  const logout = useLogout();
+
+  const handleLogout = async () => {
+    setAccountOpen(false);
+
+    try {
+      await logout.mutateAsync();
+      router.push("/");
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
 
   useEffect(() => {
     if (!accountOpen) return;
 
     const closeOnOutsideClick = (event: PointerEvent) => {
-      if (accountMenuRef.current && !accountMenuRef.current.contains(event.target as Node)) {
+      if (
+        accountMenuRef.current &&
+        !accountMenuRef.current.contains(event.target as Node)
+      ) {
         setAccountOpen(false);
       }
     };
     const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setAccountOpen(false);
+      if (event.key === "Escape") setAccountOpen(false);
     };
 
-    document.addEventListener('pointerdown', closeOnOutsideClick);
-    document.addEventListener('keydown', closeOnEscape);
+    document.addEventListener("pointerdown", closeOnOutsideClick);
+    document.addEventListener("keydown", closeOnEscape);
     return () => {
-      document.removeEventListener('pointerdown', closeOnOutsideClick);
-      document.removeEventListener('keydown', closeOnEscape);
+      document.removeEventListener("pointerdown", closeOnOutsideClick);
+      document.removeEventListener("keydown", closeOnEscape);
     };
   }, [accountOpen]);
 
   if (isAuth) return null;
 
-  const role = getMockUserRole();
+  const role = user?.role;
 
-  if (role === 'instructor') {
+  if (role === "INSTRUCTOR") {
     return (
       <header className="navbar instructor-navbar">
         <div className="instructor-brand">
@@ -48,7 +65,7 @@ export function Navbar() {
         <nav className="nav-links" aria-label="Instructor navigation">
           <Link
             href="/instructor"
-            className={`nav-link ${pathname.startsWith('/instructor') ? 'active' : ''}`}
+            className={`nav-link ${pathname.startsWith("/instructor") ? "active" : ""}`}
             data-testid="link-instructor-courses"
           >
             My Courses
@@ -64,8 +81,14 @@ export function Navbar() {
               onClick={() => setAccountOpen(!accountOpen)}
               data-testid="button-account-menu"
             >
-              <span className="account-name">Daniel</span>
-              <span className="avatar" aria-hidden="true" data-testid="text-user-avatar">DO</span>
+              <span className="account-name">{user?.name || "User"}</span>
+              <span
+                className="avatar"
+                aria-hidden="true"
+                data-testid="text-user-avatar"
+              >
+                {user?.name?.split(" ").map((n) => n[0]).join("") || "U"}
+              </span>
             </button>
             {accountOpen && (
               <div className="account-dropdown" role="menu">
@@ -84,7 +107,7 @@ export function Navbar() {
                   role="menuitem"
                   onClick={() => {
                     setAccountOpen(false);
-                    router.push('/');
+                    router.push("/");
                   }}
                   data-testid="button-log-out"
                 >
@@ -95,7 +118,7 @@ export function Navbar() {
           </div>
           <button
             className="mobile-menu-button"
-            aria-label={open ? 'Close navigation menu' : 'Open navigation menu'}
+            aria-label={open ? "Close navigation menu" : "Open navigation menu"}
             onClick={() => setOpen(!open)}
             data-testid="button-mobile-menu"
           >
@@ -124,14 +147,14 @@ export function Navbar() {
       <nav className="nav-links" aria-label="Primary navigation">
         <Link
           href="/dashboard"
-          className={`nav-link ${pathname === '/dashboard' ? 'active' : ''}`}
+          className={`nav-link ${pathname === "/dashboard" ? "active" : ""}`}
           data-testid="link-dashboard"
         >
           My learning
         </Link>
         <Link
           href="/catalog"
-          className={`nav-link ${pathname === '/catalog' ? 'active' : ''}`}
+          className={`nav-link ${pathname === "/catalog" ? "active" : ""}`}
           data-testid="link-catalog"
         >
           Course catalog
@@ -155,8 +178,14 @@ export function Navbar() {
             onClick={() => setAccountOpen(!accountOpen)}
             data-testid="button-account-menu"
           >
-            <span className="account-name">Daniel</span>
-            <span className="avatar" aria-hidden="true" data-testid="text-user-avatar">DO</span>
+            <span className="account-name">{user?.name || "User"}</span>
+            <span
+              className="avatar"
+              aria-hidden="true"
+              data-testid="text-user-avatar"
+            >
+              {user?.name?.split(" ").map((n) => n[0]).join("") || "U"}
+            </span>
           </button>
           {accountOpen && (
             <div className="account-dropdown" role="menu">
@@ -173,20 +202,18 @@ export function Navbar() {
               <button
                 className="account-menu-item"
                 role="menuitem"
-                onClick={() => {
-                  setAccountOpen(false);
-                  router.push('/');
-                }}
+                onClick={handleLogout}
+                disabled={logout.isPending}
                 data-testid="button-log-out"
               >
-                Log out
+                {logout.isPending ? "Logging out..." : "Log out"}
               </button>
             </div>
           )}
         </div>
         <button
           className="mobile-menu-button"
-          aria-label={open ? 'Close navigation menu' : 'Open navigation menu'}
+          aria-label={open ? "Close navigation menu" : "Open navigation menu"}
           onClick={() => setOpen(!open)}
           data-testid="button-mobile-menu"
         >

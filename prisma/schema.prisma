@@ -1,0 +1,168 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  LEARNER
+  INSTRUCTOR
+}
+
+enum InstructorStatus {
+  PENDING
+  APPROVED
+  SUSPENDED
+}
+
+enum AuthMethod {
+  EMAIL
+  GOOGLE
+}
+
+enum CourseStatus {
+  DRAFT
+  PUBLISHED
+}
+
+enum QuizType {
+  MODULE
+  FINAL
+}
+
+model User {
+  id           String     @id @default(cuid())
+  name         String
+  email        String     @unique
+  passwordHash String?
+  role         Role       @default(LEARNER)
+  expertise    String?    // instructor-only, nullable for learners
+  authMethod   AuthMethod @default(EMAIL)
+  createdAt    DateTime   @default(now())
+
+  instructorStatus InstructorStatus?
+
+  enrollments     Enrollment[]
+  progress        Progress[]
+  quizAttempts    QuizAttempt[]
+  authoredCourses CourseAuthor[]
+}
+
+model Course {
+  id          String       @id @default(cuid())
+  title       String
+  description String
+  status      CourseStatus @default(DRAFT)
+  createdAt   DateTime     @default(now())
+
+  modules     Module[]
+  authors     CourseAuthor[]
+  enrollments Enrollment[]
+  finalQuiz   Quiz?
+}
+
+model CourseAuthor {
+  id       String @id @default(cuid())
+  courseId String
+  userId   String
+  role     String @default("owner") // "owner" | "contributor"
+
+  course Course @relation(fields: [courseId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@unique([courseId, userId])
+}
+
+model Module {
+  id       String @id @default(cuid())
+  courseId String
+  title    String
+  order    Int
+
+  course  Course   @relation(fields: [courseId], references: [id])
+  lessons Lesson[]
+  quiz    Quiz?
+}
+
+model Lesson {
+  id             String  @id @default(cuid())
+  moduleId       String
+  title          String
+  youtubeVideoId String
+  notesFileUrl   String?
+  order          Int
+
+  module   Module     @relation(fields: [moduleId], references: [id])
+  progress Progress[]
+}
+
+model Quiz {
+  id          String   @id @default(cuid())
+  moduleId    String?  @unique
+  courseId    String?  @unique
+  type        QuizType
+  passScore   Int      @default(70)
+  allowRetake Boolean  @default(true)
+
+  module    Module?       @relation(fields: [moduleId], references: [id])
+  course    Course?       @relation(fields: [courseId], references: [id])
+  questions Question[]
+  attempts  QuizAttempt[]
+}
+
+model Question {
+  id            String @id @default(cuid())
+  quizId        String
+  questionText  String
+  options       Json
+  correctAnswer String
+
+  quiz Quiz @relation(fields: [quizId], references: [id])
+}
+
+model Enrollment {
+  id          String    @id @default(cuid())
+  userId      String
+  courseId    String
+  status      String    @default("active")
+  enrolledAt  DateTime  @default(now())
+  completedAt DateTime?
+
+  user   User   @relation(fields: [userId], references: [id])
+  course Course @relation(fields: [courseId], references: [id])
+
+  @@unique([userId, courseId])
+}
+
+model Progress {
+  id          String   @id @default(cuid())
+  userId      String
+  lessonId    String
+  completedAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id])
+  lesson Lesson @relation(fields: [lessonId], references: [id])
+
+  @@unique([userId, lessonId])
+}
+
+model QuizAttempt {
+  id          String   @id @default(cuid())
+  userId      String
+  quizId      String
+  score       Int
+  passed      Boolean
+  attemptedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+  quiz Quiz @relation(fields: [quizId], references: [id])
+}
