@@ -47,7 +47,7 @@ export const instructorRegisterSchema = registerSchema
   });
 
 export type AuthValues = {
-  name?: string;
+  name: string;
   email: string;
   password: string;
   confirmPassword?: string;

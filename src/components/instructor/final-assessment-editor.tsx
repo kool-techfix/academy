@@ -4,9 +4,17 @@ import { Button } from '@/components/academy-ui';
 import { QuizFormModal } from './quiz-form-modal';
 import { CheckCircle } from 'lucide-react';
 
-export function FinalAssessmentEditor({ course, onUpdate }: { course: InstructorCourse, onUpdate: (q: QuizQuestion[]) => void }) {
+type FinalAssessmentEditorProps = {
+  courseId: string;
+  courseTitle: string;
+};
+
+export function FinalAssessmentEditor({ courseId, courseTitle }: FinalAssessmentEditorProps ) {
   const [managing, setManaging] = useState(false);
   const questions = course.finalAssessment;
+
+  const { data: quiz, isLoading } =
+  useCourseQuiz(courseId);
   
   return (
     <div className="card" style={{ padding: 24 }}>

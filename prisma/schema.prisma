@@ -76,7 +76,7 @@ model CourseAuthor {
   userId   String
   role     String @default("owner") // "owner" | "contributor"
 
-  course Course @relation(fields: [courseId], references: [id])
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
   user   User   @relation(fields: [userId], references: [id])
 
   @@unique([courseId, userId])

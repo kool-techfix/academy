@@ -14,7 +14,12 @@ import {
   type AuthValues,
   type InstructorRegisterValues,
 } from "@/lib/auth";
-import { setMockAuthMethod, setMockUserRole, type UserRole } from "@/lib/user";
+import type { UserRole } from "@/lib/user";
+import { getApiErrorMessage } from "@/lib/api/api-error";
+import {
+  useRegisterInstructor,
+  useRegisterLearner,
+} from "@/hooks/auth/use-register";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -22,6 +27,9 @@ export default function Register() {
   const router = useRouter();
   const [success, setSuccess] = useState(false);
   const [registrationRole, setRegistrationRole] = useState<UserRole>("learner");
+  const registerLearner = useRegisterLearner();
+  const registerInstructor = useRegisterInstructor();
+
   const learnerForm = useForm<AuthValues>({
     resolver: zodResolver(registerSchema),
     defaultValues: { name: "", email: "", password: "", confirmPassword: "" },
@@ -40,21 +48,64 @@ export default function Register() {
   const selectedExpertise = instructorForm.watch("expertise");
 
   const continueWithGoogle = () => {
-    setMockAuthMethod("google");
-    setMockUserRole("learner");
-    router.push("/dashboard");
+    console.log("Google authentication is not implemented yet");
   };
 
-  const submitLearnerForm = () => {
-    setMockAuthMethod("email");
-    setMockUserRole("learner");
-    setSuccess(true);
+  const submitLearnerForm = async (values: AuthValues) => {
+    learnerForm.clearErrors("root");
+
+    try {
+      await registerLearner.mutateAsync({
+        name: values.name,
+        email: values.email,
+        password: values.password,
+      });
+
+      router.push("/dashboard");
+    } catch (error) {
+      learnerForm.setError("root", {
+        type: "server",
+        message: getApiErrorMessage(
+          error,
+          "Unable to create your account. Please try again.",
+        ),
+      });
+    }
   };
 
-  const submitInstructorForm = () => {
-    setMockAuthMethod("email");
-    setMockUserRole("instructor");
-    router.push("/instructor");
+  const submitInstructorForm = async (values: InstructorRegisterValues) => {
+    instructorForm.clearErrors("root");
+
+    const expertise =
+      values.expertise === "Other" ? values.otherExpertise : values.expertise;
+
+    if (!expertise) {
+      instructorForm.setError("root", {
+        type: "validation",
+        message: "Please provide your area of expertise.",
+      });
+      return;
+    }
+
+    try {
+      await registerInstructor.mutateAsync({
+        name: values.name,
+        email: values.email,
+        password: values.password,
+        expertise,
+      });
+
+      setSuccess(true);
+      router.push("/instructor");
+    } catch (error) {
+      instructorForm.setError("root", {
+        type: "server",
+        message: getApiErrorMessage(
+          error,
+          "Unable to create your account. Please try again.",
+        ),
+      });
+    }
   };
 
   return (
@@ -93,9 +144,19 @@ export default function Register() {
       </div>
       {success ? (
         <div className="form-success" data-testid="status-auth-success">
-          <strong>Your learner space is ready.</strong>
-          <br />
-          Taking you to your learning home.
+          {registrationRole === "instructor" ? (
+            <>
+              <strong>Your instructor account was created.</strong>
+              <br />
+              Your account is awaiting approval before you can manage courses.
+            </>
+          ) : (
+            <>
+              <strong>Your learner space is ready.</strong>
+              <br />
+              Taking you to your learning home.
+            </>
+          )}
         </div>
       ) : registrationRole === "instructor" ? (
         <>
@@ -178,8 +239,23 @@ export default function Register() {
                 autoComplete="organization-title"
               />
             )}
-            <Button type="submit" testId="button-submit-instructor-register">
-              Create instructor account <ArrowRight size={16} />
+            {instructorForm.formState.errors.root?.message && (
+              <div className="form-error" role="alert">
+                {instructorForm.formState.errors.root.message}
+              </div>
+            )}
+            <Button
+              type="submit"
+              testId="button-submit-instructor-register"
+              disabled={registerInstructor.isPending}
+            >
+              {registerInstructor.isPending ? (
+                "Creating account..."
+              ) : (
+                <>
+                  Create instructor account <ArrowRight size={16} />
+                </>
+              )}
             </Button>
           </form>
         </>
@@ -227,8 +303,23 @@ export default function Register() {
               error={learnerForm.formState.errors.confirmPassword?.message}
               autoComplete="new-password"
             />
-            <Button type="submit" testId="button-submit-auth">
-              Create my account <ArrowRight size={16} />
+            {learnerForm.formState.errors.root?.message && (
+              <div className="form-error" role="alert">
+                {learnerForm.formState.errors.root.message}
+              </div>
+            )}
+            <Button
+              type="submit"
+              testId="button-submit-auth"
+              disabled={registerLearner.isPending}
+            >
+              {registerLearner.isPending ? (
+                "Creating account..."
+              ) : (
+                <>
+                  Create my account <ArrowRight size={16} />
+                </>
+              )}
             </Button>
           </form>
           <div className="auth-divider">

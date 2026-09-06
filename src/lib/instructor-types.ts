@@ -12,13 +12,31 @@ export type Lesson = {
   notesFilename?: string;
 };
 
-export type Module = {
+// export interface QuizQuestion {
+//   id: string;
+//   questionText: string;
+//   options: string[];
+//   correctAnswer: string;
+// }
+
+export interface Quiz {
   id: string;
+  moduleId?: string | null;
+  courseId?: string | null;
+  passScore: number;
+  allowRetake: boolean;
+  questions: QuizQuestion[];
+}
+
+export interface Module {
+  id: string;
+  courseId: string;
   title: string;
   order: number;
+
   lessons: Lesson[];
-  quizQuestions: QuizQuestion[];
-};
+  quiz?: Quiz | null;
+}
 
 export type InstructorCourse = {
   id: string;
