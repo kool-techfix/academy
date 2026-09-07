@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/academy-ui";
 import { LessonFormModal } from "./lesson-form-modal";
-import { QuizFormModal } from "./quiz-form-modal";
+import { QuizFormData, QuizFormModal } from "./quiz-form-modal";
 import { ModuleFormModal } from "./module-form-modal";
 import {
   InstructorCourseDetail,
@@ -22,6 +22,14 @@ import {
   useModuleLessons,
   useUpdateLesson,
 } from "@/hooks/instructor/use-lessons";
+import {
+  useModuleQuiz,
+  useCreateModuleQuiz,
+  useCreateQuestion,
+  useUpdateQuestion,
+  useDeleteQuestion,
+} from "@/hooks/instructor/use-quizzes";
+import type { Quiz } from "@/Services/quiz.service";
 
 export function ModuleList({ course }: { course: InstructorCourseDetail }) {
   return (
@@ -60,6 +68,16 @@ function ModuleItem({
 
   const createLesson = useCreateLesson();
   const updateLesson = useUpdateLesson();
+
+  const { data: quiz, isLoading: quizLoading } = useModuleQuiz(module.id);
+
+  const createModuleQuiz = useCreateModuleQuiz();
+
+  const createQuestion = useCreateQuestion();
+
+  const updateQuestion = useUpdateQuestion();
+
+  const deleteQuestion = useDeleteQuestion();
 
   const handleSaveLesson = async (data: {
     title: string;
@@ -107,6 +125,102 @@ function ModuleItem({
     } catch (error) {
       console.error("Failed to update lesson:", error);
     }
+  };
+
+  const handleSaveQuiz = async (questions: QuizFormData["questions"]) => {
+    let activeQuiz: Quiz;
+
+    /**
+     * 1. Create the quiz if it doesn't exist.
+     */
+    if (!quiz) {
+      activeQuiz = await createModuleQuiz.mutateAsync({
+        moduleId: module.id,
+
+        data: {
+          type: "MODULE",
+
+          questions: questions.map((question) => ({
+            questionText: question.questionText,
+
+            options: question.options,
+
+            correctAnswer: question.options[question.correctOptionIndex],
+          })),
+        },
+      });
+
+      setManagingQuiz(false);
+
+      return;
+    }
+
+    activeQuiz = quiz;
+
+    /**
+     * IDs currently existing
+     * in the backend.
+     */
+    const existingQuestionIds = new Set(
+      activeQuiz.questions.map((question) => question.id),
+    );
+
+    /**
+     * IDs submitted by the form.
+     */
+    const submittedQuestionIds = new Set(
+      questions
+        .filter((question) => question.id)
+        .map((question) => question.id),
+    );
+
+    /**
+     * 2. Delete removed questions.
+     */
+    const deletedQuestions = activeQuiz.questions.filter(
+      (question) => !submittedQuestionIds.has(question.id),
+    );
+
+    await Promise.all(
+      deletedQuestions.map((question) =>
+        deleteQuestion.mutateAsync(question.id),
+      ),
+    );
+
+    /**
+     * 3. Create or update questions.
+     */
+    await Promise.all(
+      questions.map(async (question) => {
+        const payload = {
+          questionText: question.questionText,
+
+          options: question.options,
+
+          correctAnswer: question.options[question.correctOptionIndex],
+        };
+
+        /**
+         * Existing question → UPDATE
+         */
+        if (question.id && existingQuestionIds.has(question.id)) {
+          return updateQuestion.mutateAsync({
+            questionId: question.id,
+            data: payload,
+          });
+        }
+
+        /**
+         * New question → CREATE
+         */
+        return createQuestion.mutateAsync({
+          quizId: activeQuiz.id,
+          data: payload,
+        });
+      }),
+    );
+
+    setManagingQuiz(false);
   };
 
   return (
@@ -278,7 +392,10 @@ function ModuleItem({
                     Module Quiz
                   </h4>
                   <p style={{ margin: 0, fontSize: 13, color: "#85827a" }}>
-                    {module.quiz?.length ?? 0} questions configured.
+                    {quizLoading
+                      ? "Loading quiz..."
+                      : `${quiz?.questions.length ?? 0} questions configured.`}{" "}
+                    questions configured.
                   </p>
                 </div>
                 <Button variant="ghost" onClick={() => setManagingQuiz(true)}>
@@ -333,11 +450,9 @@ function ModuleItem({
       {managingQuiz && (
         <QuizFormModal
           title={`Quiz: ${module.title}`}
-          questions={module.quiz}
+          quiz={quiz}
           onClose={() => setManagingQuiz(false)}
-          onSave={(questions) =>
-            onUpdate({ ...module, quizQuestions: questions })
-          }
+          onSave={handleSaveQuiz}
         />
       )}
     </div>

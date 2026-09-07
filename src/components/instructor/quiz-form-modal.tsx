@@ -1,7 +1,10 @@
 "use client";
 
 import { useEffect } from "react";
-import { useForm, useFieldArray } from "react-hook-form";
+import {
+  useForm,
+  useFieldArray,
+} from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -10,7 +13,7 @@ import { Button } from "@/components/academy-ui";
 import { FormField } from "@/components/form-field";
 import { Plus, Trash2 } from "lucide-react";
 
-import type { Quiz, QuizQuestion } from "@/Services/course.service";
+import type { Quiz } from "@/Services/quiz.service";
 
 const quizSchema = z.object({
   questions: z.array(
@@ -19,18 +22,31 @@ const quizSchema = z.object({
 
       questionText: z
         .string()
-        .min(5, "Question text must be at least 5 characters"),
+        .min(
+          5,
+          "Question text must be at least 5 characters",
+        ),
 
       options: z
-        .array(z.string().min(1, "Option cannot be empty"))
+        .array(
+          z.string().min(
+            1,
+            "Option cannot be empty",
+          ),
+        )
         .length(4),
 
-      correctOptionIndex: z.coerce.number().min(0).max(3),
+      correctOptionIndex: z.coerce
+        .number()
+        .min(0)
+        .max(3),
     }),
   ),
 });
 
-type QuizFormData = z.infer<typeof quizSchema>;
+export type QuizFormData = z.infer<
+  typeof quizSchema
+>;
 
 type QuizFormModalProps = {
   title: string;
@@ -78,33 +94,30 @@ export function QuizFormModal({
   });
 
   /**
-   * Convert API questions
-   *
-   * Backend:
-   * questionText
-   * options
-   * correctAnswer
-   *
-   * UI:
-   * questionText
-   * options
-   * correctOptionIndex
+   * Convert backend question format
+   * into the UI form format.
    */
   useEffect(() => {
     if (quiz?.questions?.length) {
       reset({
-        questions: quiz.questions.map((question: QuizQuestion) => ({
-          id: question.id,
+        questions: quiz.questions.map(
+          (question) => ({
+            id: question.id,
 
-          questionText: question.questionText,
+            questionText:
+              question.questionText,
 
-          options: question.options,
+            options: question.options,
 
-          correctOptionIndex: Math.max(
-            question.options.indexOf(question.correctAnswer),
-            0,
-          ),
-        })),
+            correctOptionIndex:
+              Math.max(
+                question.options.indexOf(
+                  question.correctAnswer,
+                ),
+                0,
+              ),
+          }),
+        ),
       });
 
       return;
@@ -124,16 +137,7 @@ export function QuizFormModal({
   const handleFormSubmit = async (
     data: QuizFormData,
   ) => {
-    try {
-      await onSave(data.questions);
-
-      onClose();
-    } catch (error) {
-      console.error(
-        "Failed to save quiz questions:",
-        error,
-      );
-    }
+    await onSave(data.questions);
   };
 
   return (
@@ -142,7 +146,9 @@ export function QuizFormModal({
       onClose={onClose}
     >
       <form
-        onSubmit={handleSubmit(handleFormSubmit)}
+        onSubmit={handleSubmit(
+          handleFormSubmit,
+        )}
         className="stack"
         style={{ gap: 24 }}
       >
@@ -159,7 +165,8 @@ export function QuizFormModal({
             <div
               className="row"
               style={{
-                justifyContent: "space-between",
+                justifyContent:
+                  "space-between",
                 marginBottom: 16,
               }}
             >
@@ -182,7 +189,10 @@ export function QuizFormModal({
                   cursor: "pointer",
                   padding: 4,
                 }}
-                aria-label={`Remove Question ${index + 1}`}
+                aria-label={`Remove Question ${
+                  index + 1
+                }`}
+                disabled={isSubmitting}
               >
                 <Trash2 size={18} />
               </button>
@@ -228,7 +238,8 @@ export function QuizFormModal({
                       key={optionIndex}
                       className="row"
                       style={{
-                        alignItems: "flex-start",
+                        alignItems:
+                          "flex-start",
                       }}
                     >
                       <div
@@ -244,7 +255,8 @@ export function QuizFormModal({
                             `questions.${index}.correctOptionIndex`,
                           )}
                           style={{
-                            accentColor: "#69751b",
+                            accentColor:
+                              "#69751b",
                             width: 18,
                             height: 18,
                           }}
@@ -254,7 +266,9 @@ export function QuizFormModal({
                         />
                       </div>
 
-                      <div style={{ flex: 1 }}>
+                      <div
+                        style={{ flex: 1 }}
+                      >
                         <input
                           type="text"
                           placeholder={`Option ${
@@ -271,15 +285,23 @@ export function QuizFormModal({
                               "1px solid #dcd9cf",
                             borderRadius: 6,
                           }}
+                          aria-label={`Option ${
+                            optionIndex + 1
+                          } text`}
                         />
 
-                        {errors.questions?.[index]
-                          ?.options?.[optionIndex] && (
+                        {errors.questions?.[
+                          index
+                        ]?.options?.[
+                          optionIndex
+                        ] && (
                           <div className="field-error">
                             {
-                              errors.questions[index]
-                                ?.options?.[optionIndex]
-                                ?.message
+                              errors.questions[
+                                index
+                              ]?.options?.[
+                                optionIndex
+                              ]?.message
                             }
                           </div>
                         )}
@@ -292,10 +314,15 @@ export function QuizFormModal({
           </div>
         ))}
 
-        <div style={{ textAlign: "center" }}>
+        <div
+          style={{
+            textAlign: "center",
+          }}
+        >
           <Button
             type="button"
             variant="secondary"
+            disabled={isSubmitting}
             onClick={() =>
               append({
                 questionText: "",
@@ -306,7 +333,9 @@ export function QuizFormModal({
           >
             <Plus
               size={16}
-              style={{ marginRight: 6 }}
+              style={{
+                marginRight: 6,
+              }}
             />
 
             Add Another Question
@@ -318,7 +347,8 @@ export function QuizFormModal({
           style={{
             justifyContent: "flex-end",
             marginTop: 12,
-            borderTop: "1px solid #ece9e1",
+            borderTop:
+              "1px solid #ece9e1",
             paddingTop: 24,
           }}
         >

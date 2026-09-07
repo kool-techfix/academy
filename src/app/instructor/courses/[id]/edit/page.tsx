@@ -187,12 +187,12 @@ export default function CourseEdit() {
             <div className="section-head" style={{ marginBottom: 16 }}>
               <h3>Final Assessment</h3>
             </div>
-            <FinalAssessmentEditor
+            {/* <FinalAssessmentEditor
               course={course}
               onUpdate={(finalAssessment) =>
                 updateCourse(course.id, { finalAssessment })
               }
-            />
+            /> */}
           </section>
         </div>
 

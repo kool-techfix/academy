@@ -159,3 +159,46 @@ export function useDeleteQuestion() {
     },
   });
 }
+
+/**
+ * Get the final assessment attached to a course
+ */
+export function useCourseFinalAssessment(courseId: string) {
+  return useQuery({
+    queryKey: ["course-final-assessment", courseId],
+
+    queryFn: () => quizApi.getByCourse(courseId),
+
+    enabled: Boolean(courseId),
+  });
+}
+
+/**
+ * Create a final assessment for a course
+ */
+export function useCreateCourseFinalAssessment() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      courseId,
+      data,
+    }: {
+      courseId: string;
+      data: CreateQuizPayload;
+    }) => quizApi.createForCourse(courseId, data),
+
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: [
+          "course-final-assessment",
+          variables.courseId,
+        ],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["instructor-course", variables.courseId],
+      });
+    },
+  });
+}
