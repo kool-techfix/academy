@@ -68,12 +68,20 @@ export const quizApi = {
   /**
    * Get the quiz attached to a module
    */
-  async getByModule(moduleId: string): Promise<Quiz | null> {
-    const response = await api.get<QuizResponse>(
-      `/instructor/modules/${moduleId}/quiz`,
-    );
+  async getByModule(moduleId: string, courseId: string): Promise<Quiz | null> {
+    try {
+      const response = await api.get<QuizResponse>(
+        `/instructor/courses/${courseId}/modules/${moduleId}/quiz`,
+      );
 
-    return response.data.data;
+      return response.data.data;
+    } catch (error: any) {
+      if (error?.response?.status === 404) {
+        return null;
+      }
+
+      throw error;
+    }
   },
 
   /**
@@ -81,10 +89,11 @@ export const quizApi = {
    */
   async createForModule(
     moduleId: string,
+    courseId: string,
     data: CreateQuizPayload,
   ): Promise<Quiz> {
     const response = await api.post<QuizResponse>(
-      `/instructor/modules/${moduleId}/quiz`,
+      `/instructor/courses/${courseId}/modules/${moduleId}/quiz`,
       data,
     );
 
@@ -148,36 +157,36 @@ export const quizApi = {
   },
 
   /**
- * Get the final assessment attached to a course
- */
-async getByCourse(courseId: string): Promise<Quiz | null> {
-  try {
-    const response = await api.get<QuizResponse>(
+   * Get the final assessment attached to a course
+   */
+  async getByCourse(courseId: string): Promise<Quiz | null> {
+    try {
+      const response = await api.get<QuizResponse>(
+        `/instructor/courses/${courseId}/final-assessment`,
+      );
+
+      return response.data.data;
+    } catch (error: any) {
+      if (error?.response?.status === 404) {
+        return null;
+      }
+
+      throw error;
+    }
+  },
+
+  /**
+   * Create a final assessment for a course
+   */
+  async createForCourse(
+    courseId: string,
+    data: CreateQuizPayload,
+  ): Promise<Quiz> {
+    const response = await api.post<QuizResponse>(
       `/instructor/courses/${courseId}/final-assessment`,
+      data,
     );
 
     return response.data.data;
-  } catch (error: any) {
-    if (error?.response?.status === 404) {
-      return null;
-    }
-
-    throw error;
-  }
-},
-
-/**
- * Create a final assessment for a course
- */
-async createForCourse(
-  courseId: string,
-  data: CreateQuizPayload,
-): Promise<Quiz> {
-  const response = await api.post<QuizResponse>(
-    `/instructor/courses/${courseId}/final-assessment`,
-    data,
-  );
-
-  return response.data.data;
-},
+  },
 };

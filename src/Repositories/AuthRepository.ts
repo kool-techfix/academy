@@ -35,15 +35,15 @@ export class AuthRepository {
   }
 
   async findSafeById(id: string) {
-  return prisma.user.findUnique({
-    where: {
-      id,
-    },
-    omit: {
-      passwordHash: true,
-    },
-  });
-}
+    return prisma.user.findUnique({
+      where: {
+        id,
+      },
+      omit: {
+        passwordHash: true,
+      },
+    });
+  }
 
   /**
    * Create a new user.
@@ -56,7 +56,76 @@ export class AuthRepository {
         passwordHash: data.passwordHash,
         role: data.role,
         expertise: data.expertise,
+        instructorStatus: data.instructorStatus,
         authMethod: data.authMethod ?? AuthMethod.EMAIL,
+      },
+    });
+  }
+
+  async updateNotifications(
+  id: string,
+  data: {
+    courseUpdatesNotification?: boolean;
+    learnerActivityNotification?: boolean;
+  },
+) {
+  return prisma.user.update({
+    where: {
+      id,
+    },
+    data,
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      expertise: true,
+      authMethod: true,
+      courseUpdatesNotification: true,
+      learnerActivityNotification: true,
+    },
+  });
+}
+
+  async getSettingsById(id: string) {
+    return prisma.user.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        expertise: true,
+        authMethod: true,
+        courseUpdatesNotification: true,
+        learnerActivityNotification: true,
+      },
+    });
+  }
+
+  async updateProfile(
+    id: string,
+    data: {
+      name?: string;
+      expertise?: string | null;
+    },
+  ) {
+    return prisma.user.update({
+      where: {
+        id,
+      },
+      data,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        expertise: true,
+        authMethod: true,
+        courseUpdatesNotification: true,
+        learnerActivityNotification: true,
       },
     });
   }

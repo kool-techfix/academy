@@ -1,8 +1,4 @@
-import {
-  AuthMethod,
-  InstructorStatus,
-  Role,
-} from "@/generated/prisma/client";
+import { AuthMethod, InstructorStatus, Role } from "@/generated/prisma/client";
 
 import { comparePassword, hashPassword } from "@/lib/password";
 import { AuthRepository } from "@/Repositories/AuthRepository";
@@ -23,6 +19,26 @@ type RegisterInstructorInput = {
 type LoginInput = {
   email: string;
   password: string;
+};
+
+type UpdateInstructorProfileInput = {
+  name?: string;
+  expertise?: string | null;
+};
+
+type UpdateInstructorNotificationsInput = {
+  courseUpdatesNotification?: boolean;
+  learnerActivityNotification?: boolean;
+};
+
+type UpdateProfileInput = {
+  name?: string;
+  expertise?: string | null;
+};
+
+type UpdateNotificationsInput = {
+  courseUpdatesNotification?: boolean;
+  learnerActivityNotification?: boolean;
 };
 
 export class AuthService {
@@ -108,24 +124,200 @@ export class AuthService {
       user.instructorStatus !== InstructorStatus.APPROVED
     ) {
       if (user.instructorStatus === InstructorStatus.PENDING) {
-        throw new Error(
-          "Your instructor account is awaiting approval",
-        );
+        throw new Error("Your instructor account is awaiting approval");
       }
 
       if (user.instructorStatus === InstructorStatus.SUSPENDED) {
-        throw new Error(
-          "Your instructor account has been suspended",
-        );
+        throw new Error("Your instructor account has been suspended");
       }
     }
 
     return this.sanitizeUser(user);
   }
 
-  private sanitizeUser(
-    user: Awaited<ReturnType<AuthRepository["create"]>>,
+  async getInstructorSettings(instructorId: string) {
+    const user = await this.authRepository.findSafeById(instructorId);
+
+    if (!user) {
+      throw new Error("Instructor not found");
+    }
+
+    if (user.role !== Role.INSTRUCTOR) {
+      throw new Error("User is not an instructor");
+    }
+
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      expertise: user.expertise,
+      authMethod: user.authMethod,
+
+      notifications: {
+        courseUpdates: user.courseUpdatesNotification,
+
+        learnerActivity: user.learnerActivityNotification,
+      },
+    };
+  }
+
+  async updateInstructorProfile(
+    instructorId: string,
+    input: UpdateInstructorProfileInput,
   ) {
+    const user = await this.authRepository.findSafeById(instructorId);
+
+    if (!user) {
+      throw new Error("Instructor not found");
+    }
+
+    if (user.role !== Role.INSTRUCTOR) {
+      throw new Error("User is not an instructor");
+    }
+
+    const updateData: {
+      name?: string;
+      expertise?: string | null;
+    } = {};
+
+    if (input.name !== undefined) {
+      const name = input.name.trim();
+
+      if (name.length < 2) {
+        throw new Error("Full name must be at least 2 characters");
+      }
+
+      updateData.name = name;
+    }
+
+    if (input.expertise !== undefined) {
+      const expertise = input.expertise?.trim();
+
+      updateData.expertise = expertise || null;
+    }
+
+    const updatedUser = await this.authRepository.updateProfile(
+      instructorId,
+      updateData,
+    );
+
+    return {
+      id: updatedUser.id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+      expertise: updatedUser.expertise,
+      authMethod: updatedUser.authMethod,
+    };
+  }
+
+  async updateInstructorNotifications(
+    instructorId: string,
+    input: UpdateInstructorNotificationsInput,
+  ) {
+    const user = await this.authRepository.findSafeById(instructorId);
+
+    if (!user) {
+      throw new Error("Instructor not found");
+    }
+
+    if (user.role !== Role.INSTRUCTOR) {
+      throw new Error("User is not an instructor");
+    }
+
+    const updatedUser = await this.authRepository.updateNotifications(
+      instructorId,
+      {
+        ...(input.courseUpdatesNotification !== undefined && {
+          courseUpdatesNotification: input.courseUpdatesNotification,
+        }),
+
+        ...(input.learnerActivityNotification !== undefined && {
+          learnerActivityNotification: input.learnerActivityNotification,
+        }),
+      },
+    );
+
+    return {
+      notifications: {
+        courseUpdates: updatedUser.courseUpdatesNotification,
+
+        learnerActivity: updatedUser.learnerActivityNotification,
+      },
+    };
+  }
+
+  async getUserSettings(userId: string) {
+    const user = await this.authRepository.getSettingsById(userId);
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    return user;
+  }
+
+  async updateProfile(userId: string, input: UpdateProfileInput) {
+    const user = await this.authRepository.findSafeById(userId);
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    const updateData: UpdateProfileInput = {};
+
+    if (input.name !== undefined) {
+      const name = input.name.trim();
+
+      if (name.length < 2) {
+        throw new Error("Full name must be at least 2 characters");
+      }
+
+      updateData.name = name;
+    }
+
+    if (input.expertise !== undefined) {
+      const expertise = input.expertise?.trim();
+
+      updateData.expertise = expertise || null;
+    }
+
+    return this.authRepository.updateProfile(userId, updateData);
+  }
+
+  async updateNotifications(
+  userId: string,
+  input: UpdateNotificationsInput,
+) {
+  const user =
+    await this.authRepository.findSafeById(userId);
+
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  const updateData: UpdateNotificationsInput = {};
+
+  if (input.courseUpdatesNotification !== undefined) {
+    updateData.courseUpdatesNotification =
+      input.courseUpdatesNotification;
+  }
+
+  if (input.learnerActivityNotification !== undefined) {
+    updateData.learnerActivityNotification =
+      input.learnerActivityNotification;
+  }
+
+  if (Object.keys(updateData).length === 0) {
+    throw new Error("No notification settings provided");
+  }
+
+  return this.authRepository.updateNotifications(
+    userId,
+    updateData,
+  );
+}
+
+  private sanitizeUser(user: Awaited<ReturnType<AuthRepository["create"]>>) {
     const { passwordHash: _, ...safeUser } = user;
 
     return safeUser;

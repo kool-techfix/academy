@@ -9,13 +9,13 @@ import { FileUp, FileText, X } from 'lucide-react';
 
 const lessonSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters"),
-  youtubeLink: z.string().url("Must be a valid URL").refine(val => val.includes('youtube.com') || val.includes('youtu.be'), { message: "Must be a YouTube link" })
+  youtubeVideoLink: z.string().url("Must be a valid URL").refine(val => val.includes('youtube.com') || val.includes('youtu.be'), { message: "Must be a YouTube link" })
 });
 
-export function LessonFormModal({ lesson, onClose, onSave }: { lesson?: any, onClose: () => void, onSave: (d: any) => void }) {
+export function LessonFormModal({ lesson, onClose, onSave, isSaving }: { lesson?: any, onClose: () => void, onSave: (d: any) => void, isSaving: boolean }) {
   const { register, handleSubmit, formState: { errors } } = useForm({
     resolver: zodResolver(lessonSchema),
-    defaultValues: { title: lesson?.title || '', youtubeLink: lesson?.youtubeLink || '' }
+    defaultValues: { title: lesson?.title || '', youtubeVideoLink: lesson?.youtubeVideoLink || '' }
   });
   
   const [filename, setFilename] = useState<string | null>(lesson?.notesFilename || null);
@@ -35,7 +35,7 @@ export function LessonFormModal({ lesson, onClose, onSave }: { lesson?: any, onC
     <Modal title={lesson ? "Edit Lesson" : "Add Lesson"} onClose={onClose}>
       <form onSubmit={handleSubmit(onSubmit)} className="stack">
         <FormField label="Lesson Title" name="title" register={register} error={errors.title?.message as string} placeholder="e.g. Capacitor Testing" />
-        <FormField label="YouTube Link" name="youtubeLink" register={register} error={errors.youtubeLink?.message as string} placeholder="https://youtube.com/watch?v=..." />
+        <FormField label="YouTube Link" name="youtubeVideoLink" register={register} error={errors.youtubeVideoLink?.message as string} placeholder="https://youtube.com/watch?v=..." />
         
         <div className="form-field" style={{ marginTop: 12 }}>
           <label>Supplementary Notes (Optional)</label>
@@ -67,7 +67,9 @@ export function LessonFormModal({ lesson, onClose, onSave }: { lesson?: any, onC
 
         <div className="row" style={{ justifyContent: 'flex-end', marginTop: 12 }}>
           <Button variant="ghost" onClick={onClose}>Cancel</Button>
-          <Button type="submit">Save Lesson</Button>
+          <Button type="submit" disabled={isSaving}>
+            {isSaving ? "Saving..." : "Save Lesson"}
+          </Button>
         </div>
       </form>
     </Modal>

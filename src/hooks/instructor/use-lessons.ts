@@ -1,8 +1,4 @@
-import {
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import {
   lessonApi,
@@ -13,22 +9,26 @@ import {
 /**
  * Get all lessons belonging to a module.
  */
-export function useModuleLessons(moduleId: string) {
+export function useModuleLessons(courseId: string, moduleId: string) {
   return useQuery({
-    queryKey: ["module-lessons", moduleId],
-    queryFn: () => lessonApi.getByModule(moduleId),
-    enabled: Boolean(moduleId),
+    queryKey: ["module-lessons", courseId, moduleId],
+    queryFn: () => lessonApi.getByModule(moduleId, courseId),
+    enabled: Boolean(moduleId && courseId),
   });
 }
 
 /**
  * Get a single lesson.
  */
-export function useLesson(lessonId: string) {
+export function useLesson(
+  courseId: string,
+  moduleId: string,
+  lessonId: string,
+) {
   return useQuery({
-    queryKey: ["lesson", lessonId],
-    queryFn: () => lessonApi.getById(lessonId),
-    enabled: Boolean(lessonId),
+    queryKey: ["lesson", courseId, moduleId, lessonId],
+    queryFn: () => lessonApi.getById(courseId, moduleId, lessonId),
+    enabled: Boolean(lessonId && moduleId && courseId),
   });
 }
 
@@ -42,14 +42,16 @@ export function useCreateLesson() {
     mutationFn: ({
       moduleId,
       data,
+      courseId,
     }: {
       moduleId: string;
       data: CreateLessonPayload;
-    }) => lessonApi.create(moduleId, data),
+      courseId: string;
+    }) => lessonApi.create(moduleId, courseId, data),
 
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
-        queryKey: ["module-lessons", variables.moduleId],
+        queryKey: ["module-lessons", variables.courseId, variables.moduleId],
       });
 
       queryClient.invalidateQueries({
@@ -73,14 +75,23 @@ export function useUpdateLesson() {
     mutationFn: ({
       lessonId,
       data,
+      courseId,
+      moduleId,
     }: {
       lessonId: string;
       data: UpdateLessonPayload;
-    }) => lessonApi.update(lessonId, data),
+      courseId: string;
+      moduleId: string;
+    }) => lessonApi.update(courseId, moduleId, lessonId, data),
 
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
-        queryKey: ["lesson", variables.lessonId],
+        queryKey: [
+          "lesson",
+          variables.courseId,
+          variables.moduleId,
+          variables.lessonId,
+        ],
       });
 
       queryClient.invalidateQueries({
@@ -105,8 +116,15 @@ export function useDeleteLesson() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (lessonId: string) =>
-      lessonApi.delete(lessonId),
+    mutationFn: ({
+      lessonId,
+      courseId,
+      moduleId,
+    }: {
+      lessonId: string;
+      courseId: string;
+      moduleId: string;
+    }) => lessonApi.delete(courseId, moduleId, lessonId),
 
     onSuccess: () => {
       queryClient.invalidateQueries({

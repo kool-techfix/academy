@@ -187,12 +187,11 @@ export default function CourseEdit() {
             <div className="section-head" style={{ marginBottom: 16 }}>
               <h3>Final Assessment</h3>
             </div>
-            {/* <FinalAssessmentEditor
-              course={course}
-              onUpdate={(finalAssessment) =>
-                updateCourse(course.id, { finalAssessment })
-              }
-            /> */}
+
+            <FinalAssessmentEditor
+              courseId={course.id}
+              courseTitle={course.title}
+            />
           </section>
         </div>
 
@@ -205,7 +204,7 @@ export default function CourseEdit() {
             existingModules={course.modules}
             onClose={() => setAddingModule(false)}
             onSave={handleSaveNewModule}
-            // isSaving={createModule.isPending}
+            isSaving={createModule.isPending}
           />
         )}
       </div>

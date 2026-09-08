@@ -36,7 +36,7 @@ export interface Lesson {
   id: string;
   moduleId: string;
   title: string;
-  youtubeVideoId: string;
+  youtubeVideoLink: string;
   notesFileUrl?: string | null;
   order: number;
 }

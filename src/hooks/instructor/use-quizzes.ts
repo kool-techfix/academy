@@ -8,16 +8,51 @@ import {
   type UpdateQuestionPayload,
 } from "@/Services/quiz.service";
 
+type QuizQueryContext =
+  | {
+      type: "MODULE";
+      moduleId: string;
+      courseId: string;
+    }
+  | {
+      type: "FINAL";
+      courseId: string;
+    };
+
+    function invalidateQuizQuery(
+  queryClient: ReturnType<typeof useQueryClient>,
+  context: QuizQueryContext,
+) {
+  if (context.type === "MODULE") {
+    queryClient.invalidateQueries({
+      queryKey: [
+        "module-quiz",
+        context.moduleId,
+        context.courseId,
+      ],
+    });
+
+    return;
+  }
+
+  queryClient.invalidateQueries({
+    queryKey: [
+      "course-final-assessment",
+      context.courseId,
+    ],
+  });
+}
+
 /**
  * Get the quiz attached to a module
  */
-export function useModuleQuiz(moduleId: string) {
+export function useModuleQuiz(moduleId: string, courseId: string) {
   return useQuery({
-    queryKey: ["module-quiz", moduleId],
+    queryKey: ["module-quiz", moduleId, courseId],
 
-    queryFn: () => quizApi.getByModule(moduleId),
+    queryFn: () => quizApi.getByModule(moduleId, courseId),
 
-    enabled: Boolean(moduleId),
+    enabled: Boolean(moduleId && courseId),
   });
 }
 
@@ -30,15 +65,17 @@ export function useCreateModuleQuiz() {
   return useMutation({
     mutationFn: ({
       moduleId,
+      courseId,
       data,
     }: {
       moduleId: string;
       data: CreateQuizPayload;
-    }) => quizApi.createForModule(moduleId, data),
+      courseId: string;
+    }) => quizApi.createForModule(moduleId, courseId, data),
 
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
-        queryKey: ["module-quiz", variables.moduleId],
+        queryKey: ["module-quiz", variables.moduleId, variables.courseId],
       });
 
       // The instructor course detail may contain quiz information.
@@ -65,9 +102,24 @@ export function useUpdateQuiz() {
     }) => quizApi.update(quizId, data),
 
     onSuccess: (updatedQuiz) => {
-      queryClient.invalidateQueries({
-        queryKey: ["module-quiz", updatedQuiz.moduleId],
-      });
+      if (updatedQuiz.moduleId && updatedQuiz.courseId) {
+        queryClient.invalidateQueries({
+          queryKey: [
+            "module-quiz",
+            updatedQuiz.moduleId,
+            updatedQuiz.courseId,
+          ],
+        });
+      }
+
+      if (updatedQuiz.courseId && !updatedQuiz.moduleId) {
+        queryClient.invalidateQueries({
+          queryKey: [
+            "course-final-assessment",
+            updatedQuiz.courseId,
+          ],
+        });
+      }
 
       queryClient.invalidateQueries({
         queryKey: ["instructor-course"],
@@ -100,6 +152,7 @@ export function useDeleteQuiz() {
 /**
  * Create a question
  */
+
 export function useCreateQuestion() {
   const queryClient = useQueryClient();
 
@@ -107,15 +160,18 @@ export function useCreateQuestion() {
     mutationFn: ({
       quizId,
       data,
+      context,
     }: {
       quizId: string;
       data: CreateQuestionPayload;
+      context: QuizQueryContext;
     }) => quizApi.createQuestion(quizId, data),
 
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["module-quiz"],
-      });
+    onSuccess: (_, variables) => {
+      invalidateQuizQuery(
+        queryClient,
+        variables.context,
+      );
     },
   });
 }
@@ -133,12 +189,14 @@ export function useUpdateQuestion() {
     }: {
       questionId: string;
       data: UpdateQuestionPayload;
+      context: QuizQueryContext;
     }) => quizApi.updateQuestion(questionId, data),
 
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["module-quiz"],
-      });
+    onSuccess: (_, variables) => {
+      invalidateQuizQuery(
+        queryClient,
+        variables.context
+      );
     },
   });
 }
@@ -150,12 +208,13 @@ export function useDeleteQuestion() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (questionId: string) => quizApi.deleteQuestion(questionId),
+    mutationFn: ({questionId, context}: { questionId: string; context: QuizQueryContext }) => quizApi.deleteQuestion(questionId),
 
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["module-quiz"],
-      });
+    onSuccess: (_, variables) => {
+      invalidateQuizQuery(
+        queryClient,
+        variables.context
+      );
     },
   });
 }
@@ -190,10 +249,7 @@ export function useCreateCourseFinalAssessment() {
 
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
-        queryKey: [
-          "course-final-assessment",
-          variables.courseId,
-        ],
+        queryKey: ["course-final-assessment", variables.courseId],
       });
 
       queryClient.invalidateQueries({

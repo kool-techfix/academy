@@ -55,6 +55,8 @@ export function Navbar() {
 
   const role = user?.role;
 
+  const href = role === "INSTRUCTOR" ? "/instructor/settings" : "/settings";
+
   if (role === "INSTRUCTOR") {
     return (
       <header className="navbar instructor-navbar">
@@ -93,7 +95,7 @@ export function Navbar() {
             {accountOpen && (
               <div className="account-dropdown" role="menu">
                 <Link
-                  href="/settings"
+                  href={href}
                   className="account-menu-item"
                   role="menuitem"
                   onClick={() => setAccountOpen(false)}
@@ -190,7 +192,7 @@ export function Navbar() {
           {accountOpen && (
             <div className="account-dropdown" role="menu">
               <Link
-                href="/settings"
+                href={href}
                 className="account-menu-item"
                 role="menuitem"
                 onClick={() => setAccountOpen(false)}

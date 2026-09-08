@@ -45,6 +45,8 @@ model User {
   email        String     @unique
   passwordHash String?
   role         Role       @default(LEARNER)
+  courseUpdatesNotification Boolean @default(true)
+  learnerActivityNotification Boolean @default(true)
   expertise    String?    // instructor-only, nullable for learners
   authMethod   AuthMethod @default(EMAIL)
   createdAt    DateTime   @default(now())
@@ -97,7 +99,7 @@ model Lesson {
   id             String  @id @default(cuid())
   moduleId       String
   title          String
-  youtubeVideoId String
+  youtubeVideoLink String
   notesFileUrl   String?
   order          Int
 

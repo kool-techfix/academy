@@ -3,14 +3,14 @@ import { CourseRepository } from "@/Repositories/CourseRepository";
 
 export type CreateLessonData = {
   title: string;
-  youtubeVideoId: string;
+  youtubeVideoLink: string;
   notesFileUrl?: string | null;
   order?: number;
 };
 
 export type UpdateLessonData = {
   title?: string;
-  youtubeVideoId?: string;
+  youtubeVideoLink?: string;
   notesFileUrl?: string | null;
   order?: number;
 };
@@ -60,8 +60,8 @@ export class LessonService {
       throw new Error("Lesson title is required");
     }
 
-    if (!data.youtubeVideoId?.trim()) {
-      throw new Error("YouTube video ID is required");
+    if (!data.youtubeVideoLink) {
+      throw new Error("YouTube video Link is required");
     }
 
     const order =
@@ -69,7 +69,7 @@ export class LessonService {
 
     return this.lessonRepository.create({
       title: data.title.trim(),
-      youtubeVideoId: data.youtubeVideoId.trim(),
+      youtubeVideoLink: data.youtubeVideoLink.trim(),
       notesFileUrl: data.notesFileUrl ?? null,
       order,
       module: {
@@ -106,12 +106,12 @@ export class LessonService {
       updateData.title = data.title.trim();
     }
 
-    if (data.youtubeVideoId !== undefined) {
-      if (!data.youtubeVideoId.trim()) {
-        throw new Error("YouTube video ID is required");
+    if (data.youtubeVideoLink !== undefined) {
+      if (!data.youtubeVideoLink.trim()) {
+        throw new Error("YouTube video Link is required");
       }
 
-      updateData.youtubeVideoId = data.youtubeVideoId.trim();
+      updateData.youtubeVideoLink = data.youtubeVideoLink.trim();
     }
 
     if (data.notesFileUrl !== undefined) {

@@ -4,7 +4,6 @@ import { useState } from "react";
 
 import { Button } from "@/components/academy-ui";
 import { QuizFormModal } from "./quiz-form-modal";
-
 import { CheckCircle } from "lucide-react";
 
 import {
@@ -15,16 +14,11 @@ import {
   useDeleteQuestion,
 } from "@/hooks/instructor/use-quizzes";
 
+import type { QuizFormData } from "./quiz-form-modal";
+
 type FinalAssessmentEditorProps = {
   courseId: string;
   courseTitle: string;
-};
-
-type FormQuestion = {
-  id?: string;
-  text: string;
-  options: string[];
-  correctOptionIndex: number;
 };
 
 export function FinalAssessmentEditor({
@@ -39,8 +33,7 @@ export function FinalAssessmentEditor({
     isError,
   } = useCourseFinalAssessment(courseId);
 
-  const createFinalAssessment =
-    useCreateCourseFinalAssessment();
+  const createFinalAssessment = useCreateCourseFinalAssessment();
 
   const createQuestion = useCreateQuestion();
   const updateQuestion = useUpdateQuestion();
@@ -48,23 +41,7 @@ export function FinalAssessmentEditor({
 
   const questions = finalAssessment?.questions ?? [];
 
-  const formQuestions = questions.map((question) => ({
-  id: question.id,
-
-  text: question.questionText,
-
-  options: question.options,
-
-  correctOptionIndex: Math.max(
-    question.options.indexOf(
-      question.correctAnswer,
-    ),
-    0,
-  ),
-}));
-
-  const handleSave = async (
-  ) => {
+  const handleSave = async (submittedQuestions: QuizFormData["questions"]) => {
     try {
       /**
        * CASE 1:
@@ -75,19 +52,15 @@ export function FinalAssessmentEditor({
           courseId,
           data: {
             type: "FINAL",
-            questions: formQuestions.map((question) => ({
-              questionText: question.text,
+            questions: submittedQuestions.map((question) => ({
+              questionText: question.questionText,
               options: question.options,
-              correctAnswer:
-                question.options[
-                  question.correctOptionIndex
-                ],
+              correctAnswer: question.options[question.correctOptionIndex],
             })),
           },
         });
 
         setManaging(false);
-
         return;
       }
 
@@ -101,36 +74,34 @@ export function FinalAssessmentEditor({
       );
 
       const submittedQuestionIds = new Set(
-        formQuestions
+        submittedQuestions
           .filter((question) => question.id)
           .map((question) => question.id),
       );
 
       /**
        * Update existing questions
-       * or create new ones.
+       * and create new questions.
        */
       await Promise.all(
-        formQuestions.map(async (question) => {
+        submittedQuestions.map(async (question) => {
           const payload = {
-            questionText: question.text,
+            questionText: question.questionText,
             options: question.options,
-            correctAnswer:
-              question.options[
-                question.correctOptionIndex
-              ],
+            correctAnswer: question.options[question.correctOptionIndex],
           };
 
           /**
            * Existing question
            */
-          if (
-            question.id &&
-            existingQuestionIds.has(question.id)
-          ) {
+          if (question.id && existingQuestionIds.has(question.id)) {
             return updateQuestion.mutateAsync({
               questionId: question.id,
               data: payload,
+              context: {
+                type: "FINAL",
+                courseId,
+              },
             });
           }
 
@@ -140,37 +111,46 @@ export function FinalAssessmentEditor({
           return createQuestion.mutateAsync({
             quizId: finalAssessment.id,
             data: payload,
+            context: {
+              type: "FINAL",
+              courseId,
+            },
           });
         }),
       );
 
       /**
-       * Delete questions removed from the form.
+       * Delete questions removed
+       * from the form.
        */
       const deletedQuestions = questions.filter(
-        (question) =>
-          !submittedQuestionIds.has(question.id),
+        (question) => !submittedQuestionIds.has(question.id),
       );
 
       await Promise.all(
         deletedQuestions.map((question) =>
-          deleteQuestion.mutateAsync(question.id),
+          deleteQuestion.mutateAsync({
+            questionId: question.id,
+            context: { type: "FINAL", courseId },
+          }),
         ),
       );
 
       setManaging(false);
     } catch (error) {
-      console.error(
-        "Failed to save final assessment:",
-        error,
-      );
+      console.error("Failed to save final assessment:", error);
     }
   };
 
   if (isLoading) {
     return (
       <div className="card" style={{ padding: 24 }}>
-        <p style={{ margin: 0, color: "#77766f" }}>
+        <p
+          style={{
+            margin: 0,
+            color: "#77766f",
+          }}
+        >
           Loading final assessment...
         </p>
       </div>
@@ -180,7 +160,12 @@ export function FinalAssessmentEditor({
   if (isError) {
     return (
       <div className="card" style={{ padding: 24 }}>
-        <p style={{ margin: 0, color: "#b42318" }}>
+        <p
+          style={{
+            margin: 0,
+            color: "#b42318",
+          }}
+        >
           Unable to load final assessment.
         </p>
       </div>
@@ -202,12 +187,8 @@ export function FinalAssessmentEditor({
               width: 42,
               height: 42,
               borderRadius: "50%",
-              background: questions.length
-                ? "#eff2d7"
-                : "#f0efea",
-              color: questions.length
-                ? "#52601b"
-                : "#98958b",
+              background: questions.length ? "#eff2d7" : "#f0efea",
+              color: questions.length ? "#52601b" : "#98958b",
               display: "grid",
               placeItems: "center",
             }}
@@ -240,11 +221,7 @@ export function FinalAssessmentEditor({
         </div>
 
         <Button
-          variant={
-            finalAssessment
-              ? "secondary"
-              : "primary"
-          }
+          variant={finalAssessment ? "secondary" : "primary"}
           onClick={() => setManaging(true)}
           disabled={
             createFinalAssessment.isPending ||
@@ -253,20 +230,18 @@ export function FinalAssessmentEditor({
             deleteQuestion.isPending
           }
         >
-          {finalAssessment
-            ? "Edit Assessment"
-            : "Create Assessment"}
+          {finalAssessment ? "Edit Assessment" : "Create Assessment"}
         </Button>
       </div>
 
-      {/* {managing && (
+      {managing && (
         <QuizFormModal
           title={`Final Assessment: ${courseTitle}`}
-          questions={formQuestions}
+          quiz={finalAssessment}
           onClose={() => setManaging(false)}
           onSave={handleSave}
         />
-      )} */}
+      )}
     </div>
   );
 }

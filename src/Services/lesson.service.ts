@@ -4,21 +4,21 @@ export type Lesson = {
   id: string;
   moduleId: string;
   title: string;
-  youtubeVideoId: string;
+  youtubeVideoLink: string;
   notesFileUrl?: string | null;
   order: number;
 };
 
 export type CreateLessonPayload = {
   title: string;
-  youtubeVideoId: string;
+  youtubeVideoLink: string;
   notesFileUrl?: string | null;
   order?: number;
 };
 
 export type UpdateLessonPayload = {
   title?: string;
-  youtubeVideoId?: string;
+  youtubeVideoLink?: string;
   notesFileUrl?: string | null;
   order?: number;
 };
@@ -32,17 +32,21 @@ type LessonsResponse = {
 };
 
 export const lessonApi = {
-  async getByModule(moduleId: string): Promise<Lesson[]> {
+  async getByModule(moduleId: string, courseId: string): Promise<Lesson[]> {
     const response = await api.get<LessonsResponse>(
-      `/instructor/modules/${moduleId}/lessons`,
+      `/instructor/courses/${courseId}/modules/${moduleId}/lessons`,
     );
 
     return response.data.data;
   },
 
-  async getById(lessonId: string): Promise<Lesson> {
+  async getById(
+    courseId: string,
+    moduleId: string,
+    lessonId: string,
+  ): Promise<Lesson> {
     const response = await api.get<LessonResponse>(
-      `/instructor/lessons/${lessonId}`,
+      `/instructor/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}`,
     );
 
     return response.data.data;
@@ -50,10 +54,11 @@ export const lessonApi = {
 
   async create(
     moduleId: string,
+    courseId: string,
     data: CreateLessonPayload,
   ): Promise<Lesson> {
     const response = await api.post<LessonResponse>(
-      `/instructor/modules/${moduleId}/lessons`,
+      `/instructor/courses/${courseId}/modules/${moduleId}/lessons`,
       data,
     );
 
@@ -61,18 +66,26 @@ export const lessonApi = {
   },
 
   async update(
+    courseId: string,
+    moduleId: string,
     lessonId: string,
     data: UpdateLessonPayload,
   ): Promise<Lesson> {
     const response = await api.patch<LessonResponse>(
-      `/instructor/lessons/${lessonId}`,
+      `/instructor/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}`,
       data,
     );
 
     return response.data.data;
   },
 
-  async delete(lessonId: string): Promise<void> {
-    await api.delete(`/instructor/lessons/${lessonId}`);
+  async delete(
+    courseId: string,
+    moduleId: string,
+    lessonId: string,
+  ): Promise<void> {
+    await api.delete(
+      `/instructor/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}`,
+    );
   },
 };

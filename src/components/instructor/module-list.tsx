@@ -14,7 +14,6 @@ import { QuizFormData, QuizFormModal } from "./quiz-form-modal";
 import { ModuleFormModal } from "./module-form-modal";
 import {
   InstructorCourseDetail,
-  Lesson,
   Module,
 } from "@/Services/course.service";
 import {
@@ -30,6 +29,7 @@ import {
   useDeleteQuestion,
 } from "@/hooks/instructor/use-quizzes";
 import type { Quiz } from "@/Services/quiz.service";
+import { Lesson } from "@/Services/lesson.service";
 
 export function ModuleList({ course }: { course: InstructorCourseDetail }) {
   return (
@@ -37,6 +37,7 @@ export function ModuleList({ course }: { course: InstructorCourseDetail }) {
       {course.modules.map((module) => (
         <ModuleItem
           key={module.id}
+          courseId={course.id}
           module={module}
           existingModules={course.modules}
         />
@@ -46,9 +47,11 @@ export function ModuleList({ course }: { course: InstructorCourseDetail }) {
 }
 
 function ModuleItem({
+  courseId,
   module,
   existingModules,
 }: {
+  courseId: string;
   module: Module;
   existingModules: Module[];
 }) {
@@ -64,12 +67,15 @@ function ModuleItem({
     data: lessons = [],
     isLoading: lessonsLoading,
     isError: lessonsError,
-  } = useModuleLessons(module.id);
+  } = useModuleLessons(courseId, module.id);
 
   const createLesson = useCreateLesson();
   const updateLesson = useUpdateLesson();
 
-  const { data: quiz, isLoading: quizLoading } = useModuleQuiz(module.id);
+  const { data: quiz, isLoading: quizLoading } = useModuleQuiz(
+    module.id,
+    courseId,
+  );
 
   const createModuleQuiz = useCreateModuleQuiz();
 
@@ -81,16 +87,17 @@ function ModuleItem({
 
   const handleSaveLesson = async (data: {
     title: string;
-    youtubeVideoId: string;
+    youtubeVideoLink: string;
     notesFileUrl?: string | null;
     order?: number;
   }) => {
     try {
       await createLesson.mutateAsync({
         moduleId: module.id,
+        courseId,
         data: {
           title: data.title,
-          youtubeVideoId: data.youtubeVideoId,
+          youtubeVideoLink: data.youtubeVideoLink,
           notesFileUrl: data.notesFileUrl ?? null,
           order: data.order,
         },
@@ -104,7 +111,7 @@ function ModuleItem({
 
   const handleEditLesson = async (data: {
     title: string;
-    youtubeVideoId: string;
+    youtubeVideoLink: string;
     notesFileUrl?: string | null;
     order?: number;
   }) => {
@@ -113,9 +120,11 @@ function ModuleItem({
     try {
       await updateLesson.mutateAsync({
         lessonId: editingLesson.id,
+        courseId: module.courseId,
+        moduleId: module.id,
         data: {
           title: data.title,
-          youtubeVideoId: data.youtubeVideoId,
+          youtubeVideoLink: data.youtubeVideoLink,
           notesFileUrl: data.notesFileUrl ?? null,
           order: data.order,
         },
@@ -136,6 +145,7 @@ function ModuleItem({
     if (!quiz) {
       activeQuiz = await createModuleQuiz.mutateAsync({
         moduleId: module.id,
+        courseId: courseId,
 
         data: {
           type: "MODULE",
@@ -183,7 +193,14 @@ function ModuleItem({
 
     await Promise.all(
       deletedQuestions.map((question) =>
-        deleteQuestion.mutateAsync(question.id),
+        deleteQuestion.mutateAsync({
+          questionId: question.id,
+          context: {
+            type: "MODULE",
+            moduleId: module.id,
+            courseId,
+          },
+        }),
       ),
     );
 
@@ -207,6 +224,11 @@ function ModuleItem({
           return updateQuestion.mutateAsync({
             questionId: question.id,
             data: payload,
+            context: {
+              type: "MODULE",
+              moduleId: module.id,
+              courseId,
+            },
           });
         }
 
@@ -216,6 +238,11 @@ function ModuleItem({
         return createQuestion.mutateAsync({
           quizId: activeQuiz.id,
           data: payload,
+          context: {
+            type: "MODULE",
+            moduleId: module.id,
+            courseId,
+          },
         });
       }),
     );
@@ -395,7 +422,6 @@ function ModuleItem({
                     {quizLoading
                       ? "Loading quiz..."
                       : `${quiz?.questions.length ?? 0} questions configured.`}{" "}
-                    questions configured.
                   </p>
                 </div>
                 <Button variant="ghost" onClick={() => setManagingQuiz(true)}>
@@ -444,6 +470,7 @@ function ModuleItem({
               await handleSaveLesson(data);
             }
           }}
+          isSaving={createLesson.isPending || updateLesson.isPending}
         />
       )}
 
