@@ -106,19 +106,16 @@ export class CourseRepository {
     });
   }
 
-  async findAuthor(
-  courseId: string,
-  userId: string,
-) {
-  return prisma.courseAuthor.findUnique({
-    where: {
-      courseId_userId: {
-        courseId,
-        userId,
+  async findAuthor(courseId: string, userId: string) {
+    return prisma.courseAuthor.findUnique({
+      where: {
+        courseId_userId: {
+          courseId,
+          userId,
+        },
       },
-    },
-  });
-}
+    });
+  }
 
   async isAuthor(courseId: string, userId: string) {
     const author = await prisma.courseAuthor.findUnique({
@@ -134,14 +131,110 @@ export class CourseRepository {
   }
 
   async getModuleWithCourse(moduleId: string) {
-  return prisma.module.findUnique({
-    where: {
-      id: moduleId,
-    },
-    select: {
-      id: true,
-      courseId: true,
-    },
-  });
-}
+    return prisma.module.findUnique({
+      where: {
+        id: moduleId,
+      },
+      select: {
+        id: true,
+        courseId: true,
+      },
+    });
+  }
+
+  async findPublished() {
+    return prisma.course.findMany({
+      where: {
+        status: CourseStatus.PUBLISHED,
+      },
+
+      include: {
+        authors: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
+
+        modules: {
+          select: {
+            id: true,
+            title: true,
+            order: true,
+          },
+
+          orderBy: {
+            order: "asc",
+          },
+        },
+
+        _count: {
+          select: {
+            enrollments: true,
+          },
+        },
+      },
+
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+  }
+  async findPublishedById(id: string) {
+    return prisma.course.findFirst({
+      where: {
+        id,
+        status: CourseStatus.PUBLISHED,
+      },
+
+      include: {
+        authors: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
+
+        modules: {
+          orderBy: {
+            order: "asc",
+          },
+
+          include: {
+            lessons: {
+              orderBy: {
+                order: "asc",
+              },
+
+              select: {
+                id: true,
+                title: true,
+                order: true,
+              },
+            },
+
+            quiz: {
+              select: {
+                id: true,
+              },
+            },
+          },
+        },
+
+        _count: {
+          select: {
+            enrollments: true,
+          },
+        },
+      },
+    });
+  }
 }

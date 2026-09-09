@@ -1,3 +1,4 @@
+import { Loader2 } from "lucide-react";
 import Image from "next/image";
 
 interface LoaderProps {
@@ -23,3 +24,16 @@ export function LoadingScreen({ message = "Loading..." }: LoaderProps) {
     </div>
   );
 }
+
+export const Loader = ({ message = "Loading..." }: LoaderProps) => {
+  return (
+    <div className="settings-layout">
+      <section className="card settings-section">
+        <div className="row">
+          <Loader2 size={18} className="animate-spin" />
+          {message}
+        </div>
+      </section>
+    </div>
+  );
+};

@@ -129,4 +129,29 @@ export class AuthRepository {
       },
     });
   }
+
+  async updateAccount(
+  id: string,
+  data: {
+    email?: string;
+    passwordHash?: string;
+  },
+) {
+  return prisma.user.update({
+    where: {
+      id,
+    },
+    data,
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      expertise: true,
+      authMethod: true,
+      courseUpdatesNotification: true,
+      learnerActivityNotification: true,
+    },
+  });
+}
 }

@@ -13,41 +13,75 @@ import { FormField } from "@/components/form-field";
 import { Page } from "@/components/page-shell";
 import {
   useSettings,
+  useUpdateAccount,
   useUpdateNotifications,
   useUpdateProfile,
 } from "@/hooks/use-settings";
 
 const profileSchema = z.object({
-  name: z
-    .string()
-    .min(2, "Full name must be at least 2 characters"),
+  name: z.string().min(2, "Full name must be at least 2 characters"),
+  expertise: z.string().optional(),
 });
 
 type ProfileValues = z.infer<typeof profileSchema>;
 
 const accountSchema = z
   .object({
-    email: z
-      .string()
-      .min(1, "Email is required")
-      .email("Enter a valid email"),
-    currentPassword: z
-      .string()
-      .min(1, "Current password is required"),
-    newPassword: z
-      .string()
-      .min(8, "New password must be at least 8 characters"),
-    confirmNewPassword: z
-      .string()
-      .min(1, "Please confirm your new password"),
+    email: z.string().min(1, "Email is required").email("Enter a valid email"),
+
+    currentPassword: z.string().optional(),
+
+    newPassword: z.string().optional(),
+
+    confirmNewPassword: z.string().optional(),
   })
-  .refine(
-    (data) => data.newPassword === data.confirmNewPassword,
-    {
-      message: "Passwords do not match",
-      path: ["confirmNewPassword"],
-    },
-  );
+  .superRefine((data, ctx) => {
+    const hasNewPassword = !!data.newPassword?.trim();
+
+    const hasCurrentPassword = !!data.currentPassword?.trim();
+
+    const hasConfirmation = !!data.confirmNewPassword?.trim();
+
+    if (hasNewPassword || hasConfirmation) {
+      if (!hasCurrentPassword) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Current password is required to change your password",
+          path: ["currentPassword"],
+        });
+      }
+    }
+
+    if (hasNewPassword || hasCurrentPassword) {
+      if (!hasNewPassword) {
+        ctx.addIssue({
+          code: "custom",
+          message: "New password is required to change your password",
+          path: ["newPassword"],
+        });
+      }
+    }
+
+    if (hasNewPassword) {
+      if (data.newPassword!.length < 8) {
+        ctx.addIssue({
+          code: "custom",
+          message: "New password must be at least 8 characters",
+          path: ["newPassword"],
+        });
+      }
+    }
+
+    if (hasNewPassword || hasConfirmation) {
+      if (data.newPassword !== data.confirmNewPassword) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Passwords do not match",
+          path: ["confirmNewPassword"],
+        });
+      }
+    }
+  });
 
 type AccountValues = z.infer<typeof accountSchema>;
 
@@ -64,30 +98,26 @@ function SavedMessage() {
 }
 
 export default function InstructorSettings() {
-  const {
-    data: settings,
-    isLoading,
-    isError,
-  } = useSettings();
+  const { data: settings, isLoading, isError } = useSettings();
+
+  const updateAccount = useUpdateAccount();
 
   const updateProfile = useUpdateProfile();
   const updateNotifications = useUpdateNotifications();
 
   const [profileSaved, setProfileSaved] = useState(false);
   const [accountSaved, setAccountSaved] = useState(false);
-  const [notificationsSaved, setNotificationsSaved] =
-    useState(false);
+  const [notificationsSaved, setNotificationsSaved] = useState(false);
 
-  const [courseNotifications, setCourseNotifications] =
-    useState(false);
+  const [courseNotifications, setCourseNotifications] = useState(false);
 
-  const [studentNotifications, setStudentNotifications] =
-    useState(false);
+  const [studentNotifications, setStudentNotifications] = useState(false);
 
   const profile = useForm<ProfileValues>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
       name: "",
+      expertise: "",
     },
   });
 
@@ -114,6 +144,7 @@ export default function InstructorSettings() {
 
     profile.reset({
       name: settings.name,
+      expertise: settings.expertise ?? "",
     });
 
     account.reset({
@@ -127,18 +158,12 @@ export default function InstructorSettings() {
       email: settings.email,
     });
 
-    setCourseNotifications(
-      settings.courseUpdatesNotification,
-    );
+    setCourseNotifications(settings.courseUpdatesNotification);
 
-    setStudentNotifications(
-      settings.learnerActivityNotification,
-    );
+    setStudentNotifications(settings.learnerActivityNotification);
   }, [settings, profile, account, managedAccount]);
 
-  const handleProfileSubmit = async (
-    values: ProfileValues,
-  ) => {
+  const handleProfileSubmit = async (values: ProfileValues) => {
     setProfileSaved(false);
 
     try {
@@ -167,13 +192,35 @@ export default function InstructorSettings() {
     }
   };
 
+  const handleAccountSubmit = async (values: AccountValues) => {
+    setAccountSaved(false);
+
+    try {
+      await updateAccount.mutateAsync({
+        email: values.email,
+        currentPassword: values.currentPassword || undefined,
+        newPassword: values.newPassword || undefined,
+      });
+
+      setAccountSaved(true);
+
+      account.reset({
+        email: values.email,
+        currentPassword: "",
+        newPassword: "",
+        confirmNewPassword: "",
+      });
+    } catch {
+      setAccountSaved(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <Page>
         <div className="settings-head">
           <span className="eyebrow">Instructor account</span>
           <h1>Settings</h1>
-          <p>Loading your settings...</p>
         </div>
 
         <div className="settings-layout">
@@ -203,9 +250,7 @@ export default function InstructorSettings() {
         <div className="settings-head">
           <span className="eyebrow">Instructor account</span>
           <h1>Settings</h1>
-          <p>
-            We could not load your settings. Please try again.
-          </p>
+          <p>We could not load your settings. Please try again.</p>
         </div>
       </Page>
     );
@@ -230,8 +275,7 @@ export default function InstructorSettings() {
         <h1>Settings</h1>
 
         <p>
-          Manage your instructor profile, account, and
-          notification preferences.
+          Manage your instructor profile, account, and notification preferences.
         </p>
       </div>
 
@@ -247,8 +291,8 @@ export default function InstructorSettings() {
                 <h2>Profile</h2>
 
                 <p>
-                  Manage how your name and expertise appear
-                  across your instructor workspace.
+                  Manage how your name and expertise appear across your
+                  instructor workspace.
                 </p>
               </div>
             </div>
@@ -256,35 +300,25 @@ export default function InstructorSettings() {
             {profileSaved && <SavedMessage />}
           </div>
 
-          <form
-            onSubmit={profile.handleSubmit(
-              handleProfileSubmit,
-            )}
-            noValidate
-          >
+          <form onSubmit={profile.handleSubmit(handleProfileSubmit)} noValidate>
             <FormField
               label="Full name"
               name="name"
               placeholder="Daniel Okafor"
               register={profile.register}
-              error={
-                profile.formState.errors.name?.message
-              }
+              error={profile.formState.errors.name?.message}
               autoComplete="name"
             />
 
             <p className="field-help">
-              This name may be displayed to learners on the
-              courses you create.
+              This name may be displayed to learners on the courses you create.
             </p>
 
             <FormField
               label="Expertise"
               name="expertise"
               placeholder="Frontend Development"
-              register={
-                profile.register as typeof profile.register
-              }
+              register={profile.register as typeof profile.register}
             />
 
             <p className="field-help">
@@ -298,10 +332,7 @@ export default function InstructorSettings() {
             >
               {updateProfile.isPending ? (
                 <>
-                  <Loader2
-                    size={15}
-                    className="animate-spin"
-                  />
+                  <Loader2 size={15} className="animate-spin" />
                   Saving...
                 </>
               ) : (
@@ -321,10 +352,7 @@ export default function InstructorSettings() {
               <div>
                 <h2>Account</h2>
 
-                <p>
-                  Manage how you sign in to your instructor
-                  account.
-                </p>
+                <p>Manage how you sign in to your instructor account.</p>
               </div>
             </div>
 
@@ -343,15 +371,13 @@ export default function InstructorSettings() {
               />
 
               <p className="field-help">
-                Your account is managed by Google. Update
-                your email through your Google account.
+                Your account is managed by Google. Update your email through
+                your Google account.
               </p>
             </div>
           ) : (
             <form
-              onSubmit={account.handleSubmit(() =>
-                setAccountSaved(true),
-              )}
+              onSubmit={account.handleSubmit(handleAccountSubmit)}
               noValidate
             >
               <FormField
@@ -360,16 +386,12 @@ export default function InstructorSettings() {
                 type="email"
                 placeholder={settings.email}
                 register={account.register}
-                error={
-                  account.formState.errors.email?.message
-                }
+                error={account.formState.errors.email?.message}
                 autoComplete="email"
               />
 
               <div className="settings-subform">
-                <span className="eyebrow">
-                  Change password
-                </span>
+                <span className="eyebrow">Change password</span>
 
                 <FormField
                   label="Current password"
@@ -377,10 +399,7 @@ export default function InstructorSettings() {
                   type="password"
                   placeholder="Enter current password"
                   register={account.register}
-                  error={
-                    account.formState.errors.currentPassword
-                      ?.message
-                  }
+                  error={account.formState.errors.currentPassword?.message}
                   autoComplete="current-password"
                 />
 
@@ -391,10 +410,7 @@ export default function InstructorSettings() {
                     type="password"
                     placeholder="8 characters minimum"
                     register={account.register}
-                    error={
-                      account.formState.errors.newPassword
-                        ?.message
-                    }
+                    error={account.formState.errors.newPassword?.message}
                     autoComplete="new-password"
                   />
 
@@ -404,10 +420,7 @@ export default function InstructorSettings() {
                     type="password"
                     placeholder="Repeat new password"
                     register={account.register}
-                    error={
-                      account.formState.errors
-                        .confirmNewPassword?.message
-                    }
+                    error={account.formState.errors.confirmNewPassword?.message}
                     autoComplete="new-password"
                   />
                 </div>
@@ -416,8 +429,16 @@ export default function InstructorSettings() {
               <Button
                 type="submit"
                 testId="button-save-account"
+                disabled={updateAccount.isPending}
               >
-                Save account
+                {updateAccount.isPending ? (
+                  <>
+                    <Loader2 size={15} className="animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  "Save account"
+                )}
               </Button>
             </form>
           )}
@@ -434,8 +455,7 @@ export default function InstructorSettings() {
                 <h2>Notifications</h2>
 
                 <p>
-                  Choose which important instructor updates
-                  you want to receive.
+                  Choose which important instructor updates you want to receive.
                 </p>
               </div>
             </div>
@@ -448,22 +468,18 @@ export default function InstructorSettings() {
               <strong>Course updates</strong>
 
               <p>
-                Receive notifications about changes and
-                activity related to your courses.
+                Receive notifications about changes and activity related to your
+                courses.
               </p>
             </div>
 
             <button
               type="button"
-              className={`toggle ${
-                courseNotifications ? "on" : ""
-              }`}
+              className={`toggle ${courseNotifications ? "on" : ""}`}
               role="switch"
               aria-checked={courseNotifications}
               onClick={() => {
-                setCourseNotifications(
-                  !courseNotifications,
-                );
+                setCourseNotifications(!courseNotifications);
                 setNotificationsSaved(false);
               }}
               data-testid="toggle-course-notifications"
@@ -481,22 +497,17 @@ export default function InstructorSettings() {
               <strong>Learner activity</strong>
 
               <p>
-                Get notified about important learner activity
-                in your courses.
+                Get notified about important learner activity in your courses.
               </p>
             </div>
 
             <button
               type="button"
-              className={`toggle ${
-                studentNotifications ? "on" : ""
-              }`}
+              className={`toggle ${studentNotifications ? "on" : ""}`}
               role="switch"
               aria-checked={studentNotifications}
               onClick={() => {
-                setStudentNotifications(
-                  !studentNotifications,
-                );
+                setStudentNotifications(!studentNotifications);
                 setNotificationsSaved(false);
               }}
               data-testid="toggle-student-notifications"
@@ -516,10 +527,7 @@ export default function InstructorSettings() {
           >
             {updateNotifications.isPending ? (
               <>
-                <Loader2
-                  size={15}
-                  className="animate-spin"
-                />
+                <Loader2 size={15} className="animate-spin" />
                 Saving...
               </>
             ) : (

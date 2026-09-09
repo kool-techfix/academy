@@ -1,23 +1,25 @@
-import type { ReactNode } from 'react';
-import { ChevronRight } from 'lucide-react';
-import { courses } from '@/lib/academy-data';
-import type { Course } from '@/lib/academy-types';
-import Link from 'next/link';
+import type { ReactNode } from "react";
+import { ChevronRight } from "lucide-react";
+import Link from "next/link";
+import { PublicCourse } from "@/Services/public-course.service";
+import { LearnerEnrollment } from "@/Services/enrollment.service";
+import { LearnerCourseProgress } from "@/Services/progress.service";
+import { getLearnerCourseStatus } from "@/lib/course-progress";
 
 export function Button({
   children,
-  variant = 'primary',
+  variant = "primary",
   onClick,
   disabled,
   testId,
-  type = 'button',
+  type = "button",
 }: {
   children: ReactNode;
-  variant?: 'primary' | 'secondary' | 'ghost';
+  variant?: "primary" | "secondary" | "ghost";
   onClick?: () => void;
   disabled?: boolean;
   testId?: string;
-  type?: 'button' | 'submit';
+  type?: "button" | "submit";
 }) {
   return (
     <button
@@ -34,24 +36,30 @@ export function Button({
 
 export function Badge({
   children,
-  tone = 'default',
+  tone = "default",
 }: {
   children: ReactNode;
-  tone?: 'default' | 'muted' | 'coral' | 'dark';
+  tone?: "default" | "muted" | "coral" | "dark";
 }) {
   return (
     <span
       className={`badge badge-${tone}`}
-      data-testid={`status-${String(children).toLowerCase().replaceAll(' ', '-')}`}
+      data-testid={`status-${String(children).toLowerCase().replaceAll(" ", "-")}`}
     >
       {children}
     </span>
   );
 }
 
-export function ProgressBar({ value, label = 'Progress' }: { value: number; label?: string }) {
+export function ProgressBar({
+  value,
+  label = "Progress",
+}: {
+  value: number;
+  label?: string;
+}) {
   return (
-    <div data-testid={`progress-${label.toLowerCase().replaceAll(' ', '-')}`}>
+    <div data-testid={`progress-${label.toLowerCase().replaceAll(" ", "-")}`}>
       <div className="progress-meta">
         <span>{label}</span>
         <strong>{value}%</strong>
@@ -63,77 +71,225 @@ export function ProgressBar({ value, label = 'Progress' }: { value: number; labe
   );
 }
 
+const courseAccents = [
+  "lime",
+  "coral",
+  "ink",
+  "sand",
+  "sage",
+  "stone",
+] as const;
+
 export function CourseCard({
   course,
-  mode = 'grid',
-  visitor = false,
+  index,
+  mode = "grid",
 }: {
-  course: Course;
-  mode?: 'grid' | 'list';
-  visitor?: boolean;
+  course: PublicCourse;
+  index: number;
+  mode?: "grid" | "list";
 }) {
-  const action =
-    visitor
-      ? 'Get Started'
-      : course.status === 'complete'
-      ? 'Review course'
-      : course.status === 'in-progress'
-        ? 'Continue learning'
-        : 'View course';
+  const courseNumber = String(index + 1).padStart(2, "0");
+
+  const accent = courseAccents[index % courseAccents.length];
 
   return (
-    <article className="card course-card" data-testid={`card-course-${course.id}`}>
+    <article
+      className="card course-card"
+      data-testid={`card-course-${course.id}`}
+    >
       <Link
         href={`/courses/${course.id}`}
-        className="course-art "
-        data-accent={course.accent}
+        className="course-art"
+        data-accent={accent}
         aria-label={`Open ${course.title}`}
       >
         <span
           className={`course-number ${
-            String(courses.indexOf(course) + 1).padStart(2, '0') === '03' ? 'text-white' : ''
+            courseNumber === "03" ? "text-white" : ""
           }`}
         >
-          {String(courses.indexOf(course) + 1).padStart(2, '0')}
+          {courseNumber}
         </span>
       </Link>
+
       <div className="course-card-body">
-        <div className="row" style={{ justifyContent: 'space-between' }}>
-          <Badge
-            tone={
-              course.status === 'complete'
-                ? 'coral'
-                : course.status === 'in-progress'
-                  ? 'default'
-                  : 'muted'
-            }
+        <div className="row" style={{ justifyContent: "space-between" }}>
+          <Badge tone="muted">Available</Badge>
+
+          <span
+            style={{
+              fontSize: 12,
+              color: "#85827a",
+            }}
           >
-            {course.status === 'complete'
-              ? 'Completed'
-              : course.status === 'in-progress'
-                ? 'In progress'
-                : 'Available'}
-          </Badge>
-          <span style={{ fontSize: 12, color: '#85827a' }}>{course.level}</span>
+            {course.modules.length}{" "}
+            {course.modules.length === 1 ? "module" : "modules"}
+          </span>
         </div>
-        <Link href={`/courses/${course.id}`} data-testid={`link-course-title-${course.id}`}>
+
+        <Link
+          href={`/courses/${course.id}`}
+          data-testid={`link-course-title-${course.id}`}
+        >
           <h3>{course.title}</h3>
         </Link>
-        <p>{course.shortDescription}</p>
-        {course.progress > 0 && (
-          <ProgressBar value={course.progress} label={course.progress === 100 ? 'Complete' : 'Your progress'} />
-        )}
+
+        <p>{course.description}</p>
+
         <div className="course-card-foot mt-3">
           <span>
-            {course.moduleCount} modules · {course.duration}
+            {course._count.enrollments}{" "}
+            {course._count.enrollments === 1 ? "learner" : "learners"}
           </span>
+
           <Link
-            href={visitor ? '/register' : `/courses/${course.id}`}
+            href={`/courses/${course.id}`}
             className="button button-ghost"
-            style={{ minHeight: 33, padding: '0 10px' }}
+            style={{
+              minHeight: 33,
+              padding: "0 10px",
+            }}
             data-testid={`link-course-action-${course.id}`}
           >
-            {visitor || mode === 'list' ? action : <ChevronRight size={16} aria-label={action} />}
+            {mode === "list" ? (
+              "View course"
+            ) : (
+              <ChevronRight size={16} aria-label="View course" />
+            )}
+          </Link>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+type LearnerCourseCardProps = {
+  enrollment: LearnerEnrollment;
+  progress: LearnerCourseProgress | null;
+  index: number;
+};
+
+export function LearnerCourseCard({
+  enrollment,
+  index,
+  progress,
+}: LearnerCourseCardProps) {
+  const course = enrollment.course;
+
+  const courseNumber = String(index + 1).padStart(2, "0");
+  const accent = courseAccents[index % courseAccents.length];
+
+  const status = getLearnerCourseStatus(progress);
+
+  const statusLabel = {
+    "not-started": "Not started",
+    "in-progress": "In progress",
+    completed: "Completed",
+  }[status];
+
+  const actionLabel = {
+    "not-started": "Start course",
+    "in-progress": "Continue learning",
+    completed: "Review course",
+  }[status];
+
+  return (
+    <article
+      className="card course-card"
+      data-testid={`card-enrolled-course-${course.id}`}
+    >
+      <Link
+        href={`/courses/${course.id}`}
+        className="course-art"
+        data-accent={accent}
+        aria-label={`Open ${course.title}`}
+      >
+        <span
+          className={`course-number ${
+            courseNumber === "03" ? "text-white" : ""
+          }`}
+        >
+          {courseNumber}
+        </span>
+      </Link>
+
+      <div className="course-card-body">
+        <div className="row" style={{ justifyContent: "space-between" }}>
+          <Badge tone="muted">{statusLabel}</Badge>
+
+          <span
+            style={{
+              fontSize: 12,
+              color: "#85827a",
+            }}
+          >
+            {course.modules.length}{" "}
+            {course.modules.length === 1 ? "module" : "modules"}
+          </span>
+        </div>
+
+        <Link
+          href={`/courses/${course.id}`}
+          data-testid={`link-enrolled-course-title-${course.id}`}
+        >
+          <h3>{course.title}</h3>
+        </Link>
+
+        <p>{course.description}</p>
+
+        {progress && (
+          <div style={{ marginTop: 14 }}>
+            <div
+              className="row"
+              style={{
+                justifyContent: "space-between",
+                marginBottom: 6,
+              }}
+            >
+              <span
+                style={{
+                  fontSize: 12,
+                  color: "#77766f",
+                }}
+              >
+                Course progress
+              </span>
+
+              {/* <span
+                style={{
+                  fontSize: 12,
+                  color: "#696b39",
+                }}
+              >
+                {progress.percentage}%
+              </span> */}
+            </div>
+
+            <ProgressBar value={progress.percentage} label="" />
+          </div>
+        )}
+
+        <div className="course-card-foot mt-3">
+          <span>
+            {course.modules.reduce(
+              (total, module) => total + module._count.lessons,
+              0,
+            )}{" "}
+            lessons
+          </span>
+
+          <Link
+            href={`/courses/${course.id}`}
+            className="button button-ghost cursor-pointer"
+            style={{
+              minHeight: 33,
+              padding: "0 10px",
+            }}
+            data-testid={`link-enrolled-course-action-${course.id}`}
+          >
+            {actionLabel}
+            <ChevronRight size={16} aria-label={actionLabel} />
           </Link>
         </div>
       </div>

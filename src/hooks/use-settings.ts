@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import {
   settingsApi,
+  UpdateAccountInput,
   type UpdateNotificationsInput,
   type UpdateProfileInput,
 } from "@/Services/settings.service";
@@ -35,6 +36,18 @@ export function useUpdateNotifications() {
   return useMutation({
     mutationFn: (data: UpdateNotificationsInput) =>
       settingsApi.updateNotifications(data),
+
+    onSuccess: (updatedSettings) => {
+      queryClient.setQueryData(settingsKeys.all, updatedSettings);
+    },
+  });
+}
+
+export function useUpdateAccount() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: UpdateAccountInput) => settingsApi.updateAccount(data),
 
     onSuccess: (updatedSettings) => {
       queryClient.setQueryData(settingsKeys.all, updatedSettings);

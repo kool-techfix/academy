@@ -16,6 +16,12 @@ export type UpdateProfileInput = {
   expertise?: string | null;
 };
 
+export type UpdateAccountInput = {
+  email?: string;
+  currentPassword?: string;
+  newPassword?: string;
+};
+
 export type UpdateNotificationsInput = {
   courseUpdatesNotification?: boolean;
   learnerActivityNotification?: boolean;
@@ -30,9 +36,7 @@ export const settingsApi = {
     return response.data.data;
   },
 
-  async updateProfile(
-    data: UpdateProfileInput,
-  ): Promise<UserSettings> {
+  async updateProfile(data: UpdateProfileInput): Promise<UserSettings> {
     const response = await api.patch<{
       message: string;
       data: UserSettings;
@@ -48,6 +52,15 @@ export const settingsApi = {
       message: string;
       data: UserSettings;
     }>("/settings/notifications", data);
+
+    return response.data.data;
+  },
+
+  async updateAccount(data: UpdateAccountInput): Promise<UserSettings> {
+    const response = await api.patch<{
+      message: string;
+      data: UserSettings;
+    }>("/settings/account", data);
 
     return response.data.data;
   },

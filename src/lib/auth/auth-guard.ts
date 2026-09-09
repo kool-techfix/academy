@@ -1,7 +1,4 @@
-import {
-  InstructorStatus,
-  Role,
-} from "@/generated/prisma/client";
+import { InstructorStatus, Role } from "@/generated/prisma/client";
 
 import { getSession } from "@/lib/auth/session";
 import { AuthRepository } from "@/Repositories/AuthRepository";
@@ -23,6 +20,16 @@ export async function requireAuth() {
 
   if (!user) {
     throw new Error("Unauthorized");
+  }
+
+  return user;
+}
+
+export async function requireLearner() {
+  const user = await requireAuth();
+
+  if (user.role !== Role.LEARNER) {
+    throw new Error("Forbidden");
   }
 
   return user;

@@ -39,6 +39,12 @@ enum QuizType {
   FINAL
 }
 
+enum EnrollmentStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
 model User {
   id           String     @id @default(cuid())
   name         String
@@ -135,7 +141,7 @@ model Enrollment {
   id          String    @id @default(cuid())
   userId      String
   courseId    String
-  status      String    @default("active")
+  status EnrollmentStatus @default(ACTIVE)
   enrolledAt  DateTime  @default(now())
   completedAt DateTime?
 

@@ -31,10 +31,7 @@ export class LessonRepository {
     });
   }
 
-  async update(
-    id: string,
-    data: Prisma.LessonUpdateInput,
-  ) {
+  async update(id: string, data: Prisma.LessonUpdateInput) {
     return prisma.lesson.update({
       where: { id },
       data,
@@ -62,16 +59,16 @@ export class LessonRepository {
   }
 
   async getModuleWithCourse(moduleId: string) {
-  return prisma.module.findUnique({
-    where: {
-      id: moduleId,
-    },
-    select: {
-      id: true,
-      courseId: true,
-    },
-  });
-}
+    return prisma.module.findUnique({
+      where: {
+        id: moduleId,
+      },
+      select: {
+        id: true,
+        courseId: true,
+      },
+    });
+  }
 
   async getNextOrder(moduleId: string) {
     const lastLesson = await prisma.lesson.findFirst({
@@ -87,5 +84,34 @@ export class LessonRepository {
     });
 
     return (lastLesson?.order ?? 0) + 1;
+  }
+  async findByIdForLearner(lessonId: string) {
+    return prisma.lesson.findUnique({
+      where: {
+        id: lessonId,
+      },
+      select: {
+        id: true,
+        title: true,
+        youtubeVideoLink: true,
+        notesFileUrl: true,
+        order: true,
+        module: {
+          select: {
+            id: true,
+            title: true,
+            order: true,
+            courseId: true,
+            course: {
+              select: {
+                id: true,
+                title: true,
+                status: true,
+              },
+            },
+          },
+        },
+      },
+    });
   }
 }

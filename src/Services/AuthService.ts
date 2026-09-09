@@ -41,6 +41,12 @@ type UpdateNotificationsInput = {
   learnerActivityNotification?: boolean;
 };
 
+type UpdateAccountInput = {
+  email?: string;
+  currentPassword?: string;
+  newPassword?: string;
+};
+
 export class AuthService {
   private readonly authRepository: AuthRepository;
 
@@ -284,38 +290,108 @@ export class AuthService {
     return this.authRepository.updateProfile(userId, updateData);
   }
 
-  async updateNotifications(
-  userId: string,
-  input: UpdateNotificationsInput,
-) {
-  const user =
-    await this.authRepository.findSafeById(userId);
+  async updateNotifications(userId: string, input: UpdateNotificationsInput) {
+    const user = await this.authRepository.findSafeById(userId);
 
-  if (!user) {
-    throw new Error("User not found");
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    const updateData: UpdateNotificationsInput = {};
+
+    if (input.courseUpdatesNotification !== undefined) {
+      updateData.courseUpdatesNotification = input.courseUpdatesNotification;
+    }
+
+    if (input.learnerActivityNotification !== undefined) {
+      updateData.learnerActivityNotification =
+        input.learnerActivityNotification;
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      throw new Error("No notification settings provided");
+    }
+
+    return this.authRepository.updateNotifications(userId, updateData);
   }
 
-  const updateData: UpdateNotificationsInput = {};
+  async updateAccount(userId: string, input: UpdateAccountInput) {
+    const user = await this.authRepository.findById(userId);
 
-  if (input.courseUpdatesNotification !== undefined) {
-    updateData.courseUpdatesNotification =
-      input.courseUpdatesNotification;
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    if (user.authMethod === AuthMethod.GOOGLE) {
+      throw new Error(
+        "Google-managed accounts cannot update email or password here",
+      );
+    }
+
+    const updateData: {
+      email?: string;
+      passwordHash?: string;
+    } = {};
+
+    if (input.email !== undefined) {
+      const email = input.email.trim().toLowerCase();
+
+      if (!email) {
+        throw new Error("Email is required");
+      }
+
+      if (email !== user.email) {
+        const existingUser = await this.authRepository.findByEmail(email);
+
+        if (existingUser && existingUser.id !== userId) {
+          throw new Error("An account with this email already exists");
+        }
+
+        updateData.email = email;
+      }
+    }
+
+    const hasCurrentPassword =
+      input.currentPassword !== undefined && input.currentPassword.length > 0;
+
+    const hasNewPassword =
+      input.newPassword !== undefined && input.newPassword.length > 0;
+
+    if (hasNewPassword && !hasCurrentPassword) {
+      throw new Error("Current password is required to change your password");
+    }
+
+    if (hasCurrentPassword && !hasNewPassword) {
+      throw new Error("New password is required to change your password");
+    }
+
+    if (hasNewPassword) {
+      if (!user.passwordHash) {
+        throw new Error("This account does not have a password");
+      }
+
+      const passwordIsValid = await comparePassword(
+        input.currentPassword!,
+        user.passwordHash,
+      );
+
+      if (!passwordIsValid) {
+        throw new Error("Current password is incorrect");
+      }
+
+      if (input.newPassword!.length < 8) {
+        throw new Error("New password must be at least 8 characters");
+      }
+
+      updateData.passwordHash = await hashPassword(input.newPassword!);
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      throw new Error("No account changes provided");
+    }
+
+    return this.authRepository.updateAccount(userId, updateData);
   }
-
-  if (input.learnerActivityNotification !== undefined) {
-    updateData.learnerActivityNotification =
-      input.learnerActivityNotification;
-  }
-
-  if (Object.keys(updateData).length === 0) {
-    throw new Error("No notification settings provided");
-  }
-
-  return this.authRepository.updateNotifications(
-    userId,
-    updateData,
-  );
-}
 
   private sanitizeUser(user: Awaited<ReturnType<AuthRepository["create"]>>) {
     const { passwordHash: _, ...safeUser } = user;
