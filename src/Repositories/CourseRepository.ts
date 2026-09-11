@@ -142,6 +142,23 @@ export class CourseRepository {
     });
   }
 
+  async findQuizCourseId(quizId: string) {
+  return prisma.quiz.findUnique({
+    where: {
+      id: quizId,
+    },
+    select: {
+      module: {
+        select: {
+          courseId: true,
+        },
+      },
+      courseId: true,
+      type: true,
+    },
+  });
+}
+
   async findPublished() {
     return prisma.course.findMany({
       where: {

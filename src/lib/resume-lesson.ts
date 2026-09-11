@@ -10,7 +10,7 @@ export function getResumeLesson(
   }
 
   const completedLessonIds = new Set(
-    progress.completedLessonIds,
+    progress.completedModuleIds,
   );
 
   const orderedLessons = course.modules

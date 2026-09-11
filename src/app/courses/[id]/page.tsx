@@ -1,85 +1,156 @@
 "use client";
 
 import { useState } from "react";
+
 import {
   ArrowLeft,
   ArrowRight,
-  BookOpen,
   Check,
   ChevronRight,
-  Clock3,
   LockKeyhole,
-  Users,
 } from "lucide-react";
+
 import { Badge, Button, ProgressBar } from "@/components/academy-ui";
+
 import { Page } from "@/components/page-shell";
-import { courses, getCourse } from "@/lib/academy-data";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 
+import { useLearnerCourse } from "@/hooks/learner/use-course";
+import { useLearnerCourseProgress } from "@/hooks/learner/use-progress";
+import { LoadingScreen } from "@/components/Loader";
+
 export default function CourseDetail() {
   const { id } = useParams<{ id: string }>();
-  const course = getCourse(id);
-  const [enrolled, setEnrolled] = useState(course.status !== "not-started");
+
+  const { data: course, isLoading, isError } = useLearnerCourse(id);
+
+  const {
+    data: progress,
+    isLoading: progressLoading,
+    isError: progressError,
+  } = useLearnerCourseProgress(id);
+
   const [saved, setSaved] = useState(false);
-  const firstOpen =
-    course.modules.find((module) => module.state === "current") ??
-    course.modules[0];
-  const actionLabel =
-    course.status === "complete"
-      ? "Review course"
-      : enrolled
-        ? "Continue course"
-        : "Enroll for free";
+
+  if (isLoading || progressLoading) {
+    return (
+      <Page>
+        <LoadingScreen message="Loading course..." />
+      </Page>
+    );
+  }
+
+  if (isError || !course || progressError || !progress) {
+    return (
+      <Page>
+        <p>Unable to load this course.</p>
+      </Page>
+    );
+  }
+
+  const completedModuleIds = progress.completedModuleIds;
+
+  /*
+   * Find the first module that:
+   * - has not been completed
+   * - is currently unlocked
+   * - has at least one lesson
+   */
+  const nextModuleIndex = course.modules.findIndex(
+    (module) => !completedModuleIds.includes(module.id),
+  );
+
+  const nextModule =
+    nextModuleIndex >= 0 ? course.modules[nextModuleIndex] : null;
+
+  const nextLesson = nextModule?.lessons[0] ?? null;
+
+  const allModulesCompleted =
+    course.modules.length > 0 &&
+    course.modules.every((module) => completedModuleIds.includes(module.id));
 
   return (
     <Page>
       <Link
         href="/catalog"
         className="row"
-        style={{ color: "#77766f", fontSize: 13, marginBottom: 22 }}
+        style={{
+          color: "#77766f",
+          fontSize: 13,
+          marginBottom: 22,
+        }}
         data-testid="link-back-catalog"
       >
-        <ArrowLeft size={15} /> Back to catalog
+        <ArrowLeft size={15} />
+        Back to catalog
       </Link>
+
       <section className="detail-hero">
         <div className="detail-hero-copy">
-          <Badge tone={course.status === "complete" ? "coral" : "default"}>
+          {/*
+          <Badge
+            tone={
+              course.status === "complete"
+                ? "coral"
+                : "default"
+            }
+          >
             {course.category}
           </Badge>
+          */}
+
           <h1 style={{ marginTop: 16 }}>{course.title}</h1>
+
           <p>{course.description}</p>
+
+          {/*
           <div className="meta-row">
             <span>
-              <Clock3 size={15} /> {course.duration}
+              <Clock3 size={15} />
+              {course.duration}
             </span>
+
             <span>
-              <BookOpen size={15} /> {course.moduleCount} modules
+              <BookOpen size={15} />
+              {course.moduleCount} modules
             </span>
+
             <span>
-              <Users size={15} /> {course.level}
+              <Users size={15} />
+              {course.level}
             </span>
           </div>
+          */}
+
           <div className="row" style={{ marginTop: 28 }}>
-            <Link
-              href={
-                course.status === "complete"
-                  ? `/courses/${course.id}/certificate`
-                  : enrolled
-                    ? `/courses/${course.id}/lessons/${firstOpen.id}`
-                    : "#"
-              }
-              className="button button-primary"
-              onClick={(event) => {
-                if (!enrolled && course.status !== "complete") {
-                  event.preventDefault();
-                  setEnrolled(true);
-                }
-              }}
-              data-testid="link-course-primary-action"
-            >
-              {actionLabel} <ArrowRight size={16} />
-            </Link>
+            {nextLesson ? (
+              <Link
+                href={`/courses/${course.id}/lessons/${nextLesson.id}`}
+                className="button button-primary"
+                data-testid="link-course-primary-action"
+              >
+                {progress.completedModules > 0
+                  ? "Continue learning"
+                  : "Start course"}
+                <ArrowRight size={16} />
+              </Link>
+            ) : allModulesCompleted ? (
+              <span
+                className="button button-primary"
+                data-testid="link-course-primary-action"
+              >
+                Modules complete
+              </span>
+            ) : (
+              <span
+                className="button button-primary"
+                data-testid="link-course-primary-action"
+              >
+                Course unavailable
+              </span>
+            )}
+
             <Button
               variant="ghost"
               onClick={() => setSaved(!saved)}
@@ -89,18 +160,25 @@ export default function CourseDetail() {
             </Button>
           </div>
         </div>
-        <div className="detail-art" data-accent={course.accent}>
-          <span
-            className="eyebrow"
-            style={{ color: course.accent === "ink" ? "#d8e85c" : "#585a35" }}
-          >
-            KoolTech / {course.category}
-          </span>
+
+        <div className="detail-art">
+          <span className="eyebrow">KoolTech / Academy</span>
+
           <span className="course-number">
-            {String(courses.indexOf(course) + 1).padStart(2, "0")}
+            {String(course.modules.length).padStart(2, "0")}
           </span>
-          <span style={{ fontSize: 13, fontWeight: 700 }}>
-            Taught by {course.instructor}
+
+          <span
+            style={{
+              fontSize: 13,
+              fontWeight: 700,
+            }}
+          >
+            {course.authors.length > 0
+              ? `Taught by ${course.authors
+                  .map((author) => author.name)
+                  .join(", ")}`
+              : "KoolTech Academy"}
           </span>
         </div>
       </section>
@@ -110,72 +188,156 @@ export default function CourseDetail() {
           <div className="panel" style={{ paddingBottom: 12 }}>
             <div className="section-head">
               <h2>Course modules</h2>
-              <Badge tone="muted">{course.moduleCount} modules</Badge>
+
+              <Badge tone="muted">
+                {progress.completedModules}/{progress.totalModules} completed
+              </Badge>
             </div>
-            {course.progress > 0 && (
-              <ProgressBar value={course.progress} label="Course progress" />
+
+            {progress.percentage > 0 && (
+              <ProgressBar
+                value={progress.percentage}
+                label="Course progress"
+              />
             )}
           </div>
+
           <div className="module-list">
-            {course.modules.map((module, index) => (
-              <div
-                className="module-row"
-                key={module.id}
-                data-testid={`module-row-${module.id}`}
-              >
-                <div className={`module-status ${module.state}`}>
-                  {module.state === "complete" ? (
-                    <Check size={15} />
-                  ) : module.state === "locked" ? (
-                    <LockKeyhole size={14} />
+            {course.modules.map((module, index) => {
+              const isModuleCompleted = completedModuleIds.includes(module.id);
+
+              const isNextModule = index === nextModuleIndex;
+
+              const firstLesson = module.lessons[0];
+
+              return (
+                <div
+                  className="module-row"
+                  key={module.id}
+                  data-testid={`module-row-${module.id}`}
+                >
+                  <div
+                    className={`module-status ${
+                      isModuleCompleted ? "complete" : ""
+                    }`}
+                  >
+                    {isModuleCompleted ? (
+                      <Check size={15} />
+                    ) : (
+                      <span
+                        style={{
+                          fontSize: 12,
+                        }}
+                      >
+                        {index + 1}
+                      </span>
+                    )}
+                  </div>
+
+                  <div>
+                    <h4>{module.title}</h4>
+
+                    <p>
+                      Module {index + 1} · {module.lessons.length}{" "}
+                      {module.lessons.length === 1 ? "lesson" : "lessons"}
+                    </p>
+                  </div>
+
+                  {isModuleCompleted ? (
+                    firstLesson ? (
+                      <Link
+                        href={`/courses/${course.id}/lessons/${firstLesson.id}`}
+                        className="button button-ghost module-action"
+                        data-testid={`link-module-${module.id}`}
+                      >
+                        Review
+                        <ChevronRight size={14} />
+                      </Link>
+                    ) : (
+                      <span
+                        className="button button-ghost module-action"
+                        aria-disabled="true"
+                        data-testid={`module-review-unavailable-${module.id}`}
+                      >
+                        Review
+                      </span>
+                    )
+                  ) : isNextModule ? (
+                    firstLesson ? (
+                      <Link
+                        href={`/courses/${course.id}/lessons/${firstLesson.id}`}
+                        className="button button-ghost module-action"
+                        data-testid={`link-module-${module.id}`}
+                      >
+                        Start
+                        <ChevronRight size={14} />
+                      </Link>
+                    ) : (
+                      <span
+                        className="button button-ghost module-action"
+                        aria-disabled="true"
+                        data-testid={`module-start-unavailable-${module.id}`}
+                      >
+                        Start
+                      </span>
+                    )
                   ) : (
-                    <span style={{ fontSize: 12 }}>{index + 1}</span>
+                    <span
+                      className="button button-ghost module-action"
+                      aria-disabled="true"
+                      data-testid={`link-module-locked-${module.id}`}
+                    >
+                      <LockKeyhole size={14} />
+                      Locked
+                    </span>
                   )}
                 </div>
-                <div>
-                  <h4>{module.title}</h4>
-                  <p>
-                    {module.type === "quiz"
-                      ? "Knowledge check"
-                      : `Module ${index + 1} · ${module.duration}`}
-                  </p>
-                </div>
-                {module.state !== "locked" && (
-                  <Link
-                    href={
-                      module.type === "quiz"
-                        ? `/courses/${course.id}/quiz`
-                        : `/courses/${course.id}/lessons/${module.id}`
-                    }
-                    className="button button-ghost module-action"
-                    data-testid={`link-module-${module.id}`}
-                  >
-                    {module.state === "complete" ? "Review" : "Start"}{" "}
-                    <ChevronRight size={14} />
-                  </Link>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
+
         <aside className="card side-card">
           <h3>Your instructor</h3>
-          <div className="instructor">
-            <div className="instructor-avatar">
-              {course.instructor
-                .split(" ")
-                .map((part) => part[0])
-                .join("")}
+
+          {course.authors.length > 0 ? (
+            <div className="instructor">
+              <div className="instructor-avatar">
+                {course.authors[0].name
+                  ? course.authors[0].name
+                      .split(" ")
+                      .map((part) => part[0])
+                      .join("")
+                  : "KA"}
+              </div>
+
+              <div>
+                <strong>{course.authors[0].name}</strong>
+
+                <small>Instructor</small>
+              </div>
             </div>
-            <div>
-              <strong>{course.instructor}</strong>
-              <small>Working technologist</small>
-            </div>
-          </div>
-          <p style={{ color: "#77766f", fontSize: 13 }}>
+          ) : (
+            <p
+              style={{
+                color: "#77766f",
+                fontSize: 13,
+              }}
+            >
+              KoolTech Academy
+            </p>
+          )}
+
+          <p
+            style={{
+              color: "#77766f",
+              fontSize: 13,
+            }}
+          >
             “The best technical knowledge is the kind you can explain to someone
             else on a busy Tuesday.”
           </p>
+
           <div
             style={{
               borderTop: "1px solid #ece9e1",
@@ -184,7 +346,14 @@ export default function CourseDetail() {
             }}
           >
             <span className="eyebrow">What you will practise</span>
-            <p style={{ color: "#68675f", fontSize: 13, marginBottom: 0 }}>
+
+            <p
+              style={{
+                color: "#68675f",
+                fontSize: 13,
+                marginBottom: 0,
+              }}
+            >
               Troubleshooting · Clear notes · Real decisions
             </p>
           </div>

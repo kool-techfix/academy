@@ -17,13 +17,14 @@ import { useParams } from "next/navigation";
 
 import { Button } from "@/components/academy-ui";
 import { Page } from "@/components/page-shell";
+import { LoadingScreen } from "@/components/Loader";
 
-import { usePublicCourse } from "@/hooks/use-public-courses";
+import { downloadTextFile, slugify } from "@/lib/downloads";
+import { getYouTubeEmbedUrl } from "@/lib/getUrl";
+
 import { useLearnerLesson } from "@/hooks/learner/use-lesson";
-import {
-  useCompleteLesson,
-  useLearnerCourseProgress,
-} from "@/hooks/learner/use-progress";
+import { useLearnerCourseProgress } from "@/hooks/learner/use-progress";
+import { useLearnerCourse } from "@/hooks/learner/use-course";
 
 export default function LessonViewer() {
   const { id, lessonId } = useParams<{
@@ -31,121 +32,108 @@ export default function LessonViewer() {
     lessonId: string;
   }>();
 
-  const [downloaded, setDownloaded] = useState(false);
+  const { data: lesson, isLoading, isError } = useLearnerLesson(lessonId);
 
   const {
     data: course,
     isLoading: courseLoading,
     isError: courseError,
-  } = usePublicCourse(id);
+  } = useLearnerCourse(id);
 
-  const {
-    data: lesson,
-    isLoading: lessonLoading,
-    isError: lessonError,
-  } = useLearnerLesson(lessonId);
+  const { data: progress } = useLearnerCourseProgress(id);
 
-  const {
-    data: progress,
-    isLoading: progressLoading,
-  } = useLearnerCourseProgress(id);
+  const [downloaded, setDownloaded] = useState(false);
 
-  const completeLesson = useCompleteLesson(id);
-
-  const isLoading =
-    courseLoading ||
-    lessonLoading ||
-    progressLoading;
-
-  if (isLoading) {
+  if (isLoading || courseLoading) {
     return (
       <Page>
-        <div className="lesson-copy">
-          <p>Loading lesson...</p>
-        </div>
+        <LoadingScreen message="Loading lesson..." />
       </Page>
     );
   }
 
-  if (
-    courseError ||
-    lessonError ||
-    !course ||
-    !lesson
-  ) {
+  if (isError || !lesson || courseError || !course) {
     return (
       <Page>
-        <div className="lesson-copy">
-          <h1>Unable to load lesson</h1>
-          <p>
-            The lesson could not be loaded. It may no
-            longer be available or you may not have
-            access to it.
-          </p>
-
-          <Link
-            href={`/courses/${id}`}
-            className="button button-primary"
-          >
-            <ArrowLeft size={15} />
-            Back to course
-          </Link>
-        </div>
+        <p>Unable to load this lesson.</p>
       </Page>
     );
   }
 
-  const currentModule = course.modules.find(
+  const currentModuleIndex = course.modules.findIndex(
     (module) => module.id === lesson.module.id,
   );
 
-  const lessons = currentModule?.lessons ?? [];
+  const currentModule = course.modules[currentModuleIndex];
 
-  const lessonIndex = lessons.findIndex(
-    (item) => item.id === lesson.id,
+  if (!currentModule) {
+    return (
+      <Page>
+        <p>Unable to determine the current module.</p>
+      </Page>
+    );
+  }
+
+  const currentLessonIndex = currentModule.lessons.findIndex(
+    (currentLesson) => currentLesson.id === lesson.id,
   );
 
-  const currentLessonIndex =
-    lessonIndex >= 0 ? lessonIndex : 0;
+  const currentModuleCompleted =
+    progress?.completedModuleIds.includes(currentModule.id) ?? false;
 
   const previousLesson =
-    lessons[currentLessonIndex - 1];
+    currentLessonIndex > 0
+      ? currentModule.lessons[currentLessonIndex - 1]
+      : null;
 
   const nextLesson =
-    lessons[currentLessonIndex + 1];
+    currentLessonIndex < currentModule.lessons.length - 1
+      ? currentModule.lessons[currentLessonIndex + 1]
+      : null;
 
-  const completedLessonIds =
-    progress?.completedLessonIds ?? [];
+  const nextModule =
+    currentModuleIndex < course.modules.length - 1
+      ? course.modules[currentModuleIndex + 1]
+      : null;
 
-  const isCompleted =
-    completedLessonIds.includes(lesson.id);
+  const previousModule =
+    currentModuleIndex > 0 ? course.modules[currentModuleIndex - 1] : null;
 
-  const handleComplete = () => {
-    if (isCompleted || completeLesson.isPending) {
-      return;
-    }
+  const previousModuleLesson =
+    previousModule?.lessons[previousModule.lessons.length - 1] ?? null;
 
-    completeLesson.mutate(lesson.id);
-  };
+  const nextModuleLesson = nextModule?.lessons[0] ?? null;
 
-  const handleDownloadNotes = () => {
-    if (!lesson.notesFileUrl) {
-      return;
-    }
+  const isLastLessonInModule = !nextLesson;
 
-    window.open(
-      lesson.notesFileUrl,
-      "_blank",
-      "noopener,noreferrer",
+  const hasNextModule = Boolean(nextModuleLesson);
+
+  const canTakeQuiz =
+    isLastLessonInModule &&
+    !currentModuleCompleted &&
+    Boolean(currentModule.quiz);
+
+  const canGoToNextModule =
+    isLastLessonInModule && currentModuleCompleted && Boolean(nextModuleLesson);
+
+  const courseId = lesson.module.courseId;
+  const courseTitle = lesson.module.course.title;
+
+  const downloadNotes = () => {
+    downloadTextFile(
+      `${slugify(lesson.title)}-notes.txt`,
+      `${lesson.title}\n\nField notes from KoolTech Fix IT Academy.\n\nRemember: name the symptom, test one thing, record what changed.`,
     );
 
     setDownloaded(true);
   };
 
+  const videoEmbedUrl = getYouTubeEmbedUrl(lesson.youtubeVideoLink);
+
   return (
     <Page>
       <Link
-        href={`/courses/${course.id}`}
+        href={`/courses/${courseId}`}
         className="row"
         style={{
           color: "#77766f",
@@ -155,117 +143,78 @@ export default function LessonViewer() {
         data-testid="link-back-course"
       >
         <ArrowLeft size={15} />
-        {course.title}
+        {courseTitle}
       </Link>
 
       <div className="lesson-layout">
         <section>
-          <div
-            className="video-frame"
-            data-testid="video-player"
-          >
-            <iframe
-              src={lesson.youtubeVideoLink}
-              title={`${lesson.title} lesson video`}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              referrerPolicy="strict-origin-when-cross-origin"
-              allowFullScreen
-            />
+          <div className="video-frame" data-testid="video-player">
+            {videoEmbedUrl ? (
+              <iframe
+                src={videoEmbedUrl}
+                title={`${lesson.title} lesson video`}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                referrerPolicy="strict-origin-when-cross-origin"
+                allowFullScreen
+              />
+            ) : (
+              <p>Unable to load this lesson video.</p>
+            )}
           </div>
 
           <div className="lesson-copy">
-            <span className="eyebrow">
-              Lesson {currentLessonIndex + 1} of{" "}
-              {lessons.length}
-            </span>
+            <span className="eyebrow">Module {lesson.module.order + 1}</span>
 
-            <h1 style={{ marginTop: 10 }}>
-              {lesson.title}
-            </h1>
+            <h1 style={{ marginTop: 10 }}>{lesson.title}</h1>
 
             <p>
-              Work through the lesson carefully,
-              follow the examples, and test what you
-              learn as you go.
+              Good technicians slow down just enough to see the pattern. In this
+              lesson, you will work through the clues, the checks, and the small
+              decision that gets you unstuck.
             </p>
 
-            <div className="card notes">
-              <div className="section-head">
-                <h3>
-                  <FileText
-                    size={18}
-                    style={{
-                      verticalAlign: "middle",
-                      marginRight: 7,
-                    }}
-                  />
-                  Lecture notes
-                </h3>
+            {lesson.notesFileUrl && (
+              <div className="card notes">
+                <div className="section-head">
+                  <h3>
+                    <FileText
+                      size={18}
+                      style={{
+                        verticalAlign: "middle",
+                        marginRight: 7,
+                      }}
+                    />
+                    Lecture notes
+                  </h3>
 
-                {lesson.notesFileUrl ? (
-                  <Button
-                    variant="ghost"
-                    onClick={handleDownloadNotes}
-                    testId="button-download-notes"
+                  <a
+                    href={lesson.notesFileUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="button button-ghost"
+                    data-testid="button-download-notes"
+                    onClick={() => setDownloaded(true)}
                   >
                     <Download size={15} />
-
-                    {downloaded
-                      ? "Opened"
-                      : "Download notes"}
-                  </Button>
-                ) : (
-                  <span
-                    className="eyebrow"
-                    style={{ color: "#77766f" }}
-                  >
-                    No notes available
-                  </span>
-                )}
+                    {downloaded ? "Downloaded" : "Download notes"}
+                  </a>
+                </div>
               </div>
-            </div>
-
-            <div className="card">
-              <div className="section-head">
-                <h3>Lesson progress</h3>
-
-                {isCompleted && (
-                  <span
-                    className="eyebrow"
-                    style={{ color: "#696b39" }}
-                  >
-                    Completed
-                  </span>
-                )}
-              </div>
-
-              <Button
-                variant={
-                  isCompleted
-                    ? "ghost"
-                    : "primary"
-                }
-                onClick={handleComplete}
-                disabled={
-                  isCompleted ||
-                  completeLesson.isPending
-                }
-                testId="button-complete-lesson"
-              >
-                <Check size={15} />
-
-                {completeLesson.isPending
-                  ? "Saving..."
-                  : isCompleted
-                    ? "Lesson completed"
-                    : "Mark as complete"}
-              </Button>
-            </div>
+            )}
 
             <div className="lesson-nav">
               {previousLesson ? (
                 <Link
-                  href={`/courses/${course.id}/lessons/${previousLesson.id}`}
+                  href={`/courses/${courseId}/lessons/${previousLesson.id}`}
+                  className="button button-ghost"
+                  data-testid="link-previous-lesson"
+                >
+                  <ArrowLeft size={15} />
+                  Previous
+                </Link>
+              ) : previousModuleLesson ? (
+                <Link
+                  href={`/courses/${courseId}/lessons/${previousModuleLesson.id}`}
                   className="button button-ghost"
                   data-testid="link-previous-lesson"
                 >
@@ -276,24 +225,44 @@ export default function LessonViewer() {
                 <span />
               )}
 
-              {nextLesson ? (
+              {canTakeQuiz ? (
                 <Link
-                  href={`/courses/${course.id}/lessons/${nextLesson.id}`}
-                  className="button button-primary"
-                  data-testid="link-next-lesson"
-                >
-                  Next lesson
-                  <ArrowRight size={15} />
-                </Link>
-              ) : (
-                <Link
-                  href={`/courses/${course.id}/quiz`}
+                  href={`/courses/${courseId}/modules/${currentModule.id}/quiz`}
                   className="button button-primary"
                   data-testid="link-course-quiz"
                 >
-                  Take the quiz
+                  Take the Quiz
                   <ArrowRight size={15} />
                 </Link>
+              ) : nextLesson ? (
+                <Link
+                  href={`/courses/${courseId}/lessons/${nextLesson.id}`}
+                  className="button button-primary"
+                  data-testid="link-next-lesson"
+                >
+                  Next
+                  <ArrowRight size={15} />
+                </Link>
+              ) : canGoToNextModule ? (
+                <Link
+                  href={`/courses/${courseId}/lessons/${nextModuleLesson!.id}`}
+                  className="button button-primary"
+                  data-testid="link-next-module"
+                >
+                  Next
+                  <ArrowRight size={15} />
+                </Link>
+              ) : currentModuleCompleted && !hasNextModule ? (
+                <Link
+                  href={`/courses/${courseId}`}
+                  className="button button-primary"
+                  data-testid="link-course-complete"
+                >
+                  Back to course
+                  <ArrowRight size={15} />
+                </Link>
+              ) : (
+                <span />
               )}
             </div>
           </div>
@@ -302,56 +271,57 @@ export default function LessonViewer() {
         <aside className="card lesson-side">
           <h3>In this course</h3>
 
-          {course.modules.map((module) => {
-            const moduleLessons =
-              module.lessons;
+          {course.modules.map((module, index) => {
+            const moduleCompleted =
+              progress?.completedModuleIds.includes(module.id) ?? false;
+
+            const isCurrentModule = index === currentModuleIndex;
+
+            const isModuleUnlocked =
+              index === 0 ||
+              progress?.completedModuleIds.includes(
+                course.modules[index - 1].id,
+              ) === true;
+
+            const moduleLesson = module.lessons[0];
+
+            if (!isModuleUnlocked || !moduleLesson) {
+              return (
+                <div
+                  key={module.id}
+                  className="lesson-side-row w-full"
+                  data-testid={`link-lesson-sidebar-${module.id}`}
+                >
+                  <LockKeyhole size={14} />
+
+                  <span>
+                    {index + 1}. {module.title}
+                  </span>
+                </div>
+              );
+            }
 
             return (
-              <div key={module.id}>
-                <div
-                  className="eyebrow"
-                  style={{
-                    marginTop: 16,
-                    marginBottom: 8,
-                  }}
-                >
-                  {module.title}
-                </div>
-
-                {moduleLessons.map(
-                  (moduleLesson) => {
-                    const completed =
-                      completedLessonIds.includes(
-                        moduleLesson.id,
-                      );
-
-                    const active =
-                      moduleLesson.id ===
-                      lesson.id;
-
-                    return (
-                      <Link
-                        href={`/courses/${course.id}/lessons/${moduleLesson.id}`}
-                        key={moduleLesson.id}
-                        className={`lesson-side-row ${
-                          active ? "active" : ""
-                        }`}
-                        data-testid={`link-lesson-sidebar-${moduleLesson.id}`}
-                      >
-                        {completed ? (
-                          <Check size={14} />
-                        ) : (
-                          <Play size={14} />
-                        )}
-
-                        <span>
-                          {moduleLesson.title}
-                        </span>
-                      </Link>
-                    );
-                  },
+              <Link
+                key={module.id}
+                href={`/courses/${courseId}/lessons/${moduleLesson.id}`}
+                className={`lesson-side-row w-full ${
+                  isCurrentModule ? "active" : ""
+                }`}
+                data-testid={`link-lesson-sidebar-${module.id}`}
+              >
+                {moduleCompleted ? (
+                  <Check size={14} />
+                ) : isCurrentModule ? (
+                  <Play size={14} />
+                ) : (
+                  <Play size={14} />
                 )}
-              </div>
+
+                <span>
+                  {index + 1}. {module.title}
+                </span>
+              </Link>
             );
           })}
         </aside>

@@ -1,11 +1,25 @@
 import { api } from "@/lib/api/axios";
 
+export type LearnerFinalQuizProgress = {
+  attempted: boolean;
+  passed: boolean;
+  lastAttemptAt: string | null;
+};
+
 export type LearnerCourseProgress = {
   courseId: string;
-  totalLessons: number;
-  completedLessons: number;
+
+  totalModules: number;
+  completedModules: number;
   percentage: number;
-  completedLessonIds: string[];
+
+  completedModuleIds: string[];
+
+  finalQuiz: LearnerFinalQuizProgress;
+
+  completed: boolean;
+  certificateEligible: boolean;
+
   lastActivityAt: string | null;
 };
 
@@ -23,25 +37,32 @@ type CompleteLessonResponse = {
   message: string;
 };
 
+type AllCourseProgressResponse = {
+  data: LearnerCourseProgress[];
+};
+
 export const learnerProgressApi = {
-  async getCourseProgress(
-    courseId: string,
-  ): Promise<LearnerCourseProgress> {
-    const response =
-      await api.get<CourseProgressResponse>(
-        `/learner/progress/${courseId}`,
-      );
+  async getCourseProgress(courseId: string): Promise<LearnerCourseProgress> {
+    const response = await api.get<CourseProgressResponse>(
+      `/learner/progress/${courseId}`,
+    );
 
     return response.data.data;
   },
 
-  async completeLesson(
-    lessonId: string,
-  ) {
+  async completeLesson(lessonId: string) {
+    const response = await api.post<CompleteLessonResponse>(
+      `/learner/lessons/${lessonId}/complete`,
+    );
+
+    return response.data.data;
+  },
+
+  
+
+  async getAllCourseProgress(): Promise<LearnerCourseProgress[]> {
     const response =
-      await api.post<CompleteLessonResponse>(
-        `/learner/lessons/${lessonId}/complete`,
-      );
+      await api.get<AllCourseProgressResponse>("/learner/progress");
 
     return response.data.data;
   },

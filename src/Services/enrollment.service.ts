@@ -4,6 +4,9 @@ export type LearnerEnrollmentModule = {
   id: string;
   title: string;
   order: number;
+  quiz: {
+    id: string;
+  } | null;
   _count: {
     lessons: number;
   };

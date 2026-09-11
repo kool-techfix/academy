@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 
-import { LearnerProgressService } from "@/Services/ProgressService";
 import { requireLearner } from "@/lib/auth/auth-guard";
+import { LearnerProgressService } from "@/Services/ProgressService";
 
-const progressService = new LearnerProgressService();
+const learnerProgressService = new LearnerProgressService();
 
 export async function GET(
   _request: Request,
@@ -14,13 +14,13 @@ export async function GET(
   },
 ) {
   try {
-    const learner = await requireLearner();
+    const user = await requireLearner();
 
     const { courseId } = await params;
 
     const progress =
-      await progressService.getCourseProgress(
-        learner.id,
+      await learnerProgressService.getCourseProgress(
+        user.id,
         courseId,
       );
 
@@ -28,11 +28,6 @@ export async function GET(
       data: progress,
     });
   } catch (error) {
-    console.error(
-      "GET /api/learner/progress/[courseId] error:",
-      error,
-    );
-
     if (
       error instanceof Error &&
       error.message === "Unauthorized"
@@ -63,10 +58,26 @@ export async function GET(
       );
     }
 
+    if (
+      error instanceof Error &&
+      error.message ===
+        "You are not enrolled in this course"
+    ) {
+      return NextResponse.json(
+        {
+          message: "You are not enrolled in this course",
+        },
+        { status: 403 },
+      );
+    }
+
+    console.error(
+      "Failed to get learner course progress:",
+      error,
+    );
+
     return NextResponse.json(
-      {
-        message: "Failed to fetch course progress",
-      },
+      { message: "Failed to get course progress" },
       { status: 500 },
     );
   }

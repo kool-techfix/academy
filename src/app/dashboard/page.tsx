@@ -3,59 +3,76 @@
 import { ArrowRight, CheckCircle2, Play, Trophy } from "lucide-react";
 import { LearnerCourseCard, ProgressBar } from "@/components/academy-ui";
 import { Page } from "@/components/page-shell";
-import { activity } from "@/lib/academy-data";
+import { useLearnerRecentActivity } from "@/hooks/learner/use-dashboard";
 import Link from "next/link";
 import { useLearnerEnrollments } from "@/hooks/learner/use-enrollments";
 import { useCurrentUser } from "@/hooks/auth/use-user";
-import { useLearnerDashboardProgress } from "@/hooks/learner/use-dashboard-progress";
+import { useLearnerAllCourseProgress } from "@/hooks/learner/use-progress";
 import { Loader } from "@/components/Loader";
 import { getContinueLearningCourse } from "@/lib/course-progress";
-import { usePublicCourse } from "@/hooks/use-public-courses";
-import { getResumeLesson } from "@/lib/resume-lesson";
 
 export default function Dashboard() {
-  const { data: enrollments, isLoading, isError } = useLearnerEnrollments();
+  const {
+    data: enrollments,
+    isLoading: enrollmentsLoading,
+    isError: enrollmentsError,
+  } = useLearnerEnrollments();
 
-  const courseIds = enrollments?.map((enrollment) => enrollment.courseId) ?? [];
+  const {
+    data: allProgress,
+    isLoading: progressLoading,
+    isError: progressError,
+  } = useLearnerAllCourseProgress();
 
-  const progressQueries = useLearnerDashboardProgress(courseIds);
+  const dashboardLoading = enrollmentsLoading || progressLoading;
 
-  const progressLoading = progressQueries.some((query) => query.isLoading);
+  const dashboardError = enrollmentsError || progressError;
 
-  const progressError = progressQueries.some((query) => query.isError);
-
-  const dashboardLoading = isLoading || progressLoading;
-
-  const dashboardError = isError || progressError;
+  const progressByCourseId = new Map(
+    (allProgress ?? []).map((progress) => [progress.courseId, progress]),
+  );
 
   const enrolledCourses =
-    enrollments?.map((enrollment, index) => ({
+    enrollments?.map((enrollment) => ({
       enrollment,
-      progress: progressQueries[index]?.data ?? null,
+      progress: progressByCourseId.get(enrollment.courseId) ?? null,
     })) ?? [];
-
-  const continueLearningCourse = getContinueLearningCourse(enrolledCourses);
 
   const { data: user } = useCurrentUser();
   const firstName = user?.name?.trim().split(/\s+/)[0] || "there";
 
-  const resumeCourseId = continueLearningCourse?.enrollment.courseId ?? "";
+  const continueCourse = getContinueLearningCourse(enrolledCourses);
 
-  const { data: resumeCourse, isLoading: resumeCourseLoading } =
-    usePublicCourse(resumeCourseId);
+  const resumeHref = continueCourse
+    ? `/courses/${continueCourse.enrollment.courseId}`
+    : null;
 
-  const resumeLesson =
-    resumeCourse && continueLearningCourse
-      ? getResumeLesson(resumeCourse, continueLearningCourse.progress)
-      : null;
+    const {
+  data: recentActivity,
+  isLoading: activityLoading,
+  isError: activityError,
+} = useLearnerRecentActivity();
 
-  const continueLearningCourses = enrolledCourses.filter(
-    ({ progress }) => !progress || progress.percentage < 100,
-  );
+  const enrolledCourseCount = enrolledCourses.length;
 
-  const completedCourses = enrolledCourses.filter(
+  const inProgressCourseCount = enrolledCourses.filter(
+    ({ progress }) =>
+      progress !== null && progress.percentage > 0 && progress.percentage < 100,
+  ).length;
+
+  const completedCourseCount = enrolledCourses.filter(
     ({ progress }) => progress?.percentage === 100,
-  );
+  ).length;
+
+  const overallProgress =
+    enrolledCourseCount === 0
+      ? 0
+      : Math.round(
+          enrolledCourses.reduce(
+            (total, { progress }) => total + (progress?.percentage ?? 0),
+            0,
+          ) / enrolledCourseCount,
+        );
 
   return (
     <Page>
@@ -71,9 +88,9 @@ export default function Dashboard() {
             You are building the kind of practical knowledge that shows up in
             the work. Two focused sessions this week and you are on track.
           </p>
-          {resumeLesson ? (
+          {resumeHref ? (
             <Link
-              href={`/courses/${resumeCourse?.id}/lessons/${resumeLesson.id}`}
+              href={resumeHref}
               className="button button-primary"
               data-testid="link-resume-learning"
             >
@@ -91,15 +108,26 @@ export default function Dashboard() {
         </div>
         <div className="card stat-card" data-testid="card-learning-stats">
           <span className="eyebrow" style={{ color: "#696b39" }}>
-            This week
+            Your learning
           </span>
+
           <div>
-            <strong>4.6</strong>
-            <span> hours learning</span>
+            <strong>{overallProgress}%</strong>
+            <span> overall progress</span>
           </div>
-          <ProgressBar value={64} label="Weekly target" />
+
+          <ProgressBar
+            value={overallProgress}
+            label="Overall course progress"
+          />
+
           <small style={{ color: "#696b39" }}>
-            2 sessions left to hit your target
+            {enrolledCourseCount}{" "}
+            {enrolledCourseCount === 1 ? "course" : "courses"} enrolled
+            {" · "}
+            {inProgressCourseCount} in progress
+            {" · "}
+            {completedCourseCount} completed
           </small>
         </div>
       </section>
@@ -108,7 +136,7 @@ export default function Dashboard() {
         <h2>Continue learning</h2>
 
         <Link
-          href="/catalog"
+          href="/courses"
           className="button button-ghost"
           data-testid="link-see-all-courses"
         >
@@ -154,32 +182,73 @@ export default function Dashboard() {
 
       <div className="activity-grid">
         <section className="card panel">
-          <div className="section-head">
-            <h2>Recent activity</h2>
-            <span className="eyebrow">Your trail</span>
+  <div className="section-head">
+    <h2>Recent activity</h2>
+    <span className="eyebrow">Your trail</span>
+  </div>
+
+  {activityLoading && (
+    <p style={{ color: "#77766f", fontSize: 13 }}>
+      Loading your activity...
+    </p>
+  )}
+
+  {activityError && (
+    <p style={{ color: "#77766f", fontSize: 13 }}>
+      We couldn't load your recent activity.
+    </p>
+  )}
+
+  {!activityLoading &&
+    !activityError &&
+    recentActivity &&
+    recentActivity.length === 0 && (
+      <p style={{ color: "#77766f", fontSize: 13 }}>
+        No activity yet. Start learning to see your activity here.
+      </p>
+    )}
+
+  {!activityLoading &&
+    !activityError &&
+    recentActivity &&
+    recentActivity.length > 0 &&
+    recentActivity.map((item) => {
+      const Icon =
+        item.type === "lesson_completed"
+          ? CheckCircle2
+          : item.type === "quiz_attempted"
+            ? Trophy
+            : Play;
+
+      return (
+        <div
+          className="activity"
+          key={item.id}
+        >
+          <div className="activity-marker">
+            <Icon size={15} />
           </div>
-          {activity.map((item, index) => {
-            const Icon = item.icon;
-            return (
-              <div
-                className="activity"
-                key={item.text}
-                data-testid={`activity-item-${index}`}
-              >
-                <div className="activity-marker">
-                  <Icon size={15} />
-                </div>
-                <div>
-                  <p>{item.text}</p>
-                  <span style={{ color: "#77766f", fontSize: 12 }}>
-                    {item.course}
-                  </span>
-                  <time>{item.time}</time>
-                </div>
-              </div>
-            );
-          })}
-        </section>
+
+          <div>
+            <p>{item.text}</p>
+
+            <span
+              style={{
+                color: "#77766f",
+                fontSize: 12,
+              }}
+            >
+              {item.course}
+            </span>
+
+            <time>
+              {new Date(item.createdAt).toLocaleDateString()}
+            </time>
+          </div>
+        </div>
+      );
+    })}
+</section>
         <section className="card streak-card">
           <span className="eyebrow" style={{ color: "#7d4c48" }}>
             A useful habit
