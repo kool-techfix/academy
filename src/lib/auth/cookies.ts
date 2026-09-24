@@ -3,13 +3,14 @@ import { cookies } from "next/headers";
 import {
   SESSION_COOKIE_NAME,
   createSession,
+  type SessionRole,
 } from "./session";
 
 const SESSION_DURATION = 60 * 60 * 24 * 7; // 7 days
 
 export async function setSessionCookie(
   userId: string,
-  role: "LEARNER" | "INSTRUCTOR",
+  role: SessionRole,
 ) {
   const token = await createSession({
     userId,

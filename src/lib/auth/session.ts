@@ -13,9 +13,11 @@ export const SESSION_COOKIE_NAME = "academy_session";
 
 const SESSION_DURATION = 60 * 60 * 24 * 7; // 7 days
 
+export type SessionRole = "LEARNER" | "INSTRUCTOR" | "ADMIN";
+
 export type SessionPayload = {
   userId: string;
-  role: "LEARNER" | "INSTRUCTOR";
+  role: SessionRole;
 };
 
 export async function createSession(
@@ -42,7 +44,8 @@ export async function verifySession(
     if (
       typeof payload.userId !== "string" ||
       (payload.role !== "LEARNER" &&
-        payload.role !== "INSTRUCTOR")
+        payload.role !== "INSTRUCTOR" &&
+        payload.role !== "ADMIN")
     ) {
       return null;
     }

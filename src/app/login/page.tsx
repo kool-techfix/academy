@@ -19,6 +19,7 @@ import {
 
 import { setMockAuthMethod } from "@/lib/user";
 import { useLogin } from "@/hooks/auth/use-login";
+import { getApiErrorMessage } from "@/lib/api/api-error";
 
 export default function Login() {
   const router = useRouter();
@@ -54,12 +55,17 @@ export default function Login() {
         return;
       }
 
+      if (user.role === "ADMIN") {
+        router.push("/admin");
+        return;
+      }
+
       router.push("/dashboard");
     } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : "Unable to sign in. Please try again.";
+      const message = getApiErrorMessage(
+        error,
+        "Unable to sign in. Please try again.",
+      );
 
       form.setError("root", {
         type: "server",

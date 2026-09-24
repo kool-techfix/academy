@@ -1,6 +1,10 @@
 import { prisma } from "@/lib/prisma";
 
-import { CourseStatus, type Prisma } from "@/generated/prisma/client";
+import {
+  CourseModerationStatus,
+  CourseStatus,
+  type Prisma,
+} from "@/generated/prisma/client";
 
 export class CourseRepository {
   async create(data: Prisma.CourseCreateInput) {
@@ -163,6 +167,9 @@ export class CourseRepository {
     return prisma.course.findMany({
       where: {
         status: CourseStatus.PUBLISHED,
+        moderationStatus: {
+          not: CourseModerationStatus.REMOVED,
+        },
       },
 
       include: {
@@ -201,11 +208,23 @@ export class CourseRepository {
       },
     });
   }
-  async findPublishedById(id: string) {
+  /**
+   * Admin-removed courses are hidden unless `includeRemoved` is set, which
+   * is only used for learners who were already enrolled before removal.
+   */
+  async findPublishedById(
+    id: string,
+    { includeRemoved = false }: { includeRemoved?: boolean } = {},
+  ) {
     return prisma.course.findFirst({
       where: {
         id,
         status: CourseStatus.PUBLISHED,
+        ...(!includeRemoved && {
+          moderationStatus: {
+            not: CourseModerationStatus.REMOVED,
+          },
+        }),
       },
 
       include: {

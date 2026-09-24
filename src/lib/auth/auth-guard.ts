@@ -1,4 +1,4 @@
-import { InstructorStatus, Role } from "@/generated/prisma/client";
+import { AccountStatus, InstructorStatus, Role } from "@/generated/prisma/client";
 
 import { getSession } from "@/lib/auth/session";
 import { AuthRepository } from "@/Repositories/AuthRepository";
@@ -12,7 +12,15 @@ export async function getCurrentUser() {
     return null;
   }
 
-  return authRepository.findSafeById(session.userId);
+  const user = await authRepository.findSafeById(session.userId);
+
+  // Suspended or removed accounts are treated as signed out everywhere,
+  // even if they still hold a valid session cookie.
+  if (!user || user.accountStatus !== AccountStatus.ACTIVE) {
+    return null;
+  }
+
+  return user;
 }
 
 export async function requireAuth() {
@@ -44,6 +52,16 @@ export async function requireInstructor() {
 
   if (user.instructorStatus !== InstructorStatus.APPROVED) {
     throw new Error("Instructor account is not approved");
+  }
+
+  return user;
+}
+
+export async function requireAdmin() {
+  const user = await requireAuth();
+
+  if (user.role !== Role.ADMIN) {
+    throw new Error("Forbidden");
   }
 
   return user;
