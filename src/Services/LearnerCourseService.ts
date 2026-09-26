@@ -17,7 +17,11 @@ export class LearnerCourseService {
       throw new Error("You are not enrolled in this course");
     }
 
-    const course = await this.courseRepository.findPublishedById(courseId);
+    // Enrollment is checked above, so learners keep access to courses that
+    // an admin removed after they enrolled.
+    const course = await this.courseRepository.findPublishedById(courseId, {
+      includeRemoved: true,
+    });
 
     if (!course) {
       throw new Error("Course not found");

@@ -16,12 +16,22 @@ datasource db {
 enum Role {
   LEARNER
   INSTRUCTOR
+  ADMIN
 }
 
 enum InstructorStatus {
   PENDING
   APPROVED
+  REJECTED
   SUSPENDED
+}
+
+// Account-level access for any user. Instructor approval/suspension
+// lives in InstructorStatus; this covers learner suspension and removal.
+enum AccountStatus {
+  ACTIVE
+  SUSPENDED
+  REMOVED
 }
 
 enum AuthMethod {
@@ -32,6 +42,13 @@ enum AuthMethod {
 enum CourseStatus {
   DRAFT
   PUBLISHED
+}
+
+// Admin moderation, independent of the instructor-controlled CourseStatus.
+enum CourseModerationStatus {
+  NONE
+  FLAGGED
+  REMOVED
 }
 
 enum QuizType {
@@ -59,6 +76,10 @@ model User {
 
   instructorStatus InstructorStatus?
 
+  accountStatus    AccountStatus @default(ACTIVE)
+  moderationReason String?   // latest admin reason (rejection, suspension, removal)
+  moderatedAt      DateTime?
+
   enrollments     Enrollment[]
   progress        Progress[]
   quizAttempts    QuizAttempt[]
@@ -71,6 +92,10 @@ model Course {
   description String
   status      CourseStatus @default(DRAFT)
   createdAt   DateTime     @default(now())
+
+  moderationStatus CourseModerationStatus @default(NONE)
+  moderationReason String?
+  moderatedAt      DateTime?
 
   modules     Module[]
   authors     CourseAuthor[]

@@ -1,4 +1,9 @@
-import { AuthMethod, InstructorStatus, Role } from "@/generated/prisma/client";
+import {
+  AccountStatus,
+  AuthMethod,
+  InstructorStatus,
+  Role,
+} from "@/generated/prisma/client";
 
 import { comparePassword, hashPassword } from "@/lib/password";
 import { AuthRepository } from "@/Repositories/AuthRepository";
@@ -125,12 +130,24 @@ export class AuthService {
       throw new Error("Invalid email or password");
     }
 
+    if (user.accountStatus === AccountStatus.REMOVED) {
+      throw new Error("This account has been removed");
+    }
+
+    if (user.accountStatus === AccountStatus.SUSPENDED) {
+      throw new Error("Your account has been suspended");
+    }
+
     if (
       user.role === Role.INSTRUCTOR &&
       user.instructorStatus !== InstructorStatus.APPROVED
     ) {
       if (user.instructorStatus === InstructorStatus.PENDING) {
         throw new Error("Your instructor account is awaiting approval");
+      }
+
+      if (user.instructorStatus === InstructorStatus.REJECTED) {
+        throw new Error("Your instructor application was not approved");
       }
 
       if (user.instructorStatus === InstructorStatus.SUSPENDED) {

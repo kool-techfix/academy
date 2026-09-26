@@ -1,10 +1,11 @@
 import { api } from "@/lib/api/axios";
 
-export type UserRole = "LEARNER" | "INSTRUCTOR";
+export type UserRole = "LEARNER" | "INSTRUCTOR" | "ADMIN";
 
 export type InstructorStatus =
   | "PENDING"
   | "APPROVED"
+  | "REJECTED"
   | "SUSPENDED";
 
 export type AuthUser = {

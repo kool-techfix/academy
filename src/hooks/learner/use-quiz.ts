@@ -1,12 +1,11 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-
+import { LEARNER_DASHBOARD_ACTIVITY_QUERY_KEY } from "@/hooks/learner/use-dashboard";
 import {
   learnerQuizApi,
   type SubmitModuleQuizData,
 } from "@/Services/learner-quiz.service";
-
 import { learnerCourseProgressQueryKey } from "@/hooks/learner/use-progress";
 
 export const learnerModuleQuizQueryKey = (courseId: string, moduleId: string) =>
@@ -35,6 +34,10 @@ export function useSubmitModuleQuiz(courseId: string, moduleId: string) {
 
       queryClient.invalidateQueries({
         queryKey: learnerModuleQuizQueryKey(courseId, moduleId),
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: LEARNER_DASHBOARD_ACTIVITY_QUERY_KEY,
       });
     },
   });

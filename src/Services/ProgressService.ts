@@ -44,7 +44,9 @@ export class LearnerProgressService {
    * Course progress is based on passed module quizzes.
    */
   async getCourseProgress(userId: string, courseId: string) {
-    const course = await this.courseRepository.findPublishedById(courseId);
+    const course = await this.courseRepository.findPublishedById(courseId, {
+      includeRemoved: true,
+    });
 
     if (!course) {
       throw new Error("Course not found");

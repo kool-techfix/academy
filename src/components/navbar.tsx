@@ -57,21 +57,70 @@ export function Navbar() {
 
   const href = role === "INSTRUCTOR" ? "/instructor/settings" : "/settings";
 
-  if (role === "INSTRUCTOR") {
+  // Instructor and admin share the dark "workspace" header.
+  const workspace =
+    role === "INSTRUCTOR"
+      ? {
+          label: "Instructor",
+          links: [
+            {
+              href: "/instructor",
+              label: "My Courses",
+              testId: "instructor-courses",
+              active: pathname.startsWith("/instructor"),
+            },
+          ],
+        }
+      : role === "ADMIN"
+        ? {
+            label: "Admin",
+            links: [
+              {
+                href: "/admin",
+                label: "Overview",
+                testId: "admin-overview",
+                active: pathname === "/admin",
+              },
+              {
+                href: "/admin/instructors",
+                label: "Instructors",
+                testId: "admin-instructors",
+                active: pathname.startsWith("/admin/instructors"),
+              },
+              {
+                href: "/admin/courses",
+                label: "Courses",
+                testId: "admin-courses",
+                active: pathname.startsWith("/admin/courses"),
+              },
+              {
+                href: "/admin/users",
+                label: "Users",
+                testId: "admin-users",
+                active: pathname.startsWith("/admin/users"),
+              },
+            ],
+          }
+        : null;
+
+  if (workspace) {
     return (
       <header className="navbar instructor-navbar">
         <div className="instructor-brand">
           <Brand />
-          <span>Instructor</span>
+          <span>{workspace.label}</span>
         </div>
-        <nav className="nav-links" aria-label="Instructor navigation">
-          <Link
-            href="/instructor"
-            className={`nav-link ${pathname.startsWith("/instructor") ? "active" : ""}`}
-            data-testid="link-instructor-courses"
-          >
-            My Courses
-          </Link>
+        <nav className="nav-links" aria-label={`${workspace.label} navigation`}>
+          {workspace.links.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className={`nav-link ${link.active ? "active" : ""}`}
+              data-testid={`link-${link.testId}`}
+            >
+              {link.label}
+            </Link>
+          ))}
         </nav>
         <div className="nav-actions">
           <div className="account-menu" ref={accountMenuRef}>
@@ -107,13 +156,11 @@ export function Navbar() {
                 <button
                   className="account-menu-item"
                   role="menuitem"
-                  onClick={() => {
-                    setAccountOpen(false);
-                    router.push("/");
-                  }}
+                  onClick={handleLogout}
+                  disabled={logout.isPending}
                   data-testid="button-log-out"
                 >
-                  Log out
+                  {logout.isPending ? "Logging out..." : "Log out"}
                 </button>
               </div>
             )}
@@ -129,14 +176,17 @@ export function Navbar() {
         </div>
         {open && (
           <div className="mobile-panel">
-            <Link
-              href="/instructor"
-              className="nav-link active"
-              onClick={() => setOpen(false)}
-              data-testid="link-mobile-instructor-courses"
-            >
-              My Courses
-            </Link>
+            {workspace.links.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`nav-link ${link.active ? "active" : ""}`}
+                onClick={() => setOpen(false)}
+                data-testid={`link-mobile-${link.testId}`}
+              >
+                {link.label}
+              </Link>
+            ))}
           </div>
         )}
       </header>
