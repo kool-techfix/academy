@@ -590,6 +590,7 @@ input:focus-visible {
 .course-list {
   display: flex;
   flex-direction: column;
+  gap: 20px;
 }
 .course-list .course-card {
   display: grid;
@@ -1691,6 +1692,7 @@ input:focus-visible {
   }
   .course-list .course-card {
     display: block;
+    /* margin-bottom: 20px; */
   }
   .course-list .course-art {
     min-height: 125px;

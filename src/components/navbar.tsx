@@ -14,7 +14,7 @@ export function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
   const isAuth = pathname === "/login" || pathname === "/register";
-  const { data: user, isLoading, isError } = useCurrentUser();
+  const { data: user } = useCurrentUser();
   const logout = useLogout();
 
   const handleLogout = async () => {
@@ -155,9 +155,9 @@ export function Navbar() {
           My learning
         </Link>
         <Link
-          href="/catalog"
-          className={`nav-link ${pathname === "/catalog" ? "active" : ""}`}
-          data-testid="link-catalog"
+          href="/courses"
+          className={`nav-link ${pathname === "/courses" ? "active" : ""}`}
+          data-testid="link-courses"
         >
           Course catalog
         </Link>
@@ -165,7 +165,7 @@ export function Navbar() {
       <div className="nav-actions">
         <LanguageSwitch />
         <Link
-          href="/catalog"
+          href="/courses"
           className="button button-primary"
           data-testid="link-browse-courses"
         >
@@ -233,10 +233,10 @@ export function Navbar() {
             My learning
           </Link>
           <Link
-            href="/catalog"
+            href="/courses"
             className="nav-link"
             onClick={() => setOpen(false)}
-            data-testid="link-mobile-catalog"
+            data-testid="link-mobile-courses"
           >
             Course catalog
           </Link>

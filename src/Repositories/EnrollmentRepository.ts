@@ -26,10 +26,7 @@ export class EnrollmentRepository {
   /**
    * Find a learner's enrollment for a specific course.
    */
-  async findByUserAndCourse(
-    userId: string,
-    courseId: string,
-  ) {
+  async findByUserAndCourse(userId: string, courseId: string) {
     return prisma.enrollment.findUnique({
       where: {
         userId_courseId: {
@@ -52,13 +49,18 @@ export class EnrollmentRepository {
         course: {
           include: {
             modules: {
-              orderBy: {
-                order: "asc",
-              },
+              orderBy: { order: "asc" },
               select: {
                 id: true,
                 title: true,
                 order: true,
+
+                quiz: {
+                  select: {
+                    id: true,
+                  },
+                },
+
                 _count: {
                   select: {
                     lessons: true,

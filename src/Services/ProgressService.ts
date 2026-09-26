@@ -1,18 +1,21 @@
 import { CourseRepository } from "@/Repositories/CourseRepository";
 import { EnrollmentRepository } from "@/Repositories/EnrollmentRepository";
 import { ProgressRepository } from "@/Repositories/ProgressRepository";
+import { QuizAttemptRepository } from "@/Repositories/QuizAttemptRepository";
 
 export class LearnerProgressService {
   constructor(
     private readonly progressRepository = new ProgressRepository(),
-
     private readonly courseRepository = new CourseRepository(),
-
     private readonly enrollmentRepository = new EnrollmentRepository(),
+    private readonly quizAttemptRepository = new QuizAttemptRepository(),
   ) {}
 
   /**
    * Mark a lesson as completed.
+   *
+   * Lesson completion is tracked separately from
+   * module and course completion.
    */
   async completeLesson(userId: string, lessonId: string) {
     const lesson = await this.progressRepository.findLessonWithCourse(lessonId);
@@ -37,6 +40,8 @@ export class LearnerProgressService {
 
   /**
    * Get a learner's progress for a course.
+   *
+   * Course progress is based on passed module quizzes.
    */
   async getCourseProgress(userId: string, courseId: string) {
     const course = await this.courseRepository.findPublishedById(courseId);
@@ -45,34 +50,213 @@ export class LearnerProgressService {
       throw new Error("Course not found");
     }
 
-    const completedProgress = await this.progressRepository.findByUserAndCourse(
+    const enrollment = await this.enrollmentRepository.findByUserAndCourse(
       userId,
       courseId,
     );
 
-    const totalLessons = course.modules.reduce(
-      (total, module) => total + module.lessons.length,
-      0,
-    );
+    if (!enrollment) {
+      throw new Error("You are not enrolled in this course");
+    }
 
-    const completedLessons = completedProgress.length;
+    const passedModuleQuizIds =
+      await this.quizAttemptRepository.findPassedModuleQuizIds(
+        userId,
+        courseId,
+      );
+
+    const finalQuizStatus =
+      await this.quizAttemptRepository.findFinalQuizStatus(userId, courseId);
+
+    const totalModules = course.modules.length;
+
+    const completedModules = course.modules.filter(
+      (module) => module.quiz && passedModuleQuizIds.includes(module.quiz.id),
+    ).length;
 
     const percentage =
-      totalLessons === 0
+      totalModules === 0
         ? 0
-        : Math.round((completedLessons / totalLessons) * 100);
+        : Math.round((completedModules / totalModules) * 100);
 
-    const lastActivityAt = completedProgress[0]?.completedAt ?? null;
+    const completedModuleIds = course.modules
+      .filter(
+        (module) => module.quiz && passedModuleQuizIds.includes(module.quiz.id),
+      )
+      .map((module) => module.id);
+
+    const allModulesCompleted =
+      totalModules > 0 && completedModules === totalModules;
+
+    const completed = allModulesCompleted && finalQuizStatus.attempted;
+
+    const certificateEligible = allModulesCompleted && finalQuizStatus.passed;
 
     return {
       courseId,
-      totalLessons,
-      completedLessons,
+      totalModules,
+      completedModules,
       percentage,
-      completedLessonIds: completedProgress.map(
-        (progress) => progress.lesson.id,
-      ),
-      lastActivityAt,
+      completedModuleIds,
+
+      finalQuiz: {
+        attempted: finalQuizStatus.attempted,
+        passed: finalQuizStatus.passed,
+        lastAttemptAt: finalQuizStatus.lastAttemptAt,
+      },
+
+      completed,
+      certificateEligible,
+
+      lastActivityAt: finalQuizStatus.lastAttemptAt ?? null,
     };
   }
+
+  async getAllCourseProgress(userId: string) {
+  const enrollments =
+    await this.enrollmentRepository.findByUser(userId);
+
+  if (enrollments.length === 0) {
+    return [];
+  }
+
+  const attempts =
+    await this.quizAttemptRepository.findCourseProgressData(
+      userId,
+    );
+
+  const progressByCourse = new Map<
+    string,
+    {
+      passedModuleQuizIds: Set<string>;
+      finalAttempted: boolean;
+      finalPassed: boolean;
+      lastAttemptAt: Date | null;
+    }
+  >();
+
+  for (const attempt of attempts) {
+    const courseId =
+      attempt.quiz.courseId ??
+      attempt.quiz.module?.courseId;
+
+    if (!courseId) {
+      continue;
+    }
+
+    let courseProgress =
+      progressByCourse.get(courseId);
+
+    if (!courseProgress) {
+      courseProgress = {
+        passedModuleQuizIds: new Set<string>(),
+        finalAttempted: false,
+        finalPassed: false,
+        lastAttemptAt: null,
+      };
+
+      progressByCourse.set(courseId, courseProgress);
+    }
+
+    if (
+      attempt.quiz.type === "MODULE" &&
+      attempt.passed
+    ) {
+      courseProgress.passedModuleQuizIds.add(
+        attempt.quizId,
+      );
+    }
+
+    if (attempt.quiz.type === "FINAL") {
+      courseProgress.finalAttempted = true;
+
+      if (attempt.passed) {
+        courseProgress.finalPassed = true;
+      }
+    }
+
+    if (
+      !courseProgress.lastAttemptAt ||
+      attempt.attemptedAt >
+        courseProgress.lastAttemptAt
+    ) {
+      courseProgress.lastAttemptAt =
+        attempt.attemptedAt;
+    }
+  }
+
+  return enrollments.map((enrollment) => {
+    const course = enrollment.course;
+
+    const courseProgress =
+      progressByCourse.get(course.id);
+
+    const passedModuleQuizIds =
+      courseProgress?.passedModuleQuizIds ??
+      new Set<string>();
+
+    const completedModules = course.modules.filter(
+      (module) =>
+        module.quiz &&
+        passedModuleQuizIds.has(module.quiz.id),
+    );
+
+    const totalModules =
+      course.modules.length;
+
+    const completedModuleCount =
+      completedModules.length;
+
+    const percentage =
+      totalModules === 0
+        ? 0
+        : Math.round(
+            (completedModuleCount /
+              totalModules) *
+              100,
+          );
+
+    const completedModuleIds =
+      completedModules.map(
+        (module) => module.id,
+      );
+
+    const allModulesCompleted =
+      totalModules > 0 &&
+      completedModuleCount === totalModules;
+
+    const finalAttempted =
+      courseProgress?.finalAttempted ?? false;
+
+    const finalPassed =
+      courseProgress?.finalPassed ?? false;
+
+    return {
+      courseId: course.id,
+      totalModules,
+      completedModules:
+        completedModuleCount,
+      percentage,
+      completedModuleIds,
+
+      finalQuiz: {
+        attempted: finalAttempted,
+        passed: finalPassed,
+        lastAttemptAt:
+          courseProgress?.lastAttemptAt ?? null,
+      },
+
+      completed:
+        allModulesCompleted &&
+        finalAttempted,
+
+      certificateEligible:
+        allModulesCompleted &&
+        finalPassed,
+
+      lastActivityAt:
+        courseProgress?.lastAttemptAt ?? null,
+    };
+  });
+}
 }

@@ -84,4 +84,37 @@ export class ProgressRepository {
       },
     });
   }
+
+  async findRecentByUser(userId: string, limit = 10) {
+  return prisma.progress.findMany({
+    where: {
+      userId,
+    },
+    select: {
+      id: true,
+      completedAt: true,
+      lesson: {
+        select: {
+          id: true,
+          title: true,
+          module: {
+            select: {
+              title: true,
+              course: {
+                select: {
+                  id: true,
+                  title: true,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    orderBy: {
+      completedAt: "desc",
+    },
+    take: limit,
+  });
+}
 }
