@@ -4,7 +4,6 @@ import { ArrowRight } from "lucide-react";
 import { Brand } from "@/components/academy-brand";
 import { CourseCard } from "@/components/academy-ui";
 import { LanguageSwitch } from "@/components/language-switch";
-import { courses } from "@/lib/academy-data";
 import Link from "next/link";
 import { usePublicCourses } from "@/hooks/use-public-courses";
 

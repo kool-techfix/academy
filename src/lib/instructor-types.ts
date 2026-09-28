@@ -8,7 +8,7 @@ export type QuizQuestion = {
 export type Lesson = {
   id: string;
   title: string;
-  youtubeLink: string;
+  youtubeVideoLink: string;
   notesFilename?: string;
 };
 
@@ -42,7 +42,7 @@ export type InstructorCourse = {
   id: string;
   title: string;
   description: string;
-  status: 'Draft' | 'Published';
+  status: "DRAFT" | "PUBLISHED";
   modules: Module[];
   finalAssessment: QuizQuestion[];
   enrolleeCount: number;
@@ -58,6 +58,6 @@ export type Enrollee = {
   id: string;
   name: string;
   progress: number;
-  finalAssessmentResult: number | 'In progress';
+  finalAssessmentResult: number | "In progress";
   moduleResults: EnrolleeQuizResult[];
 };

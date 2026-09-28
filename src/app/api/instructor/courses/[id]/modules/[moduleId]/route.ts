@@ -1,3 +1,4 @@
+
 import { NextRequest, NextResponse } from "next/server";
 
 import { requireInstructor } from "@/lib/auth/auth-guard";
@@ -21,10 +22,10 @@ export async function GET(
     const { moduleId } =
       await params;
 
-    const module =
+    const courseModule =
       await moduleService.getModule(moduleId);
 
-    return NextResponse.json(module);
+    return NextResponse.json(courseModule);
   } catch (error) {
     const message =
       error instanceof Error
@@ -57,7 +58,7 @@ export async function PATCH(
 
     const body = await request.json();
 
-    const module =
+    const courseModule =
       await moduleService.updateModule(
         instructor.id,
         moduleId,
@@ -67,7 +68,7 @@ export async function PATCH(
         },
       );
 
-    return NextResponse.json(module);
+    return NextResponse.json(courseModule);
   } catch (error) {
     const message =
       error instanceof Error

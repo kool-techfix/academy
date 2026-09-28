@@ -6,6 +6,7 @@ import { Modal } from "./modal";
 import { FormField } from "@/components/form-field";
 import { Button } from "@/components/academy-ui";
 import { FileUp, FileText, X } from "lucide-react";
+import { CreateLessonPayload, UpdateLessonPayload } from "@/Services/lesson.service";
 
 const lessonSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters"),
@@ -17,15 +18,17 @@ const lessonSchema = z.object({
     }),
 });
 
+type LessonFormData = z.infer<typeof lessonSchema>;
+
 export function LessonFormModal({
   lesson,
   onClose,
   onSave,
   isSaving,
 }: {
-  lesson?: any;
+  lesson?: CreateLessonPayload | UpdateLessonPayload;
   onClose: () => void;
-  onSave: (d: any) => void;
+  onSave: (data: LessonFormData & { notesFileUrl: string | null }) => void;
   isSaving: boolean;
 }) {
   const {
@@ -41,7 +44,7 @@ export function LessonFormModal({
   });
 
   const [filename, setFilename] = useState<string | null>(
-    lesson?.notesFilename || null,
+    lesson?.notesFileUrl || null,
   );
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -51,8 +54,8 @@ export function LessonFormModal({
     }
   };
 
-  const onSubmit = (data: any) => {
-    onSave({ ...data, notesFilename: filename });
+  const onSubmit = (data: LessonFormData) => {
+    onSave({ ...data, notesFileUrl: filename });
   };
 
   return (

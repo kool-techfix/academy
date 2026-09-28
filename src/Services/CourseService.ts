@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import { CourseStatus, type Prisma } from "@/generated/prisma/client";
 
 import { CourseRepository } from "@/Repositories/CourseRepository";

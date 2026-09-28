@@ -16,13 +16,13 @@ export class ModuleService {
   }
 
   async getModule(id: string) {
-    const module = await moduleRepository.findById(id);
+    const courseModule = await moduleRepository.findById(id);
 
-    if (!module) {
+    if (!courseModule) {
       throw new Error("Module not found");
     }
 
-    return module;
+    return courseModule;
   }
 
   async createModule(
@@ -62,14 +62,14 @@ export class ModuleService {
       order?: number;
     },
   ) {
-    const module = await moduleRepository.findById(moduleId);
+    const courseModule = await moduleRepository.findById(moduleId);
 
-    if (!module) {
+    if (!courseModule) {
       throw new Error("Module not found");
     }
 
     const author = await courseRepository.findAuthor(
-      module.courseId,
+      courseModule.courseId,
       instructorId,
     );
 
@@ -81,14 +81,14 @@ export class ModuleService {
   }
 
   async deleteModule(instructorId: string, moduleId: string) {
-    const module = await moduleRepository.findById(moduleId);
+    const courseModule = await moduleRepository.findById(moduleId);
 
-    if (!module) {
+    if (!courseModule) {
       throw new Error("Module not found");
     }
 
     const author = await courseRepository.findAuthor(
-      module.courseId,
+      courseModule.courseId,
       instructorId,
     );
 

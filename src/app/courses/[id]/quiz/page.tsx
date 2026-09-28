@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import { ArrowLeft, ArrowRight, Check, Trophy } from "lucide-react";
 import { Button } from "@/components/academy-ui";

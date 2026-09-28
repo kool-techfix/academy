@@ -1,3 +1,4 @@
+
 import { NextRequest, NextResponse } from "next/server";
 
 import { requireInstructor } from "@/lib/auth/auth-guard";
@@ -53,7 +54,7 @@ export async function POST(
 
     const body = await request.json();
 
-    const module =
+    const courseModule =
       await moduleService.createModule(
         instructor.id,
         id,
@@ -63,7 +64,7 @@ export async function POST(
       );
 
     return NextResponse.json(
-      module,
+      courseModule,
       { status: 201 },
     );
   } catch (error) {

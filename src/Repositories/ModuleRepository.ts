@@ -74,7 +74,7 @@ export class ModuleRepository {
   }
 
   async findMaxOrder(courseId: string) {
-    const module = await prisma.module.findFirst({
+    const courseModule = await prisma.module.findFirst({
       where: {
         courseId,
       },
@@ -88,6 +88,6 @@ export class ModuleRepository {
       },
     });
 
-    return module?.order ?? 0;
+    return courseModule?.order ?? 0;
   }
 }

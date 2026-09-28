@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import { useEffect } from "react";
 import { Navbar } from "./navbar";
 import { useCurrentUser } from "@/hooks/auth/use-user";
 import { LoadingScreen } from "./Loader";

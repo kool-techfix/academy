@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { requireInstructor } from "@/lib/auth/auth-guard";
-import {
-  QuizService,
-  type CreateQuizData,
-} from "@/Services/QuizService";
+import { QuizService, type CreateQuizData } from "@/Services/QuizService";
 
 const quizService = new QuizService();
 
@@ -28,9 +25,7 @@ export async function GET(
     return NextResponse.json(
       {
         message:
-          error instanceof Error
-            ? error.message
-            : "Failed to get course quiz",
+          error instanceof Error ? error.message : "Failed to get course quiz",
       },
       { status: 500 },
     );
@@ -46,8 +41,7 @@ export async function POST(
 
     const { courseId } = await params;
 
-    const body =
-      (await request.json()) as CreateQuizData;
+    const body = (await request.json()) as CreateQuizData;
 
     const quiz = await quizService.createFinalQuiz(
       instructor.id,

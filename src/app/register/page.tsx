@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { Button } from "@/components/academy-ui";
 import { AuthLayout } from "@/components/auth-layout";
 import { FormField } from "@/components/form-field";
@@ -45,7 +45,10 @@ export default function Register() {
       otherExpertise: "",
     },
   });
-  const selectedExpertise = instructorForm.watch("expertise");
+  const selectedExpertise = useWatch({
+  control: instructorForm.control,
+  name: "expertise",
+});
 
   const continueWithGoogle = () => {
     console.log("Google authentication is not implemented yet");
@@ -126,7 +129,7 @@ export default function Register() {
           }}
           data-testid="tab-register-learner"
         >
-          I'm a learner
+          I&apos;m a learner
         </button>
         <button
           type="button"
@@ -139,7 +142,7 @@ export default function Register() {
           }}
           data-testid="tab-register-instructor"
         >
-          I'm an instructor
+          I&apos;m an instructor
         </button>
       </div>
       {success ? (

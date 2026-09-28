@@ -8,7 +8,6 @@ import {
   Check,
   Download,
   FileText,
-  LockKeyhole,
   Play,
 } from "lucide-react";
 

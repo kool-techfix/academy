@@ -53,11 +53,11 @@ export class QuizService {
     moduleId: string,
     data: CreateQuizData,
   ) {
-    const module = await this.getModuleWithCourse(moduleId);
+    const courseModule = await this.getModuleWithCourse(moduleId);
 
     await this.ensureInstructorHasAccess(
       instructorId,
-      module.courseId,
+      courseModule.courseId,
     );
 
     if (data.type !== "MODULE") {
@@ -322,16 +322,16 @@ export class QuizService {
   }
 
   private async getModuleWithCourse(moduleId: string) {
-  const module =
+  const courseModule =
     await this.courseRepository.getModuleWithCourse(
       moduleId,
     );
 
-  if (!module) {
+  if (!courseModule) {
     throw new Error("Module not found");
   }
 
-  return module;
+  return courseModule;
 }
 
   private async getQuizCourseId(quiz: {
@@ -343,16 +343,16 @@ export class QuizService {
     }
 
     if (quiz.moduleId) {
-      const module =
+      const courseModule =
         await this.courseRepository.getModuleWithCourse(
           quiz.moduleId,
         );
 
-      if (!module) {
+      if (!courseModule) {
         throw new Error("Quiz module not found");
       }
 
-      return module.courseId;
+      return courseModule.courseId;
     }
 
     throw new Error(

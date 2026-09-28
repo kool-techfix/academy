@@ -1,15 +1,18 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { BookOpen, Grid2X2, List, Search } from "lucide-react";
 import { CourseCard, Button } from "@/components/academy-ui";
-import { Page } from "@/components/page-shell";
-import { courses } from "@/lib/academy-data";
+import { usePublicCourses } from "@/hooks/use-public-courses";
+import { Navbar } from "@/components/navbar";
+import { LoadingScreen } from "@/components/Loader";
 
 export default function Catalog() {
   const [query, setQuery] = useState("");
-  const [category, setCategory] = useState("All categories");
+  // const [category, setCategory] = useState("All categories");
   const [mode, setMode] = useState<"grid" | "list">("grid");
+  const { data: courses = [], isLoading } = usePublicCourses();
 
   useEffect(() => {
     const savedMode = sessionStorage.getItem("kooltech-view");
@@ -18,7 +21,6 @@ export default function Catalog() {
       setMode(savedMode);
     }
   }, []);
-  const [loading, setLoading] = useState(false);
 
   const setView = (next: "grid" | "list") => {
     setMode(next);
@@ -29,27 +31,24 @@ export default function Catalog() {
     () =>
       courses.filter(
         (course) =>
-          `${course.title} ${course.shortDescription} ${course.category}`
+          `${course.title} ${course.description} `
             .toLowerCase()
-            .includes(query.toLowerCase()) &&
-          (category === "All categories" || course.category === category),
+            .includes(query.toLowerCase())
       ),
-    [query, category],
+    [query, courses],
   );
-  const categories = [
-    "All categories",
-    ...Array.from(new Set(courses.map((course) => course.category))),
-  ];
 
   const search = (value: string) => {
     setQuery(value);
-    setLoading(true);
-    window.setTimeout(() => setLoading(false), 280);
   };
 
+  if (isLoading) return <LoadingScreen />;
+
   return (
-    <Page>
-      <div className="page-head">
+    <>
+    <Navbar />
+      <main className="main">
+        <div className="page-head">
         <div>
           <span className="eyebrow">The curriculum</span>
           <h1 style={{ marginTop: 10 }}>Build useful skills.</h1>
@@ -79,7 +78,7 @@ export default function Catalog() {
           />
         </div>
         <div className="row">
-          <select
+          {/* <select
             value={category}
             onChange={(event) => setCategory(event.target.value)}
             className="filter-select"
@@ -89,7 +88,7 @@ export default function Catalog() {
             {categories.map((item) => (
               <option key={item}>{item}</option>
             ))}
-          </select>
+          </select> */}
           <div className="view-toggle" role="group" aria-label="Course view">
             <button
               className={mode === "grid" ? "active" : ""}
@@ -111,7 +110,7 @@ export default function Catalog() {
         </div>
       </div>
 
-      {loading ? (
+      {isLoading ? (
         <div className="course-grid">
           {[1, 2, 3, 4, 5, 6].map((item) => (
             <div className="card" key={item} style={{ overflow: "hidden" }}>
@@ -139,8 +138,8 @@ export default function Catalog() {
         </div>
       ) : filtered.length ? (
         <div className={mode === "grid" ? "course-grid" : "course-list"}>
-          {filtered.map((course) => (
-            <CourseCard key={course.id} course={course} mode={mode} />
+          {filtered.map((course, index) => (
+            <CourseCard key={course.id} course={course} mode={mode} index={index} />
           ))}
         </div>
       ) : (
@@ -154,7 +153,7 @@ export default function Catalog() {
             variant="ghost"
             onClick={() => {
               setQuery("");
-              setCategory("All categories");
+              // setCategory("All categories");
             }}
             testId="button-clear-search"
           >
@@ -162,6 +161,7 @@ export default function Catalog() {
           </Button>
         </div>
       )}
-    </Page>
+      </main>
+    </>
   );
 }

@@ -4,6 +4,30 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Modal } from "./modal";
 import { FormField } from "@/components/form-field";
 import { Button } from "@/components/academy-ui";
+import { Module } from "@/lib/instructor-types";
+
+type ModuleFormData = { title: string; order: number };
+type ModuleFormModalProps = {
+  module: Module;
+  existingModules?: Module[];
+  onClose: () => void;
+  onSave: (data: ModuleFormData) => void;
+  isSaving?: boolean;
+};
+const createModuleSchema = (currentModule: Module, existingModules: Module[]) =>
+  z.object({
+    title: z.string().min(3, "Title must be at least 3 characters"),
+    order: z.coerce
+      .number()
+      .min(1, "Order must be positive")
+      .refine(
+        (val) =>
+          !existingModules.some(
+            (m) => m.id !== currentModule.id && m.order === val,
+          ),
+        { message: "Order must be unique" },
+      ),
+  });
 
 export function ModuleFormModal({
   module,
@@ -11,31 +35,13 @@ export function ModuleFormModal({
   onClose,
   onSave,
   isSaving,
-}: {
-  module: any;
-  existingModules?: any[];
-  onClose: () => void;
-  onSave: (d: any) => void;
-  isSaving?: boolean;
-}) {
-  const moduleSchema = z.object({
-    title: z.string().min(3, "Title must be at least 3 characters"),
-    order: z.coerce
-      .number()
-      .min(1, "Order must be positive")
-      .refine(
-        (val) =>
-          !existingModules.some((m) => m.id !== module.id && m.order === val),
-        { message: "Order must be unique" },
-      ),
-  });
-
+}: ModuleFormModalProps) {
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm({
-    resolver: zodResolver(moduleSchema),
+    resolver: zodResolver(createModuleSchema(module, existingModules)),
     defaultValues: { title: module.title, order: module.order },
   });
 

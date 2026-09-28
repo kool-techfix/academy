@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import { ArrowRight, CheckCircle2, Play, Trophy } from "lucide-react";
@@ -148,14 +149,14 @@ export default function Dashboard() {
 
       {dashboardError && (
         <div className="card">
-          <p>We couldn't load your courses. Please try again.</p>
+          <p>We couldn&apos;t load your courses. Please try again.</p>
         </div>
       )}
 
       {!dashboardLoading && !dashboardError && enrollments?.length === 0 && (
         <div className="card">
           <h3>No courses yet</h3>
-          <p>You haven't enrolled in any courses yet.</p>
+          <p>You haven&apos;t enrolled in any courses yet.</p>
 
           <Link href="/catalog" className="button button-primary">
             Browse courses

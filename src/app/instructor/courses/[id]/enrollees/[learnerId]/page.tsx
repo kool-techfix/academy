@@ -1,31 +1,77 @@
+
 "use client";
 
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Page } from "@/components/page-shell";
-import { useInstructorData } from "@/lib/use-instructor-data";
-import { ChevronLeft, CheckCircle, Circle } from "lucide-react";
+import {
+  ChevronLeft,
+  CheckCircle,
+  Circle,
+  Loader2,
+} from "lucide-react";
 import { Badge } from "@/components/academy-ui";
+import { useInstructorCourseEnrollee } from "@/hooks/instructor/use-enrollees";
 
 export default function EnrolleeDetail() {
-  const params = useParams<{ id: string; learnerId: string }>();
-  const { courses, enrollees } = useInstructorData();
-  const courseId = params?.id;
-  const learnerId = params?.learnerId;
+  const params = useParams<{
+    id: string;
+    learnerId: string;
+  }>();
 
-  const course = courses.find((c) => c.id === courseId);
-  const courseEnrollees = courseId ? enrollees[courseId] || [] : [];
-  const enrollee = courseEnrollees.find((e) => e.id === learnerId);
+  const courseId = params.id;
+  const learnerId = params.learnerId;
 
-  if (!course || !enrollee) {
+  const {
+    data,
+    isLoading,
+    isError,
+  } = useInstructorCourseEnrollee(
+    courseId,
+    learnerId,
+  );
+
+  if (isLoading) {
     return (
       <Page>
-        <div className="not-found">
-          <h2>Learner not found</h2>
+        <div
+          style={{
+            minHeight: 400,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Loader2
+            size={24}
+            className="animate-spin"
+            aria-label="Loading learner details"
+          />
         </div>
       </Page>
     );
   }
+
+  if (isError || !data) {
+    return (
+      <Page>
+        <div className="not-found">
+          <h2>Learner not found</h2>
+          <p style={{ marginTop: 8 }}>
+            The learner could not be loaded for this course.
+          </p>
+        </div>
+      </Page>
+    );
+  }
+
+  const {
+    course,
+    learner,
+    progress,
+    moduleResults,
+    finalAssessmentResult,
+  } = data;
 
   return (
     <Page>
@@ -40,7 +86,8 @@ export default function EnrolleeDetail() {
             marginBottom: 24,
           }}
         >
-          <ChevronLeft size={16} /> Back to Enrollees
+          <ChevronLeft size={16} />
+          Back to Enrollees
         </Link>
 
         <div
@@ -52,55 +99,94 @@ export default function EnrolleeDetail() {
             color: "#faf9f5",
           }}
         >
-          <h1 style={{ color: "#faf9f5", fontSize: 38, marginBottom: 12 }}>
-            {enrollee.name}
+          <h1
+            style={{
+              color: "#faf9f5",
+              fontSize: 38,
+              marginBottom: 12,
+            }}
+          >
+            {learner.name}
           </h1>
+
           <div
             className="row"
-            style={{ gap: 24, color: "#c8c7bd", fontSize: 14 }}
+            style={{
+              gap: 24,
+              color: "#c8c7bd",
+              fontSize: 14,
+            }}
           >
             <span>
               <strong>Course:</strong> {course.title}
             </span>
+
             <span>
               <strong>Overall Progress:</strong>{" "}
-              <span style={{ color: "#d8e85c", fontWeight: 700 }}>
-                {enrollee.progress}%
+              <span
+                style={{
+                  color: "#d8e85c",
+                  fontWeight: 700,
+                }}
+              >
+                {progress}%
               </span>
             </span>
           </div>
         </div>
 
-        <h3 style={{ fontSize: 22, marginBottom: 16 }}>Module Breakdown</h3>
-        <div className="stack" style={{ gap: 12 }}>
-          {course.modules.map((module) => {
-            const result = enrollee.moduleResults.find(
-              (r) => r.moduleId === module.id,
-            );
-            const isComplete = !!result;
-            const scorePct = result
-              ? Math.round((result.score / result.total) * 100)
-              : 0;
+        <h3
+          style={{
+            fontSize: 22,
+            marginBottom: 16,
+          }}
+        >
+          Module Breakdown
+        </h3>
+
+        <div
+          className="stack"
+          style={{ gap: 12 }}
+        >
+          {moduleResults.map((result) => {
+            const isComplete = result.passed;
 
             return (
               <div
-                key={module.id}
+                key={result.moduleId}
                 className="card row"
                 style={{
                   padding: "20px 24px",
                   justifyContent: "space-between",
                 }}
               >
-                <div className="row" style={{ gap: 16 }}>
+                <div
+                  className="row"
+                  style={{ gap: 16 }}
+                >
                   {isComplete ? (
-                    <CheckCircle size={24} color="#69751b" />
+                    <CheckCircle
+                      size={24}
+                      color="#69751b"
+                    />
                   ) : (
-                    <Circle size={24} color="#dcd9cf" />
+                    <Circle
+                      size={24}
+                      color="#dcd9cf"
+                    />
                   )}
+
                   <div>
-                    <h4 style={{ margin: 0, fontSize: 16 }}>
-                      Module {module.order}: {module.title}
+                    <h4
+                      style={{
+                        margin: 0,
+                        fontSize: 16,
+                      }}
+                    >
+                      Module {result.moduleOrder}:{" "}
+                      {result.moduleTitle}
                     </h4>
+
                     <p
                       style={{
                         margin: 0,
@@ -109,11 +195,16 @@ export default function EnrolleeDetail() {
                         marginTop: 4,
                       }}
                     >
-                      {isComplete ? "Completed" : "Not started"}
+                      {isComplete
+                        ? "Completed"
+                        : result.hasAttempt
+                          ? "Not passed"
+                          : "Not started"}
                     </p>
                   </div>
                 </div>
-                {isComplete && module.quizQuestions.length > 0 && (
+
+                {result.hasAttempt && (
                   <div style={{ textAlign: "right" }}>
                     <div
                       style={{
@@ -127,8 +218,16 @@ export default function EnrolleeDetail() {
                     >
                       Quiz Score
                     </div>
-                    <Badge tone={scorePct >= 80 ? "default" : "coral"}>
-                      {scorePct}% ({result.score}/{result.total})
+
+                    <Badge
+                      tone={
+                        result.passed
+                          ? "default"
+                          : "coral"
+                      }
+                    >
+                      {result.score}% (
+                      {result.score}/{result.total})
                     </Badge>
                   </div>
                 )}
@@ -149,17 +248,31 @@ export default function EnrolleeDetail() {
           }}
         >
           <div>
-            <h4 style={{ margin: 0, fontSize: 16 }}>Final Assessment Result</h4>
+            <h4
+              style={{
+                margin: 0,
+                fontSize: 16,
+              }}
+            >
+              Final Assessment Result
+            </h4>
           </div>
+
           <div>
-            {typeof enrollee.finalAssessmentResult === "number" ? (
+            {typeof finalAssessmentResult === "number" ? (
               <Badge
-                tone={enrollee.finalAssessmentResult >= 80 ? "dark" : "coral"}
+                tone={
+                  finalAssessmentResult >= 80
+                    ? "dark"
+                    : "coral"
+                }
               >
-                Score: {enrollee.finalAssessmentResult}%
+                Score: {finalAssessmentResult}%
               </Badge>
             ) : (
-              <Badge tone="muted">In progress</Badge>
+              <Badge tone="muted">
+                In progress
+              </Badge>
             )}
           </div>
         </div>

@@ -52,9 +52,9 @@ export class LessonService {
     moduleId: string,
     data: CreateLessonData,
   ) {
-    const module = await this.getModuleWithCourse(moduleId);
+    const courseModule = await this.getModuleWithCourse(moduleId);
 
-    await this.ensureInstructorHasAccess(instructorId, module.courseId);
+    await this.ensureInstructorHasAccess(instructorId, courseModule.courseId);
 
     if (!data.title?.trim()) {
       throw new Error("Lesson title is required");
@@ -148,13 +148,13 @@ export class LessonService {
    * to the course.
    */
   private async getModuleWithCourse(moduleId: string) {
-    const module = await this.lessonRepository.getModuleWithCourse(moduleId);
+    const courseModule = await this.lessonRepository.getModuleWithCourse(moduleId);
 
-    if (!module) {
+    if (!courseModule) {
       throw new Error("Module not found");
     }
 
-    return module;
+    return courseModule;
   }
 
   /**
