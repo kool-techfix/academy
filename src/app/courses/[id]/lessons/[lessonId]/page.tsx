@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import { useState } from "react";
@@ -8,6 +9,7 @@ import {
   Check,
   Download,
   FileText,
+  LockKeyhole,
   Play,
 } from "lucide-react";
 

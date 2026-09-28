@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import { ArrowRight, CheckCircle2, Play, Trophy } from "lucide-react";
@@ -196,7 +195,7 @@ export default function Dashboard() {
 
   {activityError && (
     <p style={{ color: "#77766f", fontSize: 13 }}>
-      We couldn't load your recent activity.
+      We couldn&apos;t load your recent activity.
     </p>
   )}
 
