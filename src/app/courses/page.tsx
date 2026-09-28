@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { BookOpen, Grid2X2, List, Search } from "lucide-react";
 import { Page } from "@/components/page-shell";
 import { CourseCard, LearnerCourseCard, Button } from "@/components/academy-ui";
@@ -12,10 +12,15 @@ import { useLearnerAllCourseProgress } from "@/hooks/learner/use-progress";
 
 export default function Catalog() {
   const [query, setQuery] = useState("");
-  const [mode, setMode] = useState<"grid" | "list">(
-    () =>
-      (sessionStorage.getItem("kooltech-view") as "grid" | "list") || "grid",
-  );
+  const [mode, setMode] = useState<"grid" | "list">("grid");
+
+  useEffect(() => {
+    const savedMode = sessionStorage.getItem("kooltech-view");
+
+    if (savedMode === "grid" || savedMode === "list") {
+      setMode(savedMode);
+    }
+  }, []);
 
   const setView = (next: "grid" | "list") => {
     setMode(next);

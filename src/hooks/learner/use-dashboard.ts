@@ -10,10 +10,25 @@ export const LEARNER_DASHBOARD_ACTIVITY_QUERY_KEY = [
   "activity",
 ] as const;
 
+export const LEARNER_DASHBOARD_STREAK_QUERY_KEY = [
+  "learner",
+  "dashboard",
+  "streak",
+] as const;
+
 export function useLearnerRecentActivity() {
   return useQuery({
     queryKey: LEARNER_DASHBOARD_ACTIVITY_QUERY_KEY,
     queryFn: learnerDashboardApi.getRecentActivity,
+    staleTime: 60 * 1000,
+  });
+}
+
+export function useLearnerStreak() {
+  return useQuery({
+    queryKey:
+      LEARNER_DASHBOARD_STREAK_QUERY_KEY,
+    queryFn: learnerDashboardApi.getStreak,
     staleTime: 60 * 1000,
   });
 }

@@ -1,7 +1,10 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { LEARNER_DASHBOARD_ACTIVITY_QUERY_KEY } from "@/hooks/learner/use-dashboard";
+import {
+  LEARNER_DASHBOARD_ACTIVITY_QUERY_KEY,
+  LEARNER_DASHBOARD_STREAK_QUERY_KEY,
+} from "@/hooks/learner/use-dashboard";
 import { learnerProgressApi } from "@/Services/progress.service";
 
 export const LEARNER_ALL_COURSE_PROGRESS_QUERY_KEY = [
@@ -39,6 +42,10 @@ export function useCompleteLesson(courseId: string) {
 
       queryClient.invalidateQueries({
         queryKey: LEARNER_DASHBOARD_ACTIVITY_QUERY_KEY,
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: LEARNER_DASHBOARD_STREAK_QUERY_KEY,
       });
     },
   });

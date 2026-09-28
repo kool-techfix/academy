@@ -68,7 +68,7 @@ export class ProgressRepository {
       },
     });
   }
-  
+
   async findLessonWithCourse(lessonId: string) {
     return prisma.lesson.findUnique({
       where: {
@@ -86,35 +86,52 @@ export class ProgressRepository {
   }
 
   async findRecentByUser(userId: string, limit = 10) {
-  return prisma.progress.findMany({
-    where: {
-      userId,
-    },
-    select: {
-      id: true,
-      completedAt: true,
-      lesson: {
-        select: {
-          id: true,
-          title: true,
-          module: {
-            select: {
-              title: true,
-              course: {
-                select: {
-                  id: true,
-                  title: true,
+    return prisma.progress.findMany({
+      where: {
+        userId,
+      },
+      select: {
+        id: true,
+        completedAt: true,
+        lesson: {
+          select: {
+            id: true,
+            title: true,
+            module: {
+              select: {
+                title: true,
+                course: {
+                  select: {
+                    id: true,
+                    title: true,
+                  },
                 },
               },
             },
           },
         },
       },
-    },
-    orderBy: {
-      completedAt: "desc",
-    },
-    take: limit,
-  });
-}
+      orderBy: {
+        completedAt: "desc",
+      },
+      take: limit,
+    });
+  }
+
+  async findActivityDates(userId: string, since: Date) {
+    return prisma.progress.findMany({
+      where: {
+        userId,
+        completedAt: {
+          gte: since,
+        },
+      },
+      select: {
+        completedAt: true,
+      },
+      orderBy: {
+        completedAt: "desc",
+      },
+    });
+  }
 }

@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { learnerEnrollmentApi } from "@/Services/enrollment.service";
+import { LEARNER_DASHBOARD_ACTIVITY_QUERY_KEY, LEARNER_DASHBOARD_STREAK_QUERY_KEY } from "./use-dashboard";
 
 export const LEARNER_ENROLLMENTS_QUERY_KEY = [
   "learner",
@@ -27,6 +28,14 @@ export function useEnrollInCourse() {
       queryClient.invalidateQueries({
         queryKey: LEARNER_ENROLLMENTS_QUERY_KEY,
       });
+
+      queryClient.invalidateQueries({
+        queryKey: LEARNER_DASHBOARD_ACTIVITY_QUERY_KEY,
+      });
     },
+  });
+
+  queryClient.invalidateQueries({
+    queryKey: LEARNER_DASHBOARD_STREAK_QUERY_KEY,
   });
 }

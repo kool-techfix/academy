@@ -2,10 +2,7 @@ import { QuizType } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 
 export class LearnerQuizRepository {
-  async findModuleQuizForLearner(
-    moduleId: string,
-    courseId: string,
-  ) {
+  async findModuleQuizForLearner(moduleId: string, courseId: string) {
     return prisma.quiz.findFirst({
       where: {
         moduleId,
@@ -35,9 +32,33 @@ export class LearnerQuizRepository {
     });
   }
 
-  async findQuizForSubmission(
-    quizId: string,
-  ) {
+  async findFinalQuizForLearner(courseId: string) {
+    return prisma.quiz.findFirst({
+      where: {
+        courseId,
+        type: QuizType.FINAL,
+      },
+      select: {
+        id: true,
+        courseId: true,
+        type: true,
+        passScore: true,
+        allowRetake: true,
+        questions: {
+          select: {
+            id: true,
+            questionText: true,
+            options: true,
+          },
+          orderBy: {
+            id: "asc",
+          },
+        },
+      },
+    });
+  }
+
+  async findQuizForSubmission(quizId: string) {
     return prisma.quiz.findUnique({
       where: {
         id: quizId,
@@ -65,4 +86,25 @@ export class LearnerQuizRepository {
       },
     });
   }
+
+  async findCourseWithModules(courseId: string) {
+  return prisma.course.findUnique({
+    where: {
+      id: courseId,
+    },
+    select: {
+      id: true,
+      modules: {
+        select: {
+          id: true,
+          quiz: {
+            select: {
+              id: true,
+            },
+          },
+        },
+      },
+    },
+  });
+}
 }

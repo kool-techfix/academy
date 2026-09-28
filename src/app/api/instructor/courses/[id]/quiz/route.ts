@@ -7,12 +7,12 @@ const quizService = new QuizService();
 
 export async function GET(
   _request: NextRequest,
-  { params }: { params: Promise<{ courseId: string }> },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     await requireInstructor();
 
-    const { courseId } = await params;
+    const { id: courseId } = await params;
 
     const quiz = await quizService.getCourseQuiz(courseId);
 
@@ -34,12 +34,12 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ courseId: string }> },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const instructor = await requireInstructor();
 
-    const { courseId } = await params;
+    const { id: courseId } = await params;
 
     const body = (await request.json()) as CreateQuizData;
 

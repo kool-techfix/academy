@@ -1,20 +1,30 @@
+
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Modal } from "./modal";
 import { FormField } from "@/components/form-field";
 import { Button } from "@/components/academy-ui";
-import { Module } from "@/lib/instructor-types";
+import { Module } from "@/Services/course.service";
 
-type ModuleFormData = { title: string; order: number };
+type ModuleFormData = {
+  id?: string;
+  title: string;
+  order: number;
+};
+
 type ModuleFormModalProps = {
-  module: Module;
+  module: ModuleFormData;
   existingModules?: Module[];
   onClose: () => void;
-  onSave: (data: ModuleFormData) => void;
+  onSave: (data: { title: string; order: number }) => void;
   isSaving?: boolean;
 };
-const createModuleSchema = (currentModule: Module, existingModules: Module[]) =>
+
+const createModuleSchema = (
+  currentModule: ModuleFormData,
+  existingModules: Module[],
+) =>
   z.object({
     title: z.string().min(3, "Title must be at least 3 characters"),
     order: z.coerce
@@ -42,11 +52,17 @@ export function ModuleFormModal({
     formState: { errors },
   } = useForm({
     resolver: zodResolver(createModuleSchema(module, existingModules)),
-    defaultValues: { title: module.title, order: module.order },
+    defaultValues: {
+      title: module.title,
+      order: module.order,
+    },
   });
 
   return (
-    <Modal title={module.id ? "Edit Module" : "Add Module"} onClose={onClose}>
+    <Modal
+      title={module.id ? "Edit Module" : "Add Module"}
+      onClose={onClose}
+    >
       <form onSubmit={handleSubmit(onSave)} className="stack">
         <FormField
           label="Module Title"
@@ -55,6 +71,7 @@ export function ModuleFormModal({
           error={errors.title?.message as string}
           placeholder="e.g. Introduction"
         />
+
         <FormField
           label="Order"
           name="order"
@@ -63,6 +80,7 @@ export function ModuleFormModal({
           error={errors.order?.message as string}
           placeholder="1"
         />
+
         <div
           className="row"
           style={{ justifyContent: "flex-end", marginTop: 12 }}
@@ -70,6 +88,7 @@ export function ModuleFormModal({
           <Button variant="ghost" onClick={onClose}>
             Cancel
           </Button>
+
           <Button type="submit" disabled={isSaving}>
             {isSaving ? "Saving..." : "Save Module"}
           </Button>
@@ -78,3 +97,4 @@ export function ModuleFormModal({
     </Modal>
   );
 }
+

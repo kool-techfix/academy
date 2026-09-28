@@ -3,13 +3,17 @@
 import { ArrowRight, CheckCircle2, Play, Trophy } from "lucide-react";
 import { LearnerCourseCard, ProgressBar } from "@/components/academy-ui";
 import { Page } from "@/components/page-shell";
-import { useLearnerRecentActivity } from "@/hooks/learner/use-dashboard";
+import {
+  useLearnerRecentActivity,
+  useLearnerStreak,
+} from "@/hooks/learner/use-dashboard";
 import Link from "next/link";
 import { useLearnerEnrollments } from "@/hooks/learner/use-enrollments";
 import { useCurrentUser } from "@/hooks/auth/use-user";
 import { useLearnerAllCourseProgress } from "@/hooks/learner/use-progress";
 import { Loader } from "@/components/Loader";
 import { getContinueLearningCourse } from "@/lib/course-progress";
+import { weekDays } from "@/lib/streak-date";
 
 export default function Dashboard() {
   const {
@@ -24,7 +28,10 @@ export default function Dashboard() {
     isError: progressError,
   } = useLearnerAllCourseProgress();
 
-  const dashboardLoading = enrollmentsLoading || progressLoading;
+  const { data: streak, isLoading: isStreakLoading } = useLearnerStreak();
+
+  const dashboardLoading =
+    enrollmentsLoading || progressLoading || isStreakLoading;
 
   const dashboardError = enrollmentsError || progressError;
 
@@ -47,11 +54,11 @@ export default function Dashboard() {
     ? `/courses/${continueCourse.enrollment.courseId}`
     : null;
 
-    const {
-  data: recentActivity,
-  isLoading: activityLoading,
-  isError: activityError,
-} = useLearnerRecentActivity();
+  const {
+    data: recentActivity,
+    isLoading: activityLoading,
+    isError: activityError,
+  } = useLearnerRecentActivity();
 
   const enrolledCourseCount = enrolledCourses.length;
 
@@ -182,89 +189,106 @@ export default function Dashboard() {
 
       <div className="activity-grid">
         <section className="card panel">
-  <div className="section-head">
-    <h2>Recent activity</h2>
-    <span className="eyebrow">Your trail</span>
-  </div>
-
-  {activityLoading && (
-    <p style={{ color: "#77766f", fontSize: 13 }}>
-      Loading your activity...
-    </p>
-  )}
-
-  {activityError && (
-    <p style={{ color: "#77766f", fontSize: 13 }}>
-      We couldn&apos;t load your recent activity.
-    </p>
-  )}
-
-  {!activityLoading &&
-    !activityError &&
-    recentActivity &&
-    recentActivity.length === 0 && (
-      <p style={{ color: "#77766f", fontSize: 13 }}>
-        No activity yet. Start learning to see your activity here.
-      </p>
-    )}
-
-  {!activityLoading &&
-    !activityError &&
-    recentActivity &&
-    recentActivity.length > 0 &&
-    recentActivity.map((item) => {
-      const Icon =
-        item.type === "lesson_completed"
-          ? CheckCircle2
-          : item.type === "quiz_attempted"
-            ? Trophy
-            : Play;
-
-      return (
-        <div
-          className="activity"
-          key={item.id}
-        >
-          <div className="activity-marker">
-            <Icon size={15} />
+          <div className="section-head">
+            <h2>Recent activity</h2>
+            <span className="eyebrow">Your trail</span>
           </div>
 
-          <div>
-            <p>{item.text}</p>
+          {activityLoading && (
+            <p style={{ color: "#77766f", fontSize: 13 }}>
+              Loading your activity...
+            </p>
+          )}
 
-            <span
-              style={{
-                color: "#77766f",
-                fontSize: 12,
-              }}
-            >
-              {item.course}
-            </span>
+          {activityError && (
+            <p style={{ color: "#77766f", fontSize: 13 }}>
+              We couldn&apos;t load your recent activity.
+            </p>
+          )}
 
-            <time>
-              {new Date(item.createdAt).toLocaleDateString()}
-            </time>
-          </div>
-        </div>
-      );
-    })}
-</section>
+          {!activityLoading &&
+            !activityError &&
+            recentActivity &&
+            recentActivity.length === 0 && (
+              <p style={{ color: "#77766f", fontSize: 13 }}>
+                No activity yet. Start learning to see your activity here.
+              </p>
+            )}
+
+          {!activityLoading &&
+            !activityError &&
+            recentActivity &&
+            recentActivity.length > 0 &&
+            recentActivity.map((item) => {
+              const Icon =
+                item.type === "lesson_completed"
+                  ? CheckCircle2
+                  : item.type === "quiz_attempted"
+                    ? Trophy
+                    : Play;
+
+              return (
+                <div className="activity" key={item.id}>
+                  <div className="activity-marker">
+                    <Icon size={15} />
+                  </div>
+
+                  <div>
+                    <p>{item.text}</p>
+
+                    <span
+                      style={{
+                        color: "#77766f",
+                        fontSize: 12,
+                      }}
+                    >
+                      {item.course}
+                    </span>
+
+                    <time>{new Date(item.createdAt).toLocaleDateString()}</time>
+                  </div>
+                </div>
+              );
+            })}
+        </section>
         <section className="card streak-card">
           <span className="eyebrow" style={{ color: "#7d4c48" }}>
             A useful habit
           </span>
-          <h3 style={{ marginTop: 10 }}>Three days in a row.</h3>
-          <p style={{ color: "#7d4c48", fontSize: 13 }}>
+
+          <h3 style={{ marginTop: 10 }}>
+            {streak?.currentStreak ?? 0}{" "}
+            {streak?.currentStreak === 1 ? "day" : "days"} in a row.
+          </h3>
+
+          <p
+            style={{
+              color: "#7d4c48",
+              fontSize: 13,
+            }}
+          >
             Small, regular practice compounds. Keep your streak alive with one
             lesson today.
           </p>
+
           <div className="streak-days">
-            {["M", "T", "W", "T", "F", "S", "S"].map((day, index) => (
-              <div className="streak-day" key={`${day}-${index}`}>
-                <span className={`streak-dot ${index < 3 ? "active" : ""}`} />
-                {day}
-              </div>
-            ))}
+            {weekDays.map((date) => {
+              const dateKey = date.toISOString().slice(0, 10);
+
+              const isActive = streak?.activeDays.includes(dateKey);
+
+              return (
+                <div className="streak-day" key={dateKey}>
+                  <span className={`streak-dot ${isActive ? "active" : ""}`} />
+
+                  {date
+                    .toLocaleDateString("en-US", {
+                      weekday: "short",
+                    })
+                    .slice(0, 1)}
+                </div>
+              );
+            })}
           </div>
         </section>
       </div>

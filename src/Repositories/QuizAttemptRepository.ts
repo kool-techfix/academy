@@ -110,43 +110,60 @@ export class QuizAttemptRepository {
   }
 
   async findRecentByUser(userId: string, limit = 10) {
-  return prisma.quizAttempt.findMany({
-    where: {
-      userId,
-    },
-    select: {
-      id: true,
-      score: true,
-      passed: true,
-      attemptedAt: true,
-      quiz: {
-        select: {
-          id: true,
-          type: true,
-          module: {
-            select: {
-              title: true,
-              course: {
-                select: {
-                  id: true,
-                  title: true,
+    return prisma.quizAttempt.findMany({
+      where: {
+        userId,
+      },
+      select: {
+        id: true,
+        score: true,
+        passed: true,
+        attemptedAt: true,
+        quiz: {
+          select: {
+            id: true,
+            type: true,
+            module: {
+              select: {
+                title: true,
+                course: {
+                  select: {
+                    id: true,
+                    title: true,
+                  },
                 },
               },
             },
-          },
-          course: {
-            select: {
-              id: true,
-              title: true,
+            course: {
+              select: {
+                id: true,
+                title: true,
+              },
             },
           },
         },
       },
-    },
-    orderBy: {
-      attemptedAt: "desc",
-    },
-    take: limit,
-  });
-}
+      orderBy: {
+        attemptedAt: "desc",
+      },
+      take: limit,
+    });
+  }
+
+  async findActivityDates(userId: string, since: Date) {
+    return prisma.quizAttempt.findMany({
+      where: {
+        userId,
+        attemptedAt: {
+          gte: since,
+        },
+      },
+      select: {
+        attemptedAt: true,
+      },
+      orderBy: {
+        attemptedAt: "desc",
+      },
+    });
+  }
 }
