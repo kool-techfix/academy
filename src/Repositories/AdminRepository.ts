@@ -225,9 +225,10 @@ export class AdminRepository {
       where: { id },
       data: {
         ...data,
-        moderatedAt: data.moderationStatus === CourseModerationStatus.NONE
-          ? null
-          : new Date(),
+        moderatedAt:
+          data.moderationStatus === CourseModerationStatus.NONE
+            ? null
+            : new Date(),
       },
       select: {
         id: true,
