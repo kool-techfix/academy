@@ -1,4 +1,3 @@
-
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -59,10 +58,7 @@ export function ModuleFormModal({
   });
 
   return (
-    <Modal
-      title={module.id ? "Edit Module" : "Add Module"}
-      onClose={onClose}
-    >
+    <Modal title={module.id ? "Edit Module" : "Add Module"} onClose={onClose}>
       <form onSubmit={handleSubmit(onSave)} className="stack">
         <FormField
           label="Module Title"
@@ -97,4 +93,3 @@ export function ModuleFormModal({
     </Modal>
   );
 }
-

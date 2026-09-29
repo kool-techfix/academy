@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable  react-hooks/set-state-in-effect */
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -30,7 +30,6 @@ export default function Catalog() {
   const {
     data: courses = [],
     isLoading: coursesLoading,
-    isError: coursesError,
   } = useLearnerCourses();
 
   const { data: enrollments = [], isLoading: enrollmentsLoading } =

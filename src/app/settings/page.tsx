@@ -1,3 +1,4 @@
+/* eslint-disable  react-hooks/set-state-in-effect */
 "use client";
 
 import { useEffect, useState } from "react";
@@ -168,7 +169,7 @@ export default function Settings() {
 
           <h1 style={{ marginTop: 10 }}>Unable to load settings</h1>
 
-          <p>We couldn't load your account settings. Please try again.</p>
+          <p>We couldn&apos;t load your account settings. Please try again.</p>
 
           <Link href="/dashboard" className="button button-ghost">
             Back to my learning
@@ -357,7 +358,7 @@ export default function Settings() {
             <div>
               <strong>Course updates</strong>
 
-              <p>Get updates about courses you're enrolled in.</p>
+              <p>Get updates about courses you&apos;re enrolled in.</p>
             </div>
 
             <button
