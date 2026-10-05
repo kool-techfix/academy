@@ -95,13 +95,13 @@ export default function EnrolleeDetail() {
           style={{
             padding: 42,
             marginBottom: 32,
-            background: "#2e2e2c",
-            color: "#faf9f5",
+            background: "var(--brand-black)",
+            color: "var(--brand-white)",
           }}
         >
           <h1
             style={{
-              color: "#faf9f5",
+              color: "var(--brand-white)",
               fontSize: 38,
               marginBottom: 12,
             }}
@@ -113,7 +113,7 @@ export default function EnrolleeDetail() {
             className="row"
             style={{
               gap: 24,
-              color: "#c8c7bd",
+              color: "var(--brand-gray)",
               fontSize: 14,
             }}
           >
@@ -125,7 +125,7 @@ export default function EnrolleeDetail() {
               <strong>Overall Progress:</strong>{" "}
               <span
                 style={{
-                  color: "#d8e85c",
+                  color: "var(--brand-white)",
                   fontWeight: 700,
                 }}
               >
@@ -167,12 +167,12 @@ export default function EnrolleeDetail() {
                   {isComplete ? (
                     <CheckCircle
                       size={24}
-                      color="#69751b"
+                      style={{ color: "var(--brand-green)" }}
                     />
                   ) : (
                     <Circle
                       size={24}
-                      color="#dcd9cf"
+                      style={{ color: "var(--brand-gray)" }}
                     />
                   )}
 
@@ -191,7 +191,7 @@ export default function EnrolleeDetail() {
                       style={{
                         margin: 0,
                         fontSize: 13,
-                        color: "#77766f",
+                        color: "var(--brand-text-muted)",
                         marginTop: 4,
                       }}
                     >
@@ -209,7 +209,7 @@ export default function EnrolleeDetail() {
                     <div
                       style={{
                         fontSize: 12,
-                        color: "#85827a",
+                        color: "var(--brand-text-muted)",
                         marginBottom: 4,
                         textTransform: "uppercase",
                         letterSpacing: "0.05em",
@@ -244,7 +244,7 @@ export default function EnrolleeDetail() {
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            background: "#faf9f5",
+            background: "var(--brand-white)",
           }}
         >
           <div>

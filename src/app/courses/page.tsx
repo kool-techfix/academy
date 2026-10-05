@@ -83,8 +83,8 @@ export default function Catalog() {
           </p>
         </div>
         <div className="row">
-          <BookOpen size={18} color="#73716a" />
-          <span style={{ fontSize: 13, color: "#73716a" }}>
+          <BookOpen size={18} style={{ color: "var(--brand-text-muted)" }} />
+          <span style={{ fontSize: 13, color: "var(--brand-text-muted)" }}>
             {courses.length} {courses.length === 1 ? "course" : "courses"}
           </span>
         </div>

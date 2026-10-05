@@ -188,7 +188,7 @@ export default function Quiz() {
           href={`/courses/${id}`}
           className="row"
           style={{
-            color: "#77766f",
+            color: "var(--brand-text-muted)",
             fontSize: 13,
             marginBottom: 26,
           }}

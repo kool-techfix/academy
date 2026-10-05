@@ -17,9 +17,9 @@ export function Page({ children }: { children: ReactNode }) {
   if (!user) return null;
 
   return (
-    <>
+    <div className="relative">
       <Navbar />
       <main className="main">{children}</main>
-    </>
+    </div>
   );
 }

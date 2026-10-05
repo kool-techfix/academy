@@ -57,7 +57,7 @@ export function Modal({ title, children, onClose }: { title: string; children: R
     <div 
       style={{
         position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-        backgroundColor: 'rgba(46, 46, 44, 0.4)', backdropFilter: 'blur(3px)',
+        backgroundColor: 'color-mix(in srgb, var(--brand-black) 40%, transparent)', backdropFilter: 'blur(3px)',
         display: 'grid', placeItems: 'center', zIndex: 100, padding: 16, overflowY: 'auto'
       }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
@@ -76,7 +76,7 @@ export function Modal({ title, children, onClose }: { title: string; children: R
       >
         <div className="row" style={{ justifyContent: 'space-between', marginBottom: 24, flex: 'none' }}>
           <h2 id="modal-title" style={{ fontSize: 24, margin: 0 }}>{title}</h2>
-          <button aria-label="Close dialog" onClick={onClose} style={{ background: 'none', border: 'none', color: '#66655e', cursor: 'pointer', padding: 4 }}>
+          <button aria-label="Close dialog" onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--brand-text-muted)', cursor: 'pointer', padding: 4 }}>
             <X size={20} />
           </button>
         </div>

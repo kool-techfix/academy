@@ -14,7 +14,7 @@ export function AuthLayout({
       <section className="auth-visual">
         <Brand />
         <div className="auth-copy">
-          <span className="eyebrow" style={{ color: '#d8e85c' }}>
+          <span className="eyebrow" style={{ color: 'var(--brand-gray)' }}>
             Practical skills. Visible progress.
           </span>
           <h1 style={{ marginTop: 12 }}>Learn the work behind the work.</h1>

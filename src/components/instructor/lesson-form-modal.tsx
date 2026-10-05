@@ -82,17 +82,17 @@ export function LessonFormModal({
             className="row card"
             style={{
               padding: "12px 16px",
-              background: "#f5f4ef",
-              border: "1px dashed #dcd9cf",
+              background: "var(--brand-gray-light)",
+              border: "1px dashed var(--brand-gray)",
             }}
           >
             {filename ? (
               <>
-                <FileText size={18} color="#85827a" />
+                <FileText size={18} style={{ color: "var(--brand-text-muted)" }} />
                 <span
                   style={{
                     fontSize: 14,
-                    color: "#484741",
+                    color: "var(--brand-black)",
                     flex: 1,
                     whiteSpace: "nowrap",
                     overflow: "hidden",
@@ -124,7 +124,7 @@ export function LessonFormModal({
                   style={{
                     background: "none",
                     border: "none",
-                    color: "#77766f",
+                    color: "var(--brand-text-muted)",
                     cursor: "pointer",
                     padding: 4,
                   }}
@@ -135,8 +135,8 @@ export function LessonFormModal({
               </>
             ) : (
               <>
-                <FileUp size={18} color="#85827a" />
-                <span style={{ fontSize: 13, color: "#77766f", flex: 1 }}>
+                <FileUp size={18} style={{ color: "var(--brand-text-muted)" }} />
+                <span style={{ fontSize: 13, color: "var(--brand-text-muted)", flex: 1 }}>
                   Upload .doc, .docx, .txt
                 </span>
                 <label

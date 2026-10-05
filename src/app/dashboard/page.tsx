@@ -114,7 +114,7 @@ export default function Dashboard() {
           )}
         </div>
         <div className="card stat-card" data-testid="card-learning-stats">
-          <span className="eyebrow" style={{ color: "#696b39" }}>
+          <span className="eyebrow" style={{ color: "var(--brand-green)" }}>
             Your learning
           </span>
 
@@ -128,7 +128,7 @@ export default function Dashboard() {
             label="Overall course progress"
           />
 
-          <small style={{ color: "#696b39" }}>
+          <small style={{ color: "var(--brand-green)" }}>
             {enrolledCourseCount}{" "}
             {enrolledCourseCount === 1 ? "course" : "courses"} enrolled
             {" · "}
@@ -195,13 +195,13 @@ export default function Dashboard() {
           </div>
 
           {activityLoading && (
-            <p style={{ color: "#77766f", fontSize: 13 }}>
+            <p style={{ color: "var(--brand-text-muted)", fontSize: 13 }}>
               Loading your activity...
             </p>
           )}
 
           {activityError && (
-            <p style={{ color: "#77766f", fontSize: 13 }}>
+            <p style={{ color: "var(--brand-text-muted)", fontSize: 13 }}>
               We couldn&apos;t load your recent activity.
             </p>
           )}
@@ -210,7 +210,7 @@ export default function Dashboard() {
             !activityError &&
             recentActivity &&
             recentActivity.length === 0 && (
-              <p style={{ color: "#77766f", fontSize: 13 }}>
+              <p style={{ color: "var(--brand-text-muted)", fontSize: 13 }}>
                 No activity yet. Start learning to see your activity here.
               </p>
             )}
@@ -238,7 +238,7 @@ export default function Dashboard() {
 
                     <span
                       style={{
-                        color: "#77766f",
+                        color: "var(--brand-text-muted)",
                         fontSize: 12,
                       }}
                     >
@@ -252,7 +252,7 @@ export default function Dashboard() {
             })}
         </section>
         <section className="card streak-card">
-          <span className="eyebrow" style={{ color: "#7d4c48" }}>
+          <span className="eyebrow" style={{ color: "var(--brand-red)" }}>
             A useful habit
           </span>
 
@@ -263,7 +263,7 @@ export default function Dashboard() {
 
           <p
             style={{
-              color: "#7d4c48",
+              color: "var(--brand-red)",
               fontSize: 13,
             }}
           >

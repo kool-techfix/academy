@@ -31,7 +31,7 @@ export function InstructorCourseCard({ course }: { course: InstructorCourse }) {
           <span
             style={{
               fontSize: 13,
-              color: "#85827a",
+              color: "var(--brand-text-muted)",
             }}
           >
             {enrolleeCount} enrollees
@@ -50,7 +50,7 @@ export function InstructorCourseCard({ course }: { course: InstructorCourse }) {
 
         <p
           style={{
-            color: "#77766f",
+            color: "var(--brand-text-muted)",
             fontSize: 14,
           }}
         >
@@ -62,7 +62,7 @@ export function InstructorCourseCard({ course }: { course: InstructorCourse }) {
         style={{
           display: "grid",
           gridTemplateColumns: "1fr 1fr",
-          borderTop: "1px solid #ece9e1",
+          borderTop: "1px solid var(--brand-gray)",
         }}
       >
         <Link
@@ -71,7 +71,7 @@ export function InstructorCourseCard({ course }: { course: InstructorCourse }) {
           style={{
             border: "none",
             borderRadius: 0,
-            borderRight: "1px solid #ece9e1",
+            borderRight: "1px solid var(--brand-gray)",
             height: 48,
           }}
         >

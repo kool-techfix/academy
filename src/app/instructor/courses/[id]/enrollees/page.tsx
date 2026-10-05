@@ -82,9 +82,9 @@ export default function EnrolleesList() {
                 <thead>
                   <tr
                     style={{
-                      background: "#faf9f5",
-                      borderBottom: "1px solid #ece9e1",
-                      color: "#77766f",
+                      background: "var(--brand-white)",
+                      borderBottom: "1px solid var(--brand-gray)",
+                      color: "var(--brand-text-muted)",
                       fontSize: 12,
                       textTransform: "uppercase",
                       letterSpacing: "0.05em",
@@ -126,7 +126,7 @@ export default function EnrolleesList() {
                     <tr
                       key={enrollee.id}
                       style={{
-                        borderBottom: "1px solid #ece9e1",
+                        borderBottom: "1px solid var(--brand-gray)",
                         transition: "background 180ms ease",
                       }}
                       className="enrollee-row"
@@ -162,7 +162,7 @@ export default function EnrolleesList() {
                             style={{
                               flex: 1,
                               height: 6,
-                              background: "#ebe9df",
+                              background: "var(--brand-gray)",
                               borderRadius: 10,
                               overflow: "hidden",
                             }}
@@ -171,7 +171,7 @@ export default function EnrolleesList() {
                               style={{
                                 height: "100%",
                                 width: `${enrollee.progress}%`,
-                                background: "#d8e85c",
+                                background: "var(--brand-green)",
                                 borderRadius: 10,
                               }}
                             />
@@ -180,7 +180,7 @@ export default function EnrolleesList() {
                           <span
                             style={{
                               fontSize: 13,
-                              color: "#77766f",
+                              color: "var(--brand-text-muted)",
                               minWidth: 36,
                               textAlign: "right",
                             }}
@@ -201,8 +201,8 @@ export default function EnrolleesList() {
                             style={{
                               color:
                                 enrollee.finalAssessmentResult >= 80
-                                  ? "#585d21"
-                                  : "#a14943",
+                                  ? "var(--brand-green)"
+                                  : "var(--brand-red)",
                               fontWeight: 700,
                             }}
                           >
@@ -211,7 +211,7 @@ export default function EnrolleesList() {
                         ) : (
                           <span
                             style={{
-                              color: "#98958b",
+                              color: "var(--brand-text-muted)",
                               fontStyle: "italic",
                             }}
                           >

@@ -256,8 +256,8 @@ function ModuleItem({
         className="row"
         style={{
           padding: "16px 20px",
-          background: "#faf9f5",
-          borderBottom: expanded ? "1px solid #ece9e1" : "none",
+          background: "var(--brand-white)",
+          borderBottom: expanded ? "1px solid var(--brand-gray)" : "none",
         }}
       >
         <button
@@ -279,17 +279,17 @@ function ModuleItem({
             style={{
               display: "grid",
               placeItems: "center",
-              color: "#68675f",
+              color: "var(--brand-text-muted)",
               marginRight: 12,
             }}
           >
             {expanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <span style={{ fontWeight: 700, color: "#77766f", fontSize: 13 }}>
+            <span style={{ fontWeight: 700, color: "var(--brand-text-muted)", fontSize: 13 }}>
               Module {module.order}
             </span>
-            <strong style={{ fontSize: 16, color: "#2e2e2c" }}>
+            <strong style={{ fontSize: 16, color: "var(--brand-black)" }}>
               {module.title}
             </strong>
           </div>
@@ -314,7 +314,7 @@ function ModuleItem({
                 className="row"
                 style={{ justifyContent: "space-between", marginBottom: 12 }}
               >
-                <h4 style={{ margin: 0, fontSize: 15, color: "#484741" }}>
+                <h4 style={{ margin: 0, fontSize: 15, color: "var(--brand-black)" }}>
                   Lessons
                 </h4>
                 <button
@@ -329,9 +329,9 @@ function ModuleItem({
                 <div
                   style={{
                     padding: 16,
-                    background: "#f5f4ef",
+                    background: "var(--brand-gray-light)",
                     borderRadius: 6,
-                    color: "#77766f",
+                    color: "var(--brand-text-muted)",
                     fontSize: 13,
                     textAlign: "center",
                   }}
@@ -342,9 +342,9 @@ function ModuleItem({
                 <div
                   style={{
                     padding: 16,
-                    background: "#f5f4ef",
+                    background: "var(--brand-gray-light)",
                     borderRadius: 6,
-                    color: "#77766f",
+                    color: "var(--brand-text-muted)",
                     fontSize: 13,
                     textAlign: "center",
                   }}
@@ -355,9 +355,9 @@ function ModuleItem({
                 <div
                   style={{
                     padding: 16,
-                    background: "#f5f4ef",
+                    background: "var(--brand-gray-light)",
                     borderRadius: 6,
-                    color: "#77766f",
+                    color: "var(--brand-text-muted)",
                     fontSize: 13,
                     textAlign: "center",
                   }}
@@ -376,7 +376,7 @@ function ModuleItem({
                       }}
                     >
                       <div className="row">
-                        <Video size={16} color="#8a887e" />
+                        <Video size={16} style={{ color: "var(--brand-text-muted)" }} />
                         <span style={{ fontWeight: 600, fontSize: 14 }}>
                           {lesson.title}
                         </span>
@@ -405,20 +405,20 @@ function ModuleItem({
               )}
             </div>
 
-            <div style={{ borderTop: "1px solid #ece9e1", paddingTop: 20 }}>
+            <div style={{ borderTop: "1px solid var(--brand-gray)", paddingTop: 20 }}>
               <div className="row" style={{ justifyContent: "space-between" }}>
                 <div>
                   <h4
                     style={{
                       margin: 0,
                       fontSize: 15,
-                      color: "#484741",
+                      color: "var(--brand-black)",
                       marginBottom: 4,
                     }}
                   >
                     Module Quiz
                   </h4>
-                  <p style={{ margin: 0, fontSize: 13, color: "#85827a" }}>
+                  <p style={{ margin: 0, fontSize: 13, color: "var(--brand-text-muted)" }}>
                     {quizLoading
                       ? "Loading quiz..."
                       : `${quiz?.questions.length ?? 0} questions configured.`}{" "}

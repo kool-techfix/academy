@@ -137,7 +137,7 @@ export default function LessonViewer() {
         href={`/courses/${courseId}`}
         className="row"
         style={{
-          color: "#77766f",
+          color: "var(--brand-text-muted)",
           fontSize: 13,
           marginBottom: 22,
         }}

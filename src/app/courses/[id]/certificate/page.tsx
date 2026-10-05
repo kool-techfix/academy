@@ -99,7 +99,7 @@ ${user.name} has completed ${course.title}.`,
         href={`/courses/${course.id}`}
         className="row"
         style={{
-          color: "#77766f",
+          color: "var(--brand-text-muted)",
           fontSize: 13,
           marginBottom: 22,
         }}
@@ -148,7 +148,7 @@ ${user.name} has completed ${course.title}.`,
                 href={`/courses/${course.id}/modules/${module.id}`}
                 style={{
                   marginLeft: "auto",
-                  color: "#69751b",
+                  color: "var(--brand-green)",
                   fontWeight: 700,
                   fontSize: 12,
                 }}

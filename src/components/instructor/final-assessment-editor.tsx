@@ -148,7 +148,7 @@ export function FinalAssessmentEditor({
         <p
           style={{
             margin: 0,
-            color: "#77766f",
+            color: "var(--brand-text-muted)",
           }}
         >
           Loading final assessment...
@@ -163,7 +163,7 @@ export function FinalAssessmentEditor({
         <p
           style={{
             margin: 0,
-            color: "#b42318",
+            color: "var(--brand-red)",
           }}
         >
           Unable to load final assessment.
@@ -187,8 +187,8 @@ export function FinalAssessmentEditor({
               width: 42,
               height: 42,
               borderRadius: "50%",
-              background: questions.length ? "#eff2d7" : "#f0efea",
-              color: questions.length ? "#52601b" : "#98958b",
+              background: questions.length ? "var(--brand-green-tint)" : "var(--brand-gray-light)",
+              color: questions.length ? "var(--brand-green)" : "var(--brand-text-muted)",
               display: "grid",
               placeItems: "center",
             }}
@@ -210,7 +210,7 @@ export function FinalAssessmentEditor({
               style={{
                 margin: 0,
                 fontSize: 13,
-                color: "#77766f",
+                color: "var(--brand-text-muted)",
               }}
             >
               {questions.length === 0

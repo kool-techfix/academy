@@ -160,7 +160,7 @@ export function QuizFormModal({
             style={{
               padding: 24,
               position: "relative",
-              background: "#faf9f5",
+              background: "var(--brand-white)",
             }}
           >
             <div
@@ -186,7 +186,7 @@ export function QuizFormModal({
                 style={{
                   background: "none",
                   border: "none",
-                  color: "#77766f",
+                  color: "var(--brand-text-muted)",
                   cursor: "pointer",
                   padding: 4,
                 }}
@@ -221,7 +221,7 @@ export function QuizFormModal({
                 style={{
                   fontSize: 13,
                   fontWeight: 700,
-                  color: "#4d4c47",
+                  color: "var(--brand-black)",
                   display: "block",
                   marginBottom: 8,
                 }}
@@ -257,7 +257,7 @@ export function QuizFormModal({
                           )}
                           style={{
                             accentColor:
-                              "#69751b",
+                              "var(--brand-green)",
                             width: 18,
                             height: 18,
                           }}
@@ -283,7 +283,7 @@ export function QuizFormModal({
                             height: 40,
                             padding: "0 12px",
                             border:
-                              "1px solid #dcd9cf",
+                              "1px solid var(--brand-gray)",
                             borderRadius: 6,
                           }}
                           aria-label={`Option ${
@@ -349,7 +349,7 @@ export function QuizFormModal({
             justifyContent: "flex-end",
             marginTop: 12,
             borderTop:
-              "1px solid #ece9e1",
+              "1px solid var(--brand-gray)",
             paddingTop: 24,
           }}
         >

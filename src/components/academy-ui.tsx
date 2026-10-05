@@ -120,7 +120,7 @@ export function CourseCard({
           <span
             style={{
               fontSize: 12,
-              color: "#85827a",
+              color: "var(--brand-text-muted)",
             }}
           >
             {course.modules.length}{" "}
@@ -221,7 +221,7 @@ export function LearnerCourseCard({
           <span
             style={{
               fontSize: 12,
-              color: "#85827a",
+              color: "var(--brand-text-muted)",
             }}
           >
             {course.modules.length}{" "}
@@ -250,7 +250,7 @@ export function LearnerCourseCard({
               <span
                 style={{
                   fontSize: 12,
-                  color: "#77766f",
+                  color: "var(--brand-text-muted)",
                 }}
               >
                 Course progress
@@ -259,7 +259,7 @@ export function LearnerCourseCard({
               {/* <span
                 style={{
                   fontSize: 12,
-                  color: "#696b39",
+                  color: "var(--brand-green)",
                 }}
               >
                 {progress.percentage}%

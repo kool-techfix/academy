@@ -151,7 +151,7 @@ export default function CourseEdit() {
                     : "Publish Course"}
             </Button>
             {/* {course.status === 'DRAFT' && !isPublished && (
-              <p style={{ position: 'absolute', top: '100%', right: 0, width: 220, textAlign: 'right', fontSize: 11, color: '#85827a', marginTop: 8 }}>
+              <p style={{ position: 'absolute', top: '100%', right: 0, width: 220, textAlign: 'right', fontSize: 11, color: 'var(--brand-text-muted)', marginTop: 8 }}>
                 Requires at least 1 module with 1 lesson and 1 quiz question.
               </p>
             )} */}

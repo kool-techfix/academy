@@ -1,3 +1,4 @@
+import { brandColors as c } from "@/lib/brand-colors";
 import { sendEmail } from "@/lib/email/email-transport";
 
 type Recipient = {
@@ -23,11 +24,11 @@ function loginUrl() {
 }
 
 function layout(bodyHtml: string) {
-  return `<div style="font-family:Arial,sans-serif;background:#faf9f5;padding:32px;color:#2e2e2c">
-  <div style="max-width:560px;margin:0 auto;background:#fff;border:1px solid #e5e2d9;border-radius:10px;padding:32px">
+  return `<div style="font-family:Arial,sans-serif;background:${c.grayLight};padding:32px;color:${c.black}">
+  <div style="max-width:560px;margin:0 auto;background:${c.white};border:1px solid ${c.gray};border-radius:10px;padding:32px">
     <p style="margin:0 0 24px;font-weight:700">${ACADEMY_NAME}</p>
     ${bodyHtml}
-    <p style="margin:32px 0 0;color:#77766f;font-size:13px">— The ${ACADEMY_NAME} team</p>
+    <p style="margin:32px 0 0;color:${c.textMuted};font-size:13px">— The ${ACADEMY_NAME} team</p>
   </div>
 </div>`;
 }
@@ -53,7 +54,7 @@ export class InstructorEmailService {
     <p>Hi ${name},</p>
     <p>Good news — your instructor account at ${ACADEMY_NAME} has been <strong>approved</strong>.</p>
     <p>You can now sign in and start creating and publishing courses.</p>
-    ${url ? `<p style="margin-top:24px"><a href="${escapeHtml(url)}" style="display:inline-block;background:#d8e85c;color:#2e2e2c;padding:12px 18px;border-radius:6px;font-weight:700;text-decoration:none">Sign in</a></p>` : ""}`),
+    ${url ? `<p style="margin-top:24px"><a href="${escapeHtml(url)}" style="display:inline-block;background:${c.green};color:${c.white};padding:12px 18px;border-radius:6px;font-weight:700;text-decoration:none">Sign in</a></p>` : ""}`),
     });
   }
 
@@ -80,8 +81,8 @@ export class InstructorEmailService {
     <p>Hi ${name},</p>
     <p>Thank you for applying to teach at ${ACADEMY_NAME}.</p>
     <p>After reviewing your application, we are unable to approve your instructor account at this time.</p>
-    <div style="margin:20px 0;padding:16px;background:#faf9f5;border-left:3px solid #f2a79e;border-radius:4px">
-      <p style="margin:0 0 6px;font-size:12px;font-weight:700;color:#77766f;text-transform:uppercase;letter-spacing:.08em">Reason</p>
+    <div style="margin:20px 0;padding:16px;background:${c.grayLight};border-left:3px solid ${c.red};border-radius:4px">
+      <p style="margin:0 0 6px;font-size:12px;font-weight:700;color:${c.textMuted};text-transform:uppercase;letter-spacing:.08em">Reason</p>
       <p style="margin:0;white-space:pre-wrap">${escapeHtml(reason)}</p>
     </div>
     <p>If you have questions about this decision, please reply to this email.</p>`),

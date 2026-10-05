@@ -76,7 +76,7 @@ export default function CourseDetail() {
         href="/catalog"
         className="row"
         style={{
-          color: "#77766f",
+          color: "var(--brand-text-muted)",
           fontSize: 13,
           marginBottom: 22,
         }}
@@ -320,7 +320,7 @@ export default function CourseDetail() {
           ) : (
             <p
               style={{
-                color: "#77766f",
+                color: "var(--brand-text-muted)",
                 fontSize: 13,
               }}
             >
@@ -330,7 +330,7 @@ export default function CourseDetail() {
 
           <p
             style={{
-              color: "#77766f",
+              color: "var(--brand-text-muted)",
               fontSize: 13,
             }}
           >
@@ -340,7 +340,7 @@ export default function CourseDetail() {
 
           <div
             style={{
-              borderTop: "1px solid #ece9e1",
+              borderTop: "1px solid var(--brand-gray)",
               marginTop: 20,
               paddingTop: 18,
             }}
@@ -349,7 +349,7 @@ export default function CourseDetail() {
 
             <p
               style={{
-                color: "#68675f",
+                color: "var(--brand-text-muted)",
                 fontSize: 13,
                 marginBottom: 0,
               }}

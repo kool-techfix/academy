@@ -9,7 +9,7 @@ export function LoadingScreen({ message = "Loading..." }: LoaderProps) {
   return (
     <div className="app-loading-screen" role="status" aria-live="polite">
       <Image
-        src="/images/images.png"
+        src="https://res.cloudinary.com/dcvyjmflf/image/upload/v1791208209/Kool_TechFix_IT_Academy_Badge_Only.png"
         alt="KoolTech Fix IT Academy"
         className="app-loading-mark"
         width={100}
