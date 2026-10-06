@@ -325,13 +325,17 @@ function ModuleItem({
                 <h4 style={{ margin: 0, fontSize: 15, color: "var(--brand-black)" }}>
                   Lessons
                 </h4>
-                <button
-                  className="button button-secondary"
-                  onClick={() => setAddingLesson(true)}
-                  style={{ minHeight: 32, fontSize: 12, padding: "0 12px" }}
-                >
-                  <Plus size={14} style={{ marginRight: 4 }} /> Add Lesson
-                </button>
+                {/* One lesson per module: offer "Add Lesson" only when empty. */}
+                {!lessonsLoading && !lessonsError && lessons.length === 0 && (
+                  <button
+                    className="button button-secondary"
+                    onClick={() => setAddingLesson(true)}
+                    style={{ minHeight: 32, fontSize: 12, padding: "0 12px" }}
+                    data-testid={`button-add-lesson-${module.id}`}
+                  >
+                    <Plus size={14} style={{ marginRight: 4 }} /> Add Lesson
+                  </button>
+                )}
               </div>
               {lessonsLoading ? (
                 <div

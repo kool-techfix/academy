@@ -41,11 +41,23 @@ function putToR2(
       }
     };
 
-    xhr.onload = () =>
-      xhr.status >= 200 && xhr.status < 300
-        ? resolve()
-        : reject(new Error(`Upload failed (${xhr.status})`));
-    xhr.onerror = () => reject(new Error("Upload failed. Check your connection."));
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve();
+      } else if (xhr.status === 401 || xhr.status === 403) {
+        reject(new Error("File storage refused the upload. Please try again later."));
+      } else {
+        reject(new Error(`Upload failed (HTTP ${xhr.status}). Please try again.`));
+      }
+    };
+    // Network failures and storage rejections without CORS headers both
+    // land here; the browser doesn't expose which one it was.
+    xhr.onerror = () =>
+      reject(
+        new Error(
+          "Upload failed — the file couldn't be stored. Check your connection and try again.",
+        ),
+      );
     xhr.onabort = () => reject(new Error("Upload cancelled"));
 
     xhr.send(file);

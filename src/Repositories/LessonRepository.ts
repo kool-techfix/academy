@@ -29,6 +29,10 @@ export class LessonRepository {
     });
   }
 
+  async countByModule(moduleId: string) {
+    return prisma.lesson.count({ where: { moduleId } });
+  }
+
   async findByModule(moduleId: string) {
     return prisma.lesson.findMany({
       where: {

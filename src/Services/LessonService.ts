@@ -13,7 +13,7 @@ import {
   deleteObject,
   headObject,
 } from "@/lib/storage/r2";
-import { ATTACHMENT_ERRORS } from "@/lib/storage/errors";
+import { ATTACHMENT_ERRORS, MODULE_LESSON_LIMIT } from "@/lib/storage/errors";
 import { CourseRepository } from "@/Repositories/CourseRepository";
 import { EnrollmentRepository } from "@/Repositories/EnrollmentRepository";
 import { LessonAttachmentRepository } from "@/Repositories/LessonAttachmentRepository";
@@ -128,6 +128,11 @@ export class LessonService {
 
     if (!data.youtubeVideoLink) {
       throw new Error("YouTube video Link is required");
+    }
+
+    // Each module holds exactly one lesson.
+    if ((await this.lessonRepository.countByModule(moduleId)) > 0) {
+      throw new Error(MODULE_LESSON_LIMIT);
     }
 
     const attachments = await this.validateNewAttachments(

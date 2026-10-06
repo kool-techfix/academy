@@ -8,6 +8,7 @@ import {
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 import { PRESIGNED_URL_EXPIRY_SECONDS } from "./constants";
+import { STORAGE_ERRORS } from "./errors";
 
 /**
  * Cloudflare R2 (S3-compatible). The bucket is private: browsers only ever
@@ -133,21 +134,47 @@ export async function headObject(key: string) {
       contentType: result.ContentType ?? "",
     };
   } catch (error) {
-    const status = (error as { $metadata?: { httpStatusCode?: number } })
-      .$metadata?.httpStatusCode;
-
-    if (status === 404) {
+    if (httpStatus(error) === 404) {
       return null;
     }
 
-    throw error;
+    throw storageError("HeadObject", key, error);
   }
 }
 
 export async function deleteObject(key: string) {
   const { client, bucket } = getR2();
 
-  await client.send(new DeleteObjectCommand({ Bucket: bucket, Key: key }));
+  try {
+    await client.send(new DeleteObjectCommand({ Bucket: bucket, Key: key }));
+  } catch (error) {
+    throw storageError("DeleteObject", key, error);
+  }
+}
+
+function httpStatus(error: unknown) {
+  return (error as { $metadata?: { httpStatusCode?: number } }).$metadata
+    ?.httpStatusCode;
+}
+
+/**
+ * Log the real cause server-side and return a user-facing error. R2 answers
+ * 401/403 when the token lacks permission (or an IP allowlist blocks the
+ * caller); the SDK surfaces that as an unhelpful "UnknownError".
+ */
+function storageError(operation: string, key: string, error: unknown) {
+  const status = httpStatus(error);
+
+  console.error(
+    `[r2] ${operation} failed for ${key} (HTTP ${status ?? "n/a"}):`,
+    error,
+  );
+
+  return new Error(
+    status === 401 || status === 403
+      ? STORAGE_ERRORS.denied
+      : STORAGE_ERRORS.unavailable,
+  );
 }
 
 function contentDisposition(filename: string) {
