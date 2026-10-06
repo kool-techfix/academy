@@ -2,9 +2,31 @@ import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { getOAuthState } from "better-auth/api";
 import { nextCookies } from "better-auth/next-js";
+import { after } from "next/server";
 
 import { comparePassword, hashPassword } from "@/lib/password";
 import { prisma } from "@/lib/prisma";
+import {
+  PASSWORD_RESET_EXPIRY_MINUTES,
+  PasswordResetEmailService,
+} from "@/Services/PasswordResetEmailService";
+
+const passwordResetEmails = new PasswordResetEmailService();
+
+/**
+ * Send after the response: the reset request then takes the same time
+ * whether or not the email belongs to an account (no account enumeration),
+ * and a slow or failing mail server never breaks the request.
+ */
+function sendAfterResponse(label: string, send: () => Promise<void>) {
+  after(async () => {
+    try {
+      await send();
+    } catch (error) {
+      console.error(`[email] Failed to send ${label}:`, error);
+    }
+  });
+}
 
 /**
  * Better Auth instance. Owns every session (email/password and Google).
@@ -30,6 +52,29 @@ export const auth = betterAuth({
     password: {
       hash: hashPassword,
       verify: ({ hash, password }) => comparePassword(password, hash),
+    },
+    // Forgot password → email link → /reset-password. Tokens live in the
+    // Verification table, are single-use and expire after an hour.
+    resetPasswordTokenExpiresIn: PASSWORD_RESET_EXPIRY_MINUTES * 60,
+    revokeSessionsOnPasswordReset: true,
+    sendResetPassword: async ({ user, url }) => {
+      sendAfterResponse("password reset link", () =>
+        passwordResetEmails.sendResetLink(user, url),
+      );
+    },
+    onPasswordReset: async ({ user }) => {
+      sendAfterResponse("password changed notice", () =>
+        passwordResetEmails.sendPasswordChanged(user),
+      );
+    },
+  },
+
+  rateLimit: {
+    // Better Auth rate-limits in production by default; tighten the
+    // endpoints that send email or accept reset tokens.
+    customRules: {
+      "/request-password-reset": { window: 60, max: 3 },
+      "/reset-password": { window: 60, max: 5 },
     },
   },
 

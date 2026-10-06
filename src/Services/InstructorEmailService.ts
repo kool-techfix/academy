@@ -1,36 +1,16 @@
 import { brandColors as c } from "@/lib/brand-colors";
 import { sendEmail } from "@/lib/email/email-transport";
+import { ACADEMY_NAME, emailLayout, escapeHtml } from "@/lib/email/template";
 
 type Recipient = {
   name: string;
   email: string;
 };
 
-const ACADEMY_NAME = "KoolTech Fix IT Academy";
-
-function escapeHtml(value: string) {
-  return value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
-}
-
 function loginUrl() {
   const baseUrl = process.env.APP_URL?.replace(/\/$/, "");
 
   return baseUrl ? `${baseUrl}/login` : null;
-}
-
-function layout(bodyHtml: string) {
-  return `<div style="font-family:Arial,sans-serif;background:${c.grayLight};padding:32px;color:${c.black}">
-  <div style="max-width:560px;margin:0 auto;background:${c.white};border:1px solid ${c.gray};border-radius:10px;padding:32px">
-    <p style="margin:0 0 24px;font-weight:700">${ACADEMY_NAME}</p>
-    ${bodyHtml}
-    <p style="margin:32px 0 0;color:${c.textMuted};font-size:13px">— The ${ACADEMY_NAME} team</p>
-  </div>
-</div>`;
 }
 
 export class InstructorEmailService {
@@ -50,7 +30,7 @@ export class InstructorEmailService {
         "",
         `— The ${ACADEMY_NAME} team`,
       ].join("\n"),
-      html: layout(`
+      html: emailLayout(`
     <p>Hi ${name},</p>
     <p>Good news — your instructor account at ${ACADEMY_NAME} has been <strong>approved</strong>.</p>
     <p>You can now sign in and start creating and publishing courses.</p>
@@ -77,7 +57,7 @@ export class InstructorEmailService {
         "",
         `— The ${ACADEMY_NAME} team`,
       ].join("\n"),
-      html: layout(`
+      html: emailLayout(`
     <p>Hi ${name},</p>
     <p>Thank you for applying to teach at ${ACADEMY_NAME}.</p>
     <p>After reviewing your application, we are unable to approve your instructor account at this time.</p>

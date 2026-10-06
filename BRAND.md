@@ -116,6 +116,7 @@ No dark-mode theme is implemented (the toaster is pinned to `theme="light"`).
 | `bcrypt` | Password hashing (used by Better Auth's custom hash/verify) |
 | `@aws-sdk/client-s3` + `@aws-sdk/s3-request-presigner` | Cloudflare R2 storage and presigned URLs for lesson attachments |
 | `axios` | HTTP client for internal `/api` calls |
+| `nodemailer` | Transactional email over SMTP (password resets, instructor emails) |
 | `@tanstack/react-query` | Server-state/data fetching cache |
 | `react-hook-form` + `@hookform/resolvers` + `zod` | Forms + schema validation |
 | `date-fns` | Date utilities |

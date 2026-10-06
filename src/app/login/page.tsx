@@ -34,7 +34,9 @@ export default function Login() {
 
 function LoginContent() {
   const router = useRouter();
-  const googleError = googleErrorMessage(useSearchParams().get("error"));
+  const searchParams = useSearchParams();
+  const googleError = googleErrorMessage(searchParams.get("error"));
+  const passwordWasReset = searchParams.get("reset") === "success";
 
   const [success, setSuccess] = useState(false);
 
@@ -92,6 +94,12 @@ function LoginContent() {
             Sign in to pick up exactly where you left off.
           </p>
 
+          {passwordWasReset && (
+            <div className="form-success" data-testid="status-password-reset">
+              Your password has been reset. Sign in with your new password.
+            </div>
+          )}
+
           {googleError && (
             <div className="form-error" role="alert" data-testid="error-google">
               {googleError}
@@ -121,6 +129,12 @@ function LoginContent() {
               error={form.formState.errors.password?.message}
               autoComplete="current-password"
             />
+
+            <div className="forgot-password-link">
+              <Link href="/forgot-password" data-testid="link-forgot-password">
+                Forgot password?
+              </Link>
+            </div>
 
             {form.formState.errors.root?.message && (
               <div

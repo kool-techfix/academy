@@ -82,6 +82,10 @@ Better Auth owns every session (`src/lib/auth/`):
 
 Passwords live on `Account` rows with `providerId: "credential"`; `User.passwordHash` is legacy and no longer written.
 
+**Password reset** uses Better Auth's built-in flow: `/forgot-password` → `authClient.requestPasswordReset` (always answers the same way, so it never reveals whether an email has an account) → `sendResetPassword` emails a link → `GET /api/auth/reset-password/:token` checks the token and redirects to `/reset-password?token=…` (or `?error=INVALID_TOKEN`) → `authClient.resetPassword` sets the new bcrypt hash. Tokens are single-use, stored in `Verification`, and expire after 60 minutes; a reset revokes all of the user's sessions and emails a "password changed" notice. Emails are sent with `after()` so they never delay or break the response, and the request/reset endpoints have tighter rate limits.
+
+**Email** goes through `src/lib/email/email-transport.ts` (`sendEmail()`, nodemailer over SMTP; logs instead of sending in development when SMTP isn't configured) with a shared branded layout in `src/lib/email/template.ts`. Senders: `PasswordResetEmailService`, `InstructorEmailService`.
+
 **Route protection** is two-layered:
 
 1. `src/proxy.ts` — optimistic check: no session cookie → redirect to `/login` (matcher: `/dashboard`, `/courses`, `/settings`, `/instructor`, `/instructor-application`, `/instructor-status`, `/admin`).
@@ -116,7 +120,7 @@ Deleting an attachment or lesson removes the rows, then deletes the R2 objects b
 
 Two parallel surfaces sharing one Next.js app:
 
-- **Public**: `/`, `/login`, `/register`, `/catalog`, `/auth/continue` (post-Google-sign-in redirect by role).
+- **Public**: `/`, `/login`, `/register`, `/forgot-password`, `/reset-password`, `/catalog`, `/auth/continue` (post-Google-sign-in redirect by role).
 - **Learner surface**: `/courses`, `/courses/[id]`, `/courses/[id]/lessons/[lessonId]`, `/courses/[id]/quiz`, `/courses/[id]/modules/[moduleId]/quiz`, `/courses/[id]/certificate`, `/dashboard`, `/settings`.
 - **Instructor surface**: nested under `/instructor` (guarded by `instructor/layout.tsx`: approved instructors only) — `/instructor`, `/instructor/courses/new`, `/instructor/courses/[id]/edit`, `/instructor/courses/[id]/enrollees`, `/instructor/courses/[id]/enrollees/[learnerId]`, `/instructor/settings`. Plus `/instructor-application` (Google instructor sign-up, step 2) and `/instructor-status` (pending/rejected/suspended).
 - **Admin surface**: `/admin`, `/admin/instructors`, `/admin/courses`, `/admin/users`.
@@ -195,5 +199,5 @@ Two systems coexist deliberately:
 - Path alias: `@/*` → `src/*` (see `tsconfig.json`).
 - Prisma: schema at `prisma/schema.prisma`, config in `prisma.config.ts` (migrations use the `DIRECT_URL` env var), client generated into `src/generated/prisma` (not hand-edited — regenerate via `prisma generate`; `pnpm build` and `postinstall` also run it). Apply migrations with `pnpm prisma migrate deploy`.
 - `next.config.ts` allows remote images from `res.cloudinary.com/dcvyjmflf/**` (brand badge).
-- Environment variables are documented in `.env.example` (database, Better Auth, Google OAuth, Resend email, R2). All are server-only.
+- Environment variables are documented in `.env.example` (database, Better Auth, Google OAuth, SMTP email, R2). All are server-only.
 - This repo runs a customized Next.js build (see `AGENTS.md`): consult `node_modules/next/dist/docs/` before assuming standard Next.js behavior.

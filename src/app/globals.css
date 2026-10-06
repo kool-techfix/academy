@@ -1437,6 +1437,18 @@ input:focus-visible {
   border-color: var(--brand-red-soft) !important;
   color: var(--brand-red) !important;
 }
+.forgot-password-link {
+  margin: -6px 0 14px;
+  text-align: right;
+  font-size: 13px;
+}
+.forgot-password-link a {
+  color: var(--brand-green);
+  font-weight: 700;
+}
+.forgot-password-link a:hover {
+  text-decoration: underline;
+}
 .link-button {
   padding: 0;
   border: 0;

@@ -14,7 +14,8 @@ Built with Next.js 16 (App Router, React 19), TypeScript, Prisma 7 on PostgreSQL
 - pnpm 10 (`corepack enable` picks up the version pinned in `package.json`)
 - PostgreSQL 15+
 - A Cloudflare R2 bucket (lesson attachments)
-- Optional: a Google OAuth client (Google sign-in), a Resend API key (instructor emails)
+- An SMTP server/account for email (password resets, instructor emails) — optional in development
+- Optional: a Google OAuth client (Google sign-in)
 
 ## Getting started
 
@@ -24,6 +25,10 @@ cp .env.example .env         # then fill in the values (see below)
 pnpm prisma migrate deploy   # create/upgrade the database schema
 pnpm dev                     # http://localhost:3000
 ```
+
+### Password reset
+
+`/login` → **Forgot password?** → `/forgot-password` emails a single-use link (valid 60 minutes) → `/reset-password` sets the new password and signs the user out everywhere. In development without SMTP, copy the link from the server console.
 
 ### Create an admin
 
@@ -45,8 +50,8 @@ All variables are server-only. `.env.example` documents each one.
 | `BETTER_AUTH_URL` | yes | The app's base URL, e.g. `http://localhost:3000` — must match the URL you open the app on |
 | `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET` | for attachments | Cloudflare R2 bucket and API token (Object Read & Write, scoped to the bucket) |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | for Google sign-in | Google OAuth web client |
-| `RESEND_API_KEY`, `EMAIL_FROM` | optional | Instructor approval/rejection emails; without them emails are logged to the console |
-| `APP_URL` | optional | Public base URL used for links in emails |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `EMAIL_FROM` (`SMTP_SECURE` optional) | yes in production | SMTP server for password-reset and instructor emails (sent with nodemailer). In development, emails are logged to the console when `SMTP_HOST` is unset |
+| `APP_URL` | optional | Public base URL used for the sign-in link in instructor emails |
 
 ## External setup
 
