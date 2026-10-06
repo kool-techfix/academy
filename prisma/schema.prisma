@@ -195,8 +195,25 @@ model Lesson {
   notesFileUrl   String?
   order          Int
 
-  module   Module     @relation(fields: [moduleId], references: [id])
-  progress Progress[]
+  module      Module             @relation(fields: [moduleId], references: [id])
+  progress    Progress[]
+  attachments LessonAttachment[]
+}
+
+// File stored privately in Cloudflare R2. `storageKey` is never sent to
+// learners; downloads go through short-lived presigned URLs.
+model LessonAttachment {
+  id           String   @id @default(cuid())
+  lessonId     String
+  storageKey   String   @unique
+  originalName String
+  mimeType     String
+  size         Int
+  createdAt    DateTime @default(now())
+
+  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@index([lessonId])
 }
 
 model Quiz {

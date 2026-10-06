@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { requireInstructor } from "@/lib/auth/auth-guard";
+import { lessonErrorStatus } from "@/lib/storage/errors";
+import { lessonAttachmentsSchema } from "@/Schemas/lesson-attachment.schema";
 import {
   LessonService,
   type CreateLessonData,
@@ -53,11 +55,20 @@ export async function POST(
     const body =
       (await request.json()) as CreateLessonData;
 
+    const attachments = lessonAttachmentsSchema.safeParse(body.attachments);
+
+    if (!attachments.success) {
+      return NextResponse.json(
+        { message: attachments.error.issues[0]?.message ?? "Invalid attachment" },
+        { status: 400 },
+      );
+    }
+
     const lesson =
       await lessonService.createLesson(
         instructor.id,
         moduleId,
-        body,
+        { ...body, attachments: attachments.data },
       );
 
     return NextResponse.json(
@@ -75,29 +86,9 @@ export async function POST(
         ? error.message
         : "Failed to create lesson";
 
-    let status = 500;
-
-    if (message === "Module not found") {
-      status = 404;
-    }
-
-    if (
-      message === "Lesson title is required" ||
-      message === "YouTube video ID is required"
-    ) {
-      status = 400;
-    }
-
-    if (
-      message ===
-      "You do not have permission to manage this lesson"
-    ) {
-      status = 403;
-    }
-
     return NextResponse.json(
       { message },
-      { status },
+      { status: lessonErrorStatus(message) },
     );
   }
 }

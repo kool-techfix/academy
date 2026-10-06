@@ -2,10 +2,11 @@ import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 
 import { auth } from "@/lib/auth/server";
-import { prisma } from "@/lib/prisma";
+import { AuthRepository } from "@/Repositories/AuthRepository";
 import { AuthService } from "@/Services/AuthService";
 
 const authService = new AuthService();
+const authRepository = new AuthRepository();
 
 export async function POST(request: Request) {
   const body = await request.json();
@@ -51,7 +52,7 @@ export async function POST(request: Request) {
     );
   } catch (error) {
     // Suspended/removed: drop the session that was just created.
-    await prisma.session.deleteMany({ where: { token } });
+    await authRepository.deleteSessionByToken(token);
 
     const message =
       error instanceof Error

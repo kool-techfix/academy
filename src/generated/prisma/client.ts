@@ -82,6 +82,11 @@ export type Module = Prisma.ModuleModel
  */
 export type Lesson = Prisma.LessonModel
 /**
+ * Model LessonAttachment
+ * 
+ */
+export type LessonAttachment = Prisma.LessonAttachmentModel
+/**
  * Model Quiz
  * 
  */

@@ -9,7 +9,9 @@ import {
   FileText,
 } from "lucide-react";
 import { Button } from "@/components/academy-ui";
-import { LessonFormModal } from "./lesson-form-modal";
+import { toast } from "sonner";
+import { LessonFormModal, type LessonFormSaveData } from "./lesson-form-modal";
+import { getApiErrorMessage } from "@/lib/api/api-error";
 import { QuizFormData, QuizFormModal } from "./quiz-form-modal";
 import { ModuleFormModal } from "./module-form-modal";
 import {
@@ -18,6 +20,7 @@ import {
 } from "@/Services/course.service";
 import {
   useCreateLesson,
+  useDeleteLessonAttachment,
   useModuleLessons,
   useUpdateLesson,
 } from "@/hooks/instructor/use-lessons";
@@ -71,6 +74,7 @@ function ModuleItem({
 
   const createLesson = useCreateLesson();
   const updateLesson = useUpdateLesson();
+  const deleteLessonAttachment = useDeleteLessonAttachment();
 
   const { data: quiz, isLoading: quizLoading } = useModuleQuiz(
     module.id,
@@ -85,12 +89,7 @@ function ModuleItem({
 
   const deleteQuestion = useDeleteQuestion();
 
-  const handleSaveLesson = async (data: {
-    title: string;
-    youtubeVideoLink: string;
-    notesFileUrl?: string | null;
-    order?: number;
-  }) => {
+  const handleSaveLesson = async (data: LessonFormSaveData) => {
     try {
       await createLesson.mutateAsync({
         moduleId: module.id,
@@ -98,23 +97,19 @@ function ModuleItem({
         data: {
           title: data.title,
           youtubeVideoLink: data.youtubeVideoLink,
-          notesFileUrl: data.notesFileUrl ?? null,
-          order: data.order,
+          notesFileUrl: data.notesFileUrl,
+          attachments: data.attachments,
         },
       });
 
       setAddingLesson(false);
     } catch (error) {
       console.error("Failed to create lesson:", error);
+      toast.error(getApiErrorMessage(error, "Failed to create lesson"));
     }
   };
 
-  const handleEditLesson = async (data: {
-    title: string;
-    youtubeVideoLink: string;
-    notesFileUrl?: string | null;
-    order?: number;
-  }) => {
+  const handleEditLesson = async (data: LessonFormSaveData) => {
     if (!editingLesson) return;
 
     try {
@@ -125,14 +120,27 @@ function ModuleItem({
         data: {
           title: data.title,
           youtubeVideoLink: data.youtubeVideoLink,
-          notesFileUrl: data.notesFileUrl ?? null,
-          order: data.order,
+          notesFileUrl: data.notesFileUrl,
+          attachments: data.attachments,
         },
       });
+
+      // Removals are applied only once the rest of the edit has saved.
+      await Promise.all(
+        data.removedAttachmentIds.map((attachmentId) =>
+          deleteLessonAttachment.mutateAsync({
+            courseId: module.courseId,
+            moduleId: module.id,
+            lessonId: editingLesson.id,
+            attachmentId,
+          }),
+        ),
+      );
 
       setEditingLesson(null);
     } catch (error) {
       console.error("Failed to update lesson:", error);
+      toast.error(getApiErrorMessage(error, "Failed to update lesson"));
     }
   };
 
@@ -389,6 +397,17 @@ function ModuleItem({
                             {lesson.notesFileUrl}
                           </div>
                         )}
+                        {lesson.attachments?.length > 0 && (
+                          <div
+                            className="badge badge-muted"
+                            style={{ padding: "3px 6px", fontSize: 10 }}
+                            data-testid={`badge-attachments-${lesson.id}`}
+                          >
+                            <FileText size={10} style={{ marginRight: 4 }} />{" "}
+                            {lesson.attachments.length}{" "}
+                            {lesson.attachments.length === 1 ? "file" : "files"}
+                          </div>
+                        )}
                       </div>
                       <button
                         type="button"
@@ -458,6 +477,7 @@ function ModuleItem({
 
       {(addingLesson || editingLesson) && (
         <LessonFormModal
+          courseId={courseId}
           lesson={editingLesson || undefined}
           onClose={() => {
             setAddingLesson(false);
@@ -470,7 +490,11 @@ function ModuleItem({
               await handleSaveLesson(data);
             }
           }}
-          isSaving={createLesson.isPending || updateLesson.isPending}
+          isSaving={
+            createLesson.isPending ||
+            updateLesson.isPending ||
+            deleteLessonAttachment.isPending
+          }
         />
       )}
 

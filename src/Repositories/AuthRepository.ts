@@ -84,6 +84,32 @@ export class AuthRepository {
     });
   }
 
+  /** Revoke one Better Auth session by its token. */
+  async deleteSessionByToken(token: string) {
+    await prisma.session.deleteMany({ where: { token } });
+  }
+
+  /** Abandon a Google instructor sign-up and keep the account as a learner. */
+  async clearInstructorApplication(id: string) {
+    await prisma.user.update({
+      where: { id },
+      data: { instructorApplicationStarted: false },
+    });
+  }
+
+  /** Turn a Google sign-up into an instructor awaiting approval. */
+  async submitInstructorApplication(id: string, expertise: string) {
+    await prisma.user.update({
+      where: { id },
+      data: {
+        role: Role.INSTRUCTOR,
+        instructorStatus: InstructorStatus.PENDING,
+        expertise,
+        instructorApplicationStarted: false,
+      },
+    });
+  }
+
   /** The bcrypt hash for email/password sign-in, if the user has one. */
   async findPasswordHash(userId: string) {
     const account = await prisma.account.findFirst({

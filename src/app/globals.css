@@ -1329,6 +1329,114 @@ input:focus-visible {
   color: var(--brand-text-muted);
   font-size: 13px;
 }
+/* Lesson attachments (instructor modal + learner lesson page). */
+.attachment-dropzone {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px dashed var(--brand-gray);
+  border-radius: var(--radius);
+  background: var(--brand-gray-light);
+  color: var(--brand-text-muted);
+  font-size: 13px;
+  cursor: pointer;
+}
+.attachment-dropzone:hover,
+.attachment-dropzone.dragging {
+  border-color: var(--brand-green);
+  background: var(--brand-green-tint);
+}
+.attachment-dropzone:focus-within {
+  outline: 3px solid color-mix(in srgb, var(--brand-green) 70%, transparent);
+  outline-offset: 2px;
+}
+.attachment-dropzone strong {
+  color: var(--brand-green);
+}
+.attachment-dropzone small {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+}
+.attachment-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.notes .attachment-list {
+  padding-left: 0;
+  line-height: normal;
+}
+.attachment-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--brand-gray);
+  border-radius: 6px;
+  background: var(--brand-white);
+}
+.attachment-row.failed {
+  border-color: var(--brand-red-soft);
+  background: var(--brand-red-tint);
+}
+.attachment-info {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.attachment-name {
+  overflow: hidden;
+  color: var(--brand-black);
+  font-size: 14px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.attachment-meta {
+  color: var(--brand-text-muted);
+  font-size: 12px;
+}
+.attachment-status.uploaded,
+.attachment-status.existing {
+  color: var(--brand-green);
+}
+.attachment-status.failed {
+  color: var(--brand-red);
+  font-weight: 700;
+}
+.attachment-progress {
+  height: 4px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: var(--brand-gray);
+}
+.attachment-progress span {
+  display: block;
+  height: 100%;
+  background: var(--brand-green);
+}
+.attachment-type {
+  flex: none;
+  min-width: 46px;
+  justify-content: center;
+}
+.app-toast {
+  border: 1px solid var(--brand-gray) !important;
+  background: var(--brand-white) !important;
+  color: var(--brand-black) !important;
+  font-family: var(--app-font-sans) !important;
+}
+.app-toast[data-type="error"] {
+  border-color: var(--brand-red-soft) !important;
+  color: var(--brand-red) !important;
+}
 .link-button {
   padding: 0;
   border: 0;

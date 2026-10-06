@@ -405,6 +405,7 @@ export const ModelName = {
   CourseAuthor: 'CourseAuthor',
   Module: 'Module',
   Lesson: 'Lesson',
+  LessonAttachment: 'LessonAttachment',
   Quiz: 'Quiz',
   Question: 'Question',
   Enrollment: 'Enrollment',
@@ -425,7 +426,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "session" | "account" | "verification" | "course" | "courseAuthor" | "module" | "lesson" | "quiz" | "question" | "enrollment" | "progress" | "quizAttempt"
+    modelProps: "user" | "session" | "account" | "verification" | "course" | "courseAuthor" | "module" | "lesson" | "lessonAttachment" | "quiz" | "question" | "enrollment" | "progress" | "quizAttempt"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1021,6 +1022,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    LessonAttachment: {
+      payload: Prisma.$LessonAttachmentPayload<ExtArgs>
+      fields: Prisma.LessonAttachmentFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.LessonAttachmentFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LessonAttachmentPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.LessonAttachmentFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LessonAttachmentPayload>
+        }
+        findFirst: {
+          args: Prisma.LessonAttachmentFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LessonAttachmentPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.LessonAttachmentFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LessonAttachmentPayload>
+        }
+        findMany: {
+          args: Prisma.LessonAttachmentFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LessonAttachmentPayload>[]
+        }
+        create: {
+          args: Prisma.LessonAttachmentCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LessonAttachmentPayload>
+        }
+        createMany: {
+          args: Prisma.LessonAttachmentCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.LessonAttachmentCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LessonAttachmentPayload>[]
+        }
+        delete: {
+          args: Prisma.LessonAttachmentDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LessonAttachmentPayload>
+        }
+        update: {
+          args: Prisma.LessonAttachmentUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LessonAttachmentPayload>
+        }
+        deleteMany: {
+          args: Prisma.LessonAttachmentDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.LessonAttachmentUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.LessonAttachmentUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LessonAttachmentPayload>[]
+        }
+        upsert: {
+          args: Prisma.LessonAttachmentUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LessonAttachmentPayload>
+        }
+        aggregate: {
+          args: Prisma.LessonAttachmentAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateLessonAttachment>
+        }
+        groupBy: {
+          args: Prisma.LessonAttachmentGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.LessonAttachmentGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.LessonAttachmentCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.LessonAttachmentCountAggregateOutputType> | number
+        }
+      }
+    }
     Quiz: {
       payload: Prisma.$QuizPayload<ExtArgs>
       fields: Prisma.QuizFieldRefs
@@ -1546,6 +1621,19 @@ export const LessonScalarFieldEnum = {
 export type LessonScalarFieldEnum = (typeof LessonScalarFieldEnum)[keyof typeof LessonScalarFieldEnum]
 
 
+export const LessonAttachmentScalarFieldEnum = {
+  id: 'id',
+  lessonId: 'lessonId',
+  storageKey: 'storageKey',
+  originalName: 'originalName',
+  mimeType: 'mimeType',
+  size: 'size',
+  createdAt: 'createdAt'
+} as const
+
+export type LessonAttachmentScalarFieldEnum = (typeof LessonAttachmentScalarFieldEnum)[keyof typeof LessonAttachmentScalarFieldEnum]
+
+
 export const QuizScalarFieldEnum = {
   id: 'id',
   moduleId: 'moduleId',
@@ -1996,6 +2084,7 @@ export type GlobalOmitConfig = {
   courseAuthor?: Prisma.CourseAuthorOmit
   module?: Prisma.ModuleOmit
   lesson?: Prisma.LessonOmit
+  lessonAttachment?: Prisma.LessonAttachmentOmit
   quiz?: Prisma.QuizOmit
   question?: Prisma.QuestionOmit
   enrollment?: Prisma.EnrollmentOmit

@@ -1,4 +1,12 @@
 import { api } from "@/lib/api/axios";
+import { learnerApi } from "@/lib/api/learnerApi";
+
+export type LearnerLessonAttachment = {
+  id: string;
+  originalName: string;
+  mimeType: string;
+  size: number;
+};
 
 export type LearnerLessonModule = {
   id: string;
@@ -19,6 +27,7 @@ export type LearnerLesson = {
   youtubeVideoLink: string;
   notesFileUrl: string | null;
   order: number;
+  attachments: LearnerLessonAttachment[];
   module: LearnerLessonModule & {
     course: LearnerLessonCourse;
   };
@@ -38,5 +47,14 @@ export const learnerLessonApi = {
       );
 
     return response.data.data;
+  },
+
+  /** Short-lived signed URL for downloading one attachment. */
+  async getAttachmentDownloadUrl(attachmentId: string): Promise<string> {
+    const response = await learnerApi.get(
+      `/attachments/${attachmentId}/download`,
+    );
+
+    return (response.data as { data: { url: string } }).data.url;
   },
 };

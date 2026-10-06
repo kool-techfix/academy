@@ -226,6 +226,7 @@ export type LessonWhereInput = {
   order?: Prisma.IntFilter<"Lesson"> | number
   module?: Prisma.XOR<Prisma.ModuleScalarRelationFilter, Prisma.ModuleWhereInput>
   progress?: Prisma.ProgressListRelationFilter
+  attachments?: Prisma.LessonAttachmentListRelationFilter
 }
 
 export type LessonOrderByWithRelationInput = {
@@ -237,6 +238,7 @@ export type LessonOrderByWithRelationInput = {
   order?: Prisma.SortOrder
   module?: Prisma.ModuleOrderByWithRelationInput
   progress?: Prisma.ProgressOrderByRelationAggregateInput
+  attachments?: Prisma.LessonAttachmentOrderByRelationAggregateInput
 }
 
 export type LessonWhereUniqueInput = Prisma.AtLeast<{
@@ -251,6 +253,7 @@ export type LessonWhereUniqueInput = Prisma.AtLeast<{
   order?: Prisma.IntFilter<"Lesson"> | number
   module?: Prisma.XOR<Prisma.ModuleScalarRelationFilter, Prisma.ModuleWhereInput>
   progress?: Prisma.ProgressListRelationFilter
+  attachments?: Prisma.LessonAttachmentListRelationFilter
 }, "id">
 
 export type LessonOrderByWithAggregationInput = {
@@ -287,6 +290,7 @@ export type LessonCreateInput = {
   order: number
   module: Prisma.ModuleCreateNestedOneWithoutLessonsInput
   progress?: Prisma.ProgressCreateNestedManyWithoutLessonInput
+  attachments?: Prisma.LessonAttachmentCreateNestedManyWithoutLessonInput
 }
 
 export type LessonUncheckedCreateInput = {
@@ -297,6 +301,7 @@ export type LessonUncheckedCreateInput = {
   notesFileUrl?: string | null
   order: number
   progress?: Prisma.ProgressUncheckedCreateNestedManyWithoutLessonInput
+  attachments?: Prisma.LessonAttachmentUncheckedCreateNestedManyWithoutLessonInput
 }
 
 export type LessonUpdateInput = {
@@ -307,6 +312,7 @@ export type LessonUpdateInput = {
   order?: Prisma.IntFieldUpdateOperationsInput | number
   module?: Prisma.ModuleUpdateOneRequiredWithoutLessonsNestedInput
   progress?: Prisma.ProgressUpdateManyWithoutLessonNestedInput
+  attachments?: Prisma.LessonAttachmentUpdateManyWithoutLessonNestedInput
 }
 
 export type LessonUncheckedUpdateInput = {
@@ -317,6 +323,7 @@ export type LessonUncheckedUpdateInput = {
   notesFileUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   order?: Prisma.IntFieldUpdateOperationsInput | number
   progress?: Prisma.ProgressUncheckedUpdateManyWithoutLessonNestedInput
+  attachments?: Prisma.LessonAttachmentUncheckedUpdateManyWithoutLessonNestedInput
 }
 
 export type LessonCreateManyInput = {
@@ -437,6 +444,20 @@ export type LessonUncheckedUpdateManyWithoutModuleNestedInput = {
   deleteMany?: Prisma.LessonScalarWhereInput | Prisma.LessonScalarWhereInput[]
 }
 
+export type LessonCreateNestedOneWithoutAttachmentsInput = {
+  create?: Prisma.XOR<Prisma.LessonCreateWithoutAttachmentsInput, Prisma.LessonUncheckedCreateWithoutAttachmentsInput>
+  connectOrCreate?: Prisma.LessonCreateOrConnectWithoutAttachmentsInput
+  connect?: Prisma.LessonWhereUniqueInput
+}
+
+export type LessonUpdateOneRequiredWithoutAttachmentsNestedInput = {
+  create?: Prisma.XOR<Prisma.LessonCreateWithoutAttachmentsInput, Prisma.LessonUncheckedCreateWithoutAttachmentsInput>
+  connectOrCreate?: Prisma.LessonCreateOrConnectWithoutAttachmentsInput
+  upsert?: Prisma.LessonUpsertWithoutAttachmentsInput
+  connect?: Prisma.LessonWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.LessonUpdateToOneWithWhereWithoutAttachmentsInput, Prisma.LessonUpdateWithoutAttachmentsInput>, Prisma.LessonUncheckedUpdateWithoutAttachmentsInput>
+}
+
 export type LessonCreateNestedOneWithoutProgressInput = {
   create?: Prisma.XOR<Prisma.LessonCreateWithoutProgressInput, Prisma.LessonUncheckedCreateWithoutProgressInput>
   connectOrCreate?: Prisma.LessonCreateOrConnectWithoutProgressInput
@@ -458,6 +479,7 @@ export type LessonCreateWithoutModuleInput = {
   notesFileUrl?: string | null
   order: number
   progress?: Prisma.ProgressCreateNestedManyWithoutLessonInput
+  attachments?: Prisma.LessonAttachmentCreateNestedManyWithoutLessonInput
 }
 
 export type LessonUncheckedCreateWithoutModuleInput = {
@@ -467,6 +489,7 @@ export type LessonUncheckedCreateWithoutModuleInput = {
   notesFileUrl?: string | null
   order: number
   progress?: Prisma.ProgressUncheckedCreateNestedManyWithoutLessonInput
+  attachments?: Prisma.LessonAttachmentUncheckedCreateNestedManyWithoutLessonInput
 }
 
 export type LessonCreateOrConnectWithoutModuleInput = {
@@ -507,6 +530,62 @@ export type LessonScalarWhereInput = {
   order?: Prisma.IntFilter<"Lesson"> | number
 }
 
+export type LessonCreateWithoutAttachmentsInput = {
+  id?: string
+  title: string
+  youtubeVideoLink: string
+  notesFileUrl?: string | null
+  order: number
+  module: Prisma.ModuleCreateNestedOneWithoutLessonsInput
+  progress?: Prisma.ProgressCreateNestedManyWithoutLessonInput
+}
+
+export type LessonUncheckedCreateWithoutAttachmentsInput = {
+  id?: string
+  moduleId: string
+  title: string
+  youtubeVideoLink: string
+  notesFileUrl?: string | null
+  order: number
+  progress?: Prisma.ProgressUncheckedCreateNestedManyWithoutLessonInput
+}
+
+export type LessonCreateOrConnectWithoutAttachmentsInput = {
+  where: Prisma.LessonWhereUniqueInput
+  create: Prisma.XOR<Prisma.LessonCreateWithoutAttachmentsInput, Prisma.LessonUncheckedCreateWithoutAttachmentsInput>
+}
+
+export type LessonUpsertWithoutAttachmentsInput = {
+  update: Prisma.XOR<Prisma.LessonUpdateWithoutAttachmentsInput, Prisma.LessonUncheckedUpdateWithoutAttachmentsInput>
+  create: Prisma.XOR<Prisma.LessonCreateWithoutAttachmentsInput, Prisma.LessonUncheckedCreateWithoutAttachmentsInput>
+  where?: Prisma.LessonWhereInput
+}
+
+export type LessonUpdateToOneWithWhereWithoutAttachmentsInput = {
+  where?: Prisma.LessonWhereInput
+  data: Prisma.XOR<Prisma.LessonUpdateWithoutAttachmentsInput, Prisma.LessonUncheckedUpdateWithoutAttachmentsInput>
+}
+
+export type LessonUpdateWithoutAttachmentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  youtubeVideoLink?: Prisma.StringFieldUpdateOperationsInput | string
+  notesFileUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  order?: Prisma.IntFieldUpdateOperationsInput | number
+  module?: Prisma.ModuleUpdateOneRequiredWithoutLessonsNestedInput
+  progress?: Prisma.ProgressUpdateManyWithoutLessonNestedInput
+}
+
+export type LessonUncheckedUpdateWithoutAttachmentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  moduleId?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  youtubeVideoLink?: Prisma.StringFieldUpdateOperationsInput | string
+  notesFileUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  order?: Prisma.IntFieldUpdateOperationsInput | number
+  progress?: Prisma.ProgressUncheckedUpdateManyWithoutLessonNestedInput
+}
+
 export type LessonCreateWithoutProgressInput = {
   id?: string
   title: string
@@ -514,6 +593,7 @@ export type LessonCreateWithoutProgressInput = {
   notesFileUrl?: string | null
   order: number
   module: Prisma.ModuleCreateNestedOneWithoutLessonsInput
+  attachments?: Prisma.LessonAttachmentCreateNestedManyWithoutLessonInput
 }
 
 export type LessonUncheckedCreateWithoutProgressInput = {
@@ -523,6 +603,7 @@ export type LessonUncheckedCreateWithoutProgressInput = {
   youtubeVideoLink: string
   notesFileUrl?: string | null
   order: number
+  attachments?: Prisma.LessonAttachmentUncheckedCreateNestedManyWithoutLessonInput
 }
 
 export type LessonCreateOrConnectWithoutProgressInput = {
@@ -548,6 +629,7 @@ export type LessonUpdateWithoutProgressInput = {
   notesFileUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   order?: Prisma.IntFieldUpdateOperationsInput | number
   module?: Prisma.ModuleUpdateOneRequiredWithoutLessonsNestedInput
+  attachments?: Prisma.LessonAttachmentUpdateManyWithoutLessonNestedInput
 }
 
 export type LessonUncheckedUpdateWithoutProgressInput = {
@@ -557,6 +639,7 @@ export type LessonUncheckedUpdateWithoutProgressInput = {
   youtubeVideoLink?: Prisma.StringFieldUpdateOperationsInput | string
   notesFileUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   order?: Prisma.IntFieldUpdateOperationsInput | number
+  attachments?: Prisma.LessonAttachmentUncheckedUpdateManyWithoutLessonNestedInput
 }
 
 export type LessonCreateManyModuleInput = {
@@ -574,6 +657,7 @@ export type LessonUpdateWithoutModuleInput = {
   notesFileUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   order?: Prisma.IntFieldUpdateOperationsInput | number
   progress?: Prisma.ProgressUpdateManyWithoutLessonNestedInput
+  attachments?: Prisma.LessonAttachmentUpdateManyWithoutLessonNestedInput
 }
 
 export type LessonUncheckedUpdateWithoutModuleInput = {
@@ -583,6 +667,7 @@ export type LessonUncheckedUpdateWithoutModuleInput = {
   notesFileUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   order?: Prisma.IntFieldUpdateOperationsInput | number
   progress?: Prisma.ProgressUncheckedUpdateManyWithoutLessonNestedInput
+  attachments?: Prisma.LessonAttachmentUncheckedUpdateManyWithoutLessonNestedInput
 }
 
 export type LessonUncheckedUpdateManyWithoutModuleInput = {
@@ -600,10 +685,12 @@ export type LessonUncheckedUpdateManyWithoutModuleInput = {
 
 export type LessonCountOutputType = {
   progress: number
+  attachments: number
 }
 
 export type LessonCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   progress?: boolean | LessonCountOutputTypeCountProgressArgs
+  attachments?: boolean | LessonCountOutputTypeCountAttachmentsArgs
 }
 
 /**
@@ -623,6 +710,13 @@ export type LessonCountOutputTypeCountProgressArgs<ExtArgs extends runtime.Types
   where?: Prisma.ProgressWhereInput
 }
 
+/**
+ * LessonCountOutputType without action
+ */
+export type LessonCountOutputTypeCountAttachmentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.LessonAttachmentWhereInput
+}
+
 
 export type LessonSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -633,6 +727,7 @@ export type LessonSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   order?: boolean
   module?: boolean | Prisma.ModuleDefaultArgs<ExtArgs>
   progress?: boolean | Prisma.Lesson$progressArgs<ExtArgs>
+  attachments?: boolean | Prisma.Lesson$attachmentsArgs<ExtArgs>
   _count?: boolean | Prisma.LessonCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["lesson"]>
 
@@ -669,6 +764,7 @@ export type LessonOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
 export type LessonInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   module?: boolean | Prisma.ModuleDefaultArgs<ExtArgs>
   progress?: boolean | Prisma.Lesson$progressArgs<ExtArgs>
+  attachments?: boolean | Prisma.Lesson$attachmentsArgs<ExtArgs>
   _count?: boolean | Prisma.LessonCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type LessonIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -683,6 +779,7 @@ export type $LessonPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
   objects: {
     module: Prisma.$ModulePayload<ExtArgs>
     progress: Prisma.$ProgressPayload<ExtArgs>[]
+    attachments: Prisma.$LessonAttachmentPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1087,6 +1184,7 @@ export interface Prisma__LessonClient<T, Null = never, ExtArgs extends runtime.T
   readonly [Symbol.toStringTag]: "PrismaPromise"
   module<T extends Prisma.ModuleDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ModuleDefaultArgs<ExtArgs>>): Prisma.Prisma__ModuleClient<runtime.Types.Result.GetResult<Prisma.$ModulePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   progress<T extends Prisma.Lesson$progressArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Lesson$progressArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProgressPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  attachments<T extends Prisma.Lesson$attachmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Lesson$attachmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LessonAttachmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1544,6 +1642,30 @@ export type Lesson$progressArgs<ExtArgs extends runtime.Types.Extensions.Interna
   take?: number
   skip?: number
   distinct?: Prisma.ProgressScalarFieldEnum | Prisma.ProgressScalarFieldEnum[]
+}
+
+/**
+ * Lesson.attachments
+ */
+export type Lesson$attachmentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the LessonAttachment
+   */
+  select?: Prisma.LessonAttachmentSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the LessonAttachment
+   */
+  omit?: Prisma.LessonAttachmentOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.LessonAttachmentInclude<ExtArgs> | null
+  where?: Prisma.LessonAttachmentWhereInput
+  orderBy?: Prisma.LessonAttachmentOrderByWithRelationInput | Prisma.LessonAttachmentOrderByWithRelationInput[]
+  cursor?: Prisma.LessonAttachmentWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.LessonAttachmentScalarFieldEnum | Prisma.LessonAttachmentScalarFieldEnum[]
 }
 
 /**

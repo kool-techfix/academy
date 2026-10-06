@@ -24,6 +24,13 @@ import { downloadTextFile, slugify } from "@/lib/downloads";
 import { getYouTubeEmbedUrl } from "@/lib/getUrl";
 
 import { useLearnerLesson } from "@/hooks/learner/use-lesson";
+import { useAttachmentDownload } from "@/hooks/learner/use-attachment-download";
+import { getApiErrorMessage } from "@/lib/api/api-error";
+import {
+  formatFileSize,
+  getAttachmentExtension,
+} from "@/lib/storage/constants";
+import type { LearnerLessonAttachment } from "@/Services/learner-lesson.service";
 import { useLearnerCourseProgress } from "@/hooks/learner/use-progress";
 import { useLearnerCourse } from "@/hooks/learner/use-course";
 
@@ -203,6 +210,10 @@ export default function LessonViewer() {
               </div>
             )}
 
+            {lesson.attachments.length > 0 && (
+              <LessonAttachments attachments={lesson.attachments} />
+            )}
+
             <div className="lesson-nav">
               {previousLesson ? (
                 <Link
@@ -328,5 +339,70 @@ export default function LessonViewer() {
         </aside>
       </div>
     </Page>
+  );
+}
+
+function LessonAttachments({
+  attachments,
+}: {
+  attachments: LearnerLessonAttachment[];
+}) {
+  const download = useAttachmentDownload();
+
+  return (
+    <div className="card notes" data-testid="card-lesson-attachments">
+      <h3>
+        <FileText
+          size={18}
+          style={{
+            verticalAlign: "middle",
+            marginRight: 7,
+          }}
+        />
+        Attachments
+      </h3>
+
+      <ul className="attachment-list">
+        {attachments.map((attachment) => {
+          const isDownloading =
+            download.isPending && download.variables === attachment.id;
+
+          return (
+            <li
+              key={attachment.id}
+              className="attachment-row"
+              data-testid={`row-attachment-${attachment.id}`}
+            >
+              <span className="badge badge-muted attachment-type">
+                {getAttachmentExtension(attachment.originalName)?.toUpperCase() ??
+                  "FILE"}
+              </span>
+              <div className="attachment-info">
+                <span className="attachment-name">{attachment.originalName}</span>
+                <span className="attachment-meta">
+                  {formatFileSize(attachment.size)}
+                </span>
+              </div>
+              <button
+                type="button"
+                className="button button-ghost"
+                onClick={() => download.mutate(attachment.id)}
+                disabled={isDownloading}
+                data-testid={`button-download-attachment-${attachment.id}`}
+              >
+                <Download size={15} />
+                {isDownloading ? "Preparing..." : "Download"}
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+
+      {download.isError && (
+        <div className="form-error" role="alert">
+          {getApiErrorMessage(download.error, "Unable to download this file.")}
+        </div>
+      )}
+    </div>
   );
 }

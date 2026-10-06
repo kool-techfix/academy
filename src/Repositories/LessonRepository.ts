@@ -1,5 +1,12 @@
 import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@/generated/prisma/client";
+import { lessonAttachmentPublicSelect } from "@/Repositories/LessonAttachmentRepository";
+
+// Lesson responses list attachments without their storage keys.
+const attachmentsInclude = {
+  select: lessonAttachmentPublicSelect,
+  orderBy: { createdAt: "asc" },
+} as const;
 
 export class LessonRepository {
   async create(data: Prisma.LessonCreateInput) {
@@ -7,6 +14,7 @@ export class LessonRepository {
       data,
       include: {
         module: true,
+        attachments: attachmentsInclude,
       },
     });
   }
@@ -16,6 +24,7 @@ export class LessonRepository {
       where: { id },
       include: {
         module: true,
+        attachments: attachmentsInclude,
       },
     });
   }
@@ -28,6 +37,9 @@ export class LessonRepository {
       orderBy: {
         order: "asc",
       },
+      include: {
+        attachments: attachmentsInclude,
+      },
     });
   }
 
@@ -37,6 +49,7 @@ export class LessonRepository {
       data,
       include: {
         module: true,
+        attachments: attachmentsInclude,
       },
     });
   }
@@ -96,6 +109,7 @@ export class LessonRepository {
         youtubeVideoLink: true,
         notesFileUrl: true,
         order: true,
+        attachments: attachmentsInclude,
         module: {
           select: {
             id: true,

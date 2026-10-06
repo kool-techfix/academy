@@ -141,3 +141,47 @@ export function useDeleteLesson() {
     },
   });
 }
+
+/**
+ * Delete one lesson attachment (row and R2 object).
+ */
+export function useDeleteLessonAttachment() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      courseId,
+      moduleId,
+      lessonId,
+      attachmentId,
+    }: {
+      courseId: string;
+      moduleId: string;
+      lessonId: string;
+      attachmentId: string;
+    }) => lessonApi.deleteAttachment(courseId, moduleId, lessonId, attachmentId),
+
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: [
+          "lesson",
+          variables.courseId,
+          variables.moduleId,
+          variables.lessonId,
+        ],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["module-lessons"],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["module"],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["instructor-course"],
+      });
+    },
+  });
+}

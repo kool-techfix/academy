@@ -2,13 +2,16 @@
 
 ## Identity
 
-- **Product name:** KoolTech Fix IT Academy
-- **Wordmark rendering** (`src/components/academy-brand.tsx`): logo mark + stacked text — "KoolTech Fix" with a small-caps subline "IT Academy".
-- **Logo asset:** `public/images/images.png` (36×36, rounded 7px, 1px border `#dedbd0`).
+- **Product name:** Kool TechFix I.T Academy
+- **Brand lockup** (`src/components/academy-brand.tsx`, `Brand()`): badge image + two-tone wordmark + motto.
+  - Wordmark: "Kool" (black) "Tech" (green) "Fix" (black) "I.T" (red) "Academy" (black).
+  - Motto: **LEARN · APPLY · INNOVATE** in red, uppercase, wide letter-spacing, with a thin green rule on each side. Hidden in the navbar below 900px; the wordmark stacks onto two lines at phone width.
+- **Badge image:** `Kool_TechFix_IT_Academy_Badge_Only.png`, currently served from Cloudinary (`BADGE_SRC` in `academy-brand.tsx`; allowed in `next.config.ts`). To serve it locally, add it to `/public` and point `BADGE_SRC` at `/Kool_TechFix_IT_Academy_Badge_Only.png`.
+- **On dark surfaces** (the auth panel) the lockup sits on a white plate so the black/green letters stay legible.
 - **Document `<title>`** (`src/app/layout.tsx`): "Kool TechFix ITAcad"
 - **Tagline** (`src/app/layout.tsx` metadata description): "Practical IT learning, built for the real world"
 
-> Note: the brand name is rendered inconsistently across the codebase ("KoolTech Fix IT Academy" in the component, "Kool TechFix ITAcad" in the page `<title>`) — worth reconciling to one canonical spelling.
+> Note: older copy still says "KoolTech Fix IT Academy" in places (auth footer, emails, landing footer) — worth reconciling to one canonical spelling.
 
 ## Typography
 
@@ -26,54 +29,56 @@ Heading style: tight letter-spacing (`-0.02em` to `-0.04em`), large clamped size
 
 ## Color palette
 
-Defined as HSL custom properties on `:root` in `src/app/globals.css`, consumed by Tailwind v4 utilities and by the custom `.button`/`.card`/`.badge` classes.
+Five brand colours, defined **once** as CSS custom properties on `:root` in `src/app/globals.css`. Components use the tokens, never raw hex. The tokens are also exposed to Tailwind via `@theme inline` (`bg-brand-green`, `text-brand-red`, `border-brand-gray`, …).
 
-### Design tokens (HSL)
+### Brand tokens
 
-| Token | HSL value | Approx. hex | Role |
-|---|---|---|---|
-| `--background` | `48 33% 97%` | `#faf9f5` | page background |
-| `--foreground` | `60 4% 18%` | `#2e2e2c` | primary text |
-| `--primary` | `65 72% 64%` | `#d8e85c` | brand accent — lime/chartreuse |
-| `--primary-foreground` | `60 4% 18%` | `#2e2e2c` | text on primary |
-| `--secondary` | `60 7% 92%` | `#eceae4` | secondary surfaces |
-| `--accent` | `8 72% 79%` | `#f2a79e` | coral accent |
-| `--destructive` | `4 68% 62%` | `#e05a4a`-ish | errors/danger |
-| `--muted` | `45 18% 93%` | `#f0eee5` | muted surfaces |
-| `--muted-foreground` | `40 5% 42%` | `#77766f` | secondary text |
-| `--border` / `--card-border` | `45 12% 86%` | `#e5e2d9` | borders |
-| `--input` | `45 12% 82%` | `#dfdcd2` | input borders |
-| `--ring` | `65 50% 45%` | — | focus ring base |
-| `--radius` | `0.65rem` | — | default corner radius |
-
-### Literal hex colors in `globals.css`
-
-These are hard-coded directly in component classes (not routed through the tokens above) — the de facto working palette:
-
-| Hex | Swatch role | Where used |
+| Token | Hex | Role |
 |---|---|---|
-| `#2e2e2c` | **Ink / near-black** — primary text, instructor-mode background | headings, body text, `.instructor-navbar`, `.avatar`, `.button-secondary` |
-| `#d8e85c` | **Brand lime** (signature accent color) | `.button-primary`, instructor badge border/text, avatar text, focus outline (`rgba(216,232,92,…)`) |
-| `#c9dc45` | Lime, hover state | `.button-primary:hover` |
-| `#69751b` | Lime, darkest shade | deep accent variant |
-| `#faf9f5` | **Cream / off-white** — page background | `html`, `body`, `.navbar` background (95% opacity) |
-| `#fcfcf9` | Near-white | subtle surface |
-| `#77766f`, `#696861`, `#85827a`, `#68675f`, `#66655e`, `#4d4c47`, `#8a887e`, `#929089` | Warm greys | secondary/muted text, nav link colors |
-| `#e5e2d9`, `#dfdcd2`, `#dedbd0`, `#e8e5dc`, `#ece9e1` | Warm greige borders/dividers | `.card`, `.navbar` border, input borders |
-| `#eeefcf` | Pale lime tint | active/hover nav background, badges |
-| `#f0f0e6`, `#f0efea` | Off-white hover surfaces | button-ghost hover, muted badges |
-| `#fae2de` / `#f2a79e` / `#9b5048` | **Coral** family | `.badge-coral` (bg / text), `--accent` token |
-| `#45443f` | Dark warm grey | `.instructor-navbar` border |
-| `#f7f8df` / `#f7f5ee` | Pale tints | badge-dark text, misc |
-| `#fff` | Pure white | `.card` background, dropdowns |
+| `--brand-black` | `#060807` | Body text and headings; dark panels (welcome card, auth panel, video frame) |
+| `--brand-green` | `#085D1B` | **Primary** — primary buttons, active states, progress, links, focus rings |
+| `--brand-red` | `#C6070C` | Accent and destructive/attention — errors, instructor navbar accent, motto, "I.T" |
+| `--brand-white` | `#FEFEFE` | Page and card surfaces; text on green/red/black |
+| `--brand-gray` | `#DCDFDA` | Borders, dividers, muted backgrounds; secondary text on dark panels |
 
-### Palette summary
+### Derived tokens (mixed from the brand tokens with `color-mix`)
 
-- **Primary brand color:** lime/chartreuse `#d8e85c` (HSL `65 72% 64%`) — used for primary CTAs, the instructor-mode avatar and badge accents, and focus rings.
-- **Neutral base:** warm cream `#faf9f5` background with near-black `#2e2e2c` text/ink — a warm, paper-like neutral system rather than pure white/black.
-- **Secondary accent:** coral `#f2a79e` / `#9b5048` — used sparingly for a distinct badge tone (`.badge-coral`).
-- **Instructor mode** uses an inverted theme: dark ink (`#2e2e2c`) navbar with lime (`#d8e85c`) accents, versus the learner-facing light cream theme.
-- No dark-mode theme is implemented (only a `.badge-dark` *component* variant exists — `next-themes` is installed but not wired into `layout.tsx`).
+| Token | Recipe | Use |
+|---|---|---|
+| `--brand-green-hover` / `--brand-red-hover` | 82% colour + black | Button hover |
+| `--brand-green-tint` | 9% green on white (≈ `#E8F0EA`) | Active nav items, success panels, stat card |
+| `--brand-red-tint` | 8% red on white (≈ `#FAEAEB`) | Error panels, coral-style accents, streak card |
+| `--brand-green-soft` / `--brand-red-soft` | 35% colour on white | Soft borders (card hover, error borders) |
+| `--brand-gray-light` | 45% gray on white | Subtle surfaces, ghost-button hover, dropzones |
+| `--brand-text-muted` | 68% black on white (≈ `#555756`) | Secondary text (~6.9:1 on white) |
+| `--nav-learner` | = green tint | Learner navbar background |
+| `--nav-instructor` | = red tint | Instructor/admin navbar background |
+
+The legacy shadcn HSL channels (`--primary`, `--accent`, `--destructive`, …) are kept in sync with this palette for the `ui/*` primitives.
+
+### Navbars
+
+One `Navbar` component with two variants (chosen from the user's role, or forced via the `variant` prop):
+
+| Variant | Background | Bottom border, active link, buttons, avatar |
+|---|---|---|
+| `learner` | `--nav-learner` (green tint) | green |
+| `instructor` (also used for admins) | `--nav-instructor` (red tint) | red |
+
+The navbar is sticky (`top: 0`, `z-index: 40`) with a solid background; text stays black.
+
+### Contrast rules (WCAG AA)
+
+- Text on green, red or black is always `--brand-white` (white on green ≈ 8:1, on red ≈ 6:1).
+- Never put green or red text on black (≈ 2.5:1 / 3.3:1) — use `--brand-white` or `--brand-gray` on dark panels.
+- Green and red text on their own tints pass (≈ 7:1 and ≈ 5.2:1).
+- Secondary text uses `--brand-text-muted`, not lighter grays.
+
+### Design direction
+
+Clean and light: white surfaces, solid colours only (**no gradients**), no unnecessary animation, icons used sparingly. Exception: the Google sign-in button uses Google's official four-colour "G" logo, as Google's branding rules require.
+
+No dark-mode theme is implemented (the toaster is pinned to `theme="light"`).
 
 ## Iconography & imagery
 
@@ -92,7 +97,7 @@ These are hard-coded directly in component classes (not routed through the token
 | `@tailwindcss/typography` | Prose styling for long-form content |
 | `cmdk` | Command palette (`ui/command.tsx`) |
 | `vaul` | Drawer component (`ui/drawer.tsx`) |
-| `sonner` | Toast notifications |
+| `sonner` | Toast notifications (`<Toaster>` mounted in `src/app/layout.tsx`) |
 | `embla-carousel-react` | Carousel (`ui/carousel.tsx`) |
 | `react-day-picker` | Calendar (`ui/calendar.tsx`) |
 | `input-otp` | OTP input (`ui/input-otp.tsx`) |
@@ -107,8 +112,9 @@ These are hard-coded directly in component classes (not routed through the token
 | `next` 16.3.4, `react` / `react-dom` 19.2.8 | Framework/runtime |
 | `@prisma/client` / `prisma` / `@prisma/adapter-pg` | ORM + PostgreSQL driver adapter |
 | `pg` | Postgres driver |
-| `jose` | JWT session signing/verification |
-| `bcrypt` | Password hashing |
+| `better-auth` | Sessions, email/password and Google OAuth (Prisma adapter) |
+| `bcrypt` | Password hashing (used by Better Auth's custom hash/verify) |
+| `@aws-sdk/client-s3` + `@aws-sdk/s3-request-presigner` | Cloudflare R2 storage and presigned URLs for lesson attachments |
 | `axios` | HTTP client for internal `/api` calls |
 | `@tanstack/react-query` | Server-state/data fetching cache |
 | `react-hook-form` + `@hookform/resolvers` + `zod` | Forms + schema validation |

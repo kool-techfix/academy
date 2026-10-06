@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { requireInstructor } from "@/lib/auth/auth-guard";
+import { lessonErrorStatus } from "@/lib/storage/errors";
+import { lessonAttachmentsSchema } from "@/Schemas/lesson-attachment.schema";
 import { LessonService, type UpdateLessonData } from "@/Services/LessonService";
 
 const lessonService = new LessonService();
@@ -42,10 +44,19 @@ export async function PATCH(
 
     const body = (await request.json()) as UpdateLessonData;
 
+    const attachments = lessonAttachmentsSchema.safeParse(body.attachments);
+
+    if (!attachments.success) {
+      return NextResponse.json(
+        { message: attachments.error.issues[0]?.message ?? "Invalid attachment" },
+        { status: 400 },
+      );
+    }
+
     const lesson = await lessonService.updateLesson(
       instructor.id,
       lessonId,
-      body,
+      { ...body, attachments: attachments.data },
     );
 
     return NextResponse.json({
@@ -58,24 +69,10 @@ export async function PATCH(
     const message =
       error instanceof Error ? error.message : "Failed to update lesson";
 
-    let status = 500;
-
-    if (message === "Lesson not found") {
-      status = 404;
-    }
-
-    if (
-      message === "Lesson title is required" ||
-      message === "YouTube video ID is required"
-    ) {
-      status = 400;
-    }
-
-    if (message === "You do not have permission to manage this lesson") {
-      status = 403;
-    }
-
-    return NextResponse.json({ message }, { status });
+    return NextResponse.json(
+      { message },
+      { status: lessonErrorStatus(message) },
+    );
   }
 }
 

@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 
-import { InstructorStatus, Role } from "@/generated/prisma/client";
+import { Role } from "@/generated/prisma/client";
 import { instructorExpertiseSchema } from "@/lib/auth";
 import { getCurrentUser } from "@/lib/auth/auth-guard";
-import { prisma } from "@/lib/prisma";
+import { AuthRepository } from "@/Repositories/AuthRepository";
+
+const authRepository = new AuthRepository();
 
 /**
  * Finishes an instructor sign-up that started with Google: the account
@@ -29,10 +31,7 @@ export async function POST(request: Request) {
   const body = await request.json().catch(() => ({}));
 
   if (body?.continueAsLearner === true) {
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { instructorApplicationStarted: false },
-    });
+    await authRepository.clearInstructorApplication(user.id);
 
     return NextResponse.json({ redirectTo: "/dashboard" }, { status: 200 });
   }
@@ -55,15 +54,7 @@ export async function POST(request: Request) {
       : parsed.data.expertise
   )!.trim();
 
-  await prisma.user.update({
-    where: { id: user.id },
-    data: {
-      role: Role.INSTRUCTOR,
-      instructorStatus: InstructorStatus.PENDING,
-      expertise,
-      instructorApplicationStarted: false,
-    },
-  });
+  await authRepository.submitInstructorApplication(user.id, expertise);
 
   return NextResponse.json(
     { redirectTo: "/instructor-status" },
