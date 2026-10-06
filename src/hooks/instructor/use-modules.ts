@@ -1,4 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  INSTRUCTOR_COURSES_QUERY_KEY,
+  instructorCourseQueryKey,
+} from "@/hooks/instructor/use-courses";
 
 import {
   moduleApi,
@@ -46,7 +50,7 @@ export function useCreateModule() {
       // Important because your course detail query
       // may include modules.
       queryClient.invalidateQueries({
-        queryKey: ["instructor-course", variables.courseId],
+        queryKey: instructorCourseQueryKey(variables.courseId),
       });
     },
   });
@@ -76,7 +80,7 @@ export function useUpdateModule() {
       });
 
       queryClient.invalidateQueries({
-        queryKey: ["instructor-course"],
+        queryKey: INSTRUCTOR_COURSES_QUERY_KEY,
       });
     },
   });
@@ -94,7 +98,7 @@ export function useDeleteModule() {
       });
 
       queryClient.invalidateQueries({
-        queryKey: ["instructor-course"],
+        queryKey: INSTRUCTOR_COURSES_QUERY_KEY,
       });
     },
   });

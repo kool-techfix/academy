@@ -1,5 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  INSTRUCTOR_COURSES_QUERY_KEY,
+  instructorCourseQueryKey,
+} from "@/hooks/instructor/use-courses";
 
 import {
   quizApi,
@@ -81,7 +85,7 @@ export function useCreateModuleQuiz() {
 
       // The instructor course detail may contain quiz information.
       queryClient.invalidateQueries({
-        queryKey: ["instructor-course"],
+        queryKey: INSTRUCTOR_COURSES_QUERY_KEY,
       });
     },
   });
@@ -123,7 +127,7 @@ export function useUpdateQuiz() {
       }
 
       queryClient.invalidateQueries({
-        queryKey: ["instructor-course"],
+        queryKey: INSTRUCTOR_COURSES_QUERY_KEY,
       });
     },
   });
@@ -144,7 +148,7 @@ export function useDeleteQuiz() {
       });
 
       queryClient.invalidateQueries({
-        queryKey: ["instructor-course"],
+        queryKey: INSTRUCTOR_COURSES_QUERY_KEY,
       });
     },
   });
@@ -254,7 +258,7 @@ export function useCreateCourseFinalAssessment() {
       });
 
       queryClient.invalidateQueries({
-        queryKey: ["instructor-course", variables.courseId],
+        queryKey: instructorCourseQueryKey(variables.courseId),
       });
     },
   });

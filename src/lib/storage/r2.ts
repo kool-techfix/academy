@@ -52,6 +52,12 @@ function getR2() {
           accessKeyId: config.accessKeyId,
           secretAccessKey: config.secretAccessKey,
         },
+        // Newer AWS SDKs add CRC32 checksum params to every request by
+        // default; on a presigned PUT that checksum is computed for an empty
+        // body, so R2 rejects the real upload. Only send checksums when an
+        // operation actually requires them (Cloudflare's recommended setting).
+        requestChecksumCalculation: "WHEN_REQUIRED",
+        responseChecksumValidation: "WHEN_REQUIRED",
       }),
     };
   }

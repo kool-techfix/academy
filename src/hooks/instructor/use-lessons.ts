@@ -1,4 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  INSTRUCTOR_COURSES_QUERY_KEY,
+} from "@/hooks/instructor/use-courses";
 
 import {
   lessonApi,
@@ -59,7 +62,7 @@ export function useCreateLesson() {
       });
 
       queryClient.invalidateQueries({
-        queryKey: ["instructor-course"],
+        queryKey: INSTRUCTOR_COURSES_QUERY_KEY,
       });
     },
   });
@@ -103,7 +106,7 @@ export function useUpdateLesson() {
       });
 
       queryClient.invalidateQueries({
-        queryKey: ["instructor-course"],
+        queryKey: INSTRUCTOR_COURSES_QUERY_KEY,
       });
     },
   });
@@ -136,7 +139,7 @@ export function useDeleteLesson() {
       });
 
       queryClient.invalidateQueries({
-        queryKey: ["instructor-course"],
+        queryKey: INSTRUCTOR_COURSES_QUERY_KEY,
       });
     },
   });
@@ -180,7 +183,7 @@ export function useDeleteLessonAttachment() {
       });
 
       queryClient.invalidateQueries({
-        queryKey: ["instructor-course"],
+        queryKey: INSTRUCTOR_COURSES_QUERY_KEY,
       });
     },
   });
