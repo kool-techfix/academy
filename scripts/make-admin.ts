@@ -27,7 +27,7 @@ async function main() {
     data: { role: Role.ADMIN, instructorStatus: null },
   });
 
-  console.log(`${email} is now an admin. Sign in again to refresh the session.`);
+  console.log(`${email} is now an admin. The change applies on their next page load.`);
 }
 
 main().finally(() => prisma.$disconnect());

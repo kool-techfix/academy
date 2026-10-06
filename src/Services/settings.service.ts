@@ -3,6 +3,7 @@ import { api } from "@/lib/api/axios";
 export type UserSettings = {
   id: string;
   name: string;
+  certificateName: string | null;
   email: string;
   role: "LEARNER" | "INSTRUCTOR";
   expertise: string | null;
@@ -13,6 +14,7 @@ export type UserSettings = {
 
 export type UpdateProfileInput = {
   name?: string;
+  certificateName?: string;
   expertise?: string | null;
 };
 

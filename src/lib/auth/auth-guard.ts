@@ -1,10 +1,23 @@
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+
 import { AccountStatus, InstructorStatus, Role } from "@/generated/prisma/client";
 
-import { getSession } from "@/lib/auth/session";
+import { homePathFor } from "@/lib/auth/redirects";
+import { auth } from "@/lib/auth/server";
 import { AuthRepository } from "@/Repositories/AuthRepository";
 
 const authRepository = new AuthRepository();
 
+/** The raw Better Auth session (validated against the session table). */
+export async function getSession() {
+  return auth.api.getSession({ headers: await headers() });
+}
+
+/**
+ * The signed-in user with role and statuses, read fresh from the database,
+ * or null. Use this in server components, layouts and route handlers.
+ */
 export async function getCurrentUser() {
   const session = await getSession();
 
@@ -12,7 +25,7 @@ export async function getCurrentUser() {
     return null;
   }
 
-  const user = await authRepository.findSafeById(session.userId);
+  const user = await authRepository.findSafeById(session.user.id);
 
   // Suspended or removed accounts are treated as signed out everywhere,
   // even if they still hold a valid session cookie.
@@ -62,6 +75,26 @@ export async function requireAdmin() {
 
   if (user.role !== Role.ADMIN) {
     throw new Error("Forbidden");
+  }
+
+  return user;
+}
+
+type CurrentUser = NonNullable<Awaited<ReturnType<typeof getCurrentUser>>>;
+
+/**
+ * Server-side gate for a page or layout: signed-out visitors go to /login,
+ * signed-in users who don't pass `isAllowed` go to their own home page.
+ */
+export async function guardPage(isAllowed: (user: CurrentUser) => boolean) {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  if (!isAllowed(user)) {
+    redirect(homePathFor(user));
   }
 
   return user;

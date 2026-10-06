@@ -1,9 +1,11 @@
+import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 
-import { clearSessionCookie } from "@/lib/auth/cookies";
+import { auth } from "@/lib/auth/server";
 
 export async function POST() {
-  await clearSessionCookie();
+  // Deletes the session row and clears the cookie.
+  await auth.api.signOut({ headers: await headers() });
 
   return NextResponse.json(
     {

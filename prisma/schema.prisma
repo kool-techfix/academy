@@ -73,6 +73,17 @@ model User {
   expertise    String?    // instructor-only, nullable for learners
   authMethod   AuthMethod @default(EMAIL)
   createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @default(now()) @updatedAt
+
+  // Better Auth core fields.
+  emailVerified Boolean @default(false)
+  image         String?
+
+  // Name printed on certificates; falls back to `name` when null.
+  certificateName String?
+  // Set server-side when a Google sign-up started from the instructor form;
+  // cleared once the expertise form turns the account into a pending instructor.
+  instructorApplicationStarted Boolean @default(false)
 
   instructorStatus InstructorStatus?
 
@@ -84,6 +95,56 @@ model User {
   progress        Progress[]
   quizAttempts    QuizAttempt[]
   authoredCourses CourseAuthor[]
+  sessions        Session[]
+  accounts        Account[]
+}
+
+// ── Better Auth ──────────────────────────────────────────────────────────
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// One row per sign-in method. Email/password lives here as providerId
+// "credential" (bcrypt hash in `password`); Google as providerId "google".
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
 }
 
 model Course {

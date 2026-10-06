@@ -1,6 +1,7 @@
+import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 
-import { setSessionCookie } from "@/lib/auth/cookies";
+import { auth } from "@/lib/auth/server";
 import { AuthService } from "@/Services/AuthService";
 
 const authService = new AuthService();
@@ -33,7 +34,11 @@ export async function POST(request: Request) {
       expertise,
     });
 
-    await setSessionCookie(user.id, user.role);
+    // Start a Better Auth session for the new account.
+    await auth.api.signInEmail({
+      body: { email, password },
+      headers: await headers(),
+    });
 
     return NextResponse.json(
       {

@@ -1315,6 +1315,57 @@ input:focus-visible {
   margin-top: 6px;
   font-size: 12px;
 }
+.auth-step {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 18px;
+  padding: 16px;
+  border: 1px solid var(--brand-gray);
+  border-radius: 8px;
+}
+.auth-step span {
+  margin-bottom: 6px;
+  color: var(--brand-text-muted);
+  font-size: 13px;
+}
+.link-button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--brand-green);
+  font: inherit;
+  font-weight: 700;
+}
+.link-button:hover {
+  text-decoration: underline;
+}
+.status-card {
+  max-width: 640px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 32px;
+}
+.status-card h1 {
+  font-size: clamp(28px, 4vw, 38px);
+}
+.status-card p {
+  margin: 0;
+  color: var(--brand-text-muted);
+}
+.status-card .status-meta {
+  color: var(--brand-black);
+}
+.form-error {
+  padding: 12px 14px;
+  margin: 4px 0 14px;
+  border: 1px solid var(--brand-red-soft);
+  border-radius: 6px;
+  background: var(--brand-red-tint);
+  color: var(--brand-red);
+  font-size: 13px;
+}
 .form-success {
   padding: 17px;
   margin-bottom: 17px;
@@ -1349,9 +1400,20 @@ input:focus-visible {
   flex: 1;
   background: var(--brand-gray);
 }
-.google-mark {
-  font: 800 17px var(--app-font-display);
-  line-height: 1;
+/* Neutral Google button (Google's guidelines: light surface, gray border). */
+.google-button {
+  width: 100%;
+  gap: 10px;
+  background: var(--brand-white);
+  border-color: var(--brand-gray);
+  color: var(--brand-black);
+}
+.google-button:hover {
+  background: var(--brand-gray-light);
+  border-color: var(--brand-text-muted);
+}
+.google-button svg {
+  flex: none;
 }
 .form-field input[readonly] {
   background: var(--brand-gray-light);

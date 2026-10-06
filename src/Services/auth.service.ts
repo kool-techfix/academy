@@ -16,6 +16,8 @@ export type AuthUser = {
   expertise: string | null;
   authMethod: "EMAIL" | "GOOGLE";
   instructorStatus: InstructorStatus | null;
+  certificateName: string | null;
+  instructorApplicationStarted: boolean;
   createdAt: string;
 };
 

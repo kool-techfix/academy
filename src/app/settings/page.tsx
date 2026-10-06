@@ -22,6 +22,9 @@ import {
 
 const profileSchema = z.object({
   name: z.string().min(2, "Full name must be at least 2 characters"),
+  certificateName: z
+    .string()
+    .min(2, "Certificate name must be at least 2 characters"),
 });
 
 type ProfileValues = z.infer<typeof profileSchema>;
@@ -74,6 +77,7 @@ export default function Settings() {
     resolver: zodResolver(profileSchema),
     defaultValues: {
       name: "",
+      certificateName: "",
     },
   });
 
@@ -94,6 +98,7 @@ export default function Settings() {
 
     profile.reset({
       name: settings.name,
+      certificateName: settings.certificateName ?? settings.name,
     });
 
     account.reset({
@@ -225,6 +230,15 @@ export default function Settings() {
               placeholder="Your full name"
               register={profile.register}
               error={profile.formState.errors.name?.message}
+              autoComplete="name"
+            />
+
+            <FormField
+              label="Name on certificates"
+              name="certificateName"
+              placeholder="As it should appear on certificates"
+              register={profile.register}
+              error={profile.formState.errors.certificateName?.message}
               autoComplete="name"
             />
 

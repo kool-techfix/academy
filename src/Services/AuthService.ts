@@ -23,11 +23,6 @@ type RegisterInstructorInput = {
   expertise: string;
 };
 
-type LoginInput = {
-  email: string;
-  password: string;
-};
-
 type UpdateInstructorProfileInput = {
   name?: string;
   expertise?: string | null;
@@ -40,6 +35,7 @@ type UpdateInstructorNotificationsInput = {
 
 type UpdateProfileInput = {
   name?: string;
+  certificateName?: string;
   expertise?: string | null;
 };
 
@@ -114,21 +110,16 @@ export class AuthService {
     return this.sanitizeUser(user);
   }
 
-  async login(input: LoginInput) {
-    const email = input.email.trim().toLowerCase();
+  /**
+   * Account checks after Better Auth has verified the password. Instructors
+   * who aren't approved yet may still sign in: they land on the status page.
+   */
+  async assertCanSignIn(emailInput: string) {
+    const email = emailInput.trim().toLowerCase();
 
     const user = await this.authRepository.findByEmail(email);
 
-    if (!user || !user.passwordHash) {
-      throw new Error("Invalid email or password");
-    }
-
-    const passwordIsValid = await comparePassword(
-      input.password,
-      user.passwordHash,
-    );
-
-    if (!passwordIsValid) {
+    if (!user) {
       throw new Error("Invalid email or password");
     }
 
@@ -138,23 +129,6 @@ export class AuthService {
 
     if (user.accountStatus === AccountStatus.SUSPENDED) {
       throw new Error("Your account has been suspended");
-    }
-
-    if (
-      user.role === Role.INSTRUCTOR &&
-      user.instructorStatus !== InstructorStatus.APPROVED
-    ) {
-      if (user.instructorStatus === InstructorStatus.PENDING) {
-        throw new Error("Your instructor account is awaiting approval");
-      }
-
-      if (user.instructorStatus === InstructorStatus.REJECTED) {
-        throw new Error("Your instructor application was not approved");
-      }
-
-      if (user.instructorStatus === InstructorStatus.SUSPENDED) {
-        throw new Error("Your instructor account has been suspended");
-      }
     }
 
     return this.sanitizeUser(user);
@@ -300,6 +274,16 @@ export class AuthService {
       updateData.name = name;
     }
 
+    if (input.certificateName !== undefined) {
+      const certificateName = input.certificateName.trim();
+
+      if (certificateName.length < 2) {
+        throw new Error("Certificate name must be at least 2 characters");
+      }
+
+      updateData.certificateName = certificateName;
+    }
+
     if (input.expertise !== undefined) {
       const expertise = input.expertise?.trim();
 
@@ -385,13 +369,15 @@ export class AuthService {
     }
 
     if (hasNewPassword) {
-      if (!user.passwordHash) {
+      const currentHash = await this.authRepository.findPasswordHash(userId);
+
+      if (!currentHash) {
         throw new Error("This account does not have a password");
       }
 
       const passwordIsValid = await comparePassword(
         input.currentPassword!,
-        user.passwordHash,
+        currentHash,
       );
 
       if (!passwordIsValid) {
@@ -412,8 +398,10 @@ export class AuthService {
     return this.authRepository.updateAccount(userId, updateData);
   }
 
-  private sanitizeUser(user: Awaited<ReturnType<AuthRepository["create"]>>) {
-    const { passwordHash: _, ...safeUser } = user;
+  private sanitizeUser<T extends object>(user: T): Omit<T, "passwordHash"> {
+    const { passwordHash: _, ...safeUser } = user as T & {
+      passwordHash?: unknown;
+    };
 
     return safeUser;
   }

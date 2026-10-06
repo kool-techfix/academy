@@ -1,3 +1,5 @@
+import { randomUUID } from "node:crypto";
+
 import { prisma } from "@/lib/prisma";
 import { AuthMethod, Role, InstructorStatus } from "@/generated/prisma/client";
 
@@ -10,6 +12,8 @@ type CreateUserInput = {
   instructorStatus?: InstructorStatus;
   authMethod?: AuthMethod;
 };
+
+const CREDENTIAL_PROVIDER = "credential";
 
 export class AuthRepository {
   /**
@@ -46,19 +50,54 @@ export class AuthRepository {
   }
 
   /**
-   * Create a new user.
+   * Create a new user. A password hash is stored on a Better Auth
+   * "credential" account, which is what email/password sign-in checks.
    */
   async create(data: CreateUserInput) {
-    return prisma.user.create({
-      data: {
-        name: data.name,
-        email: data.email,
-        passwordHash: data.passwordHash,
-        role: data.role,
-        expertise: data.expertise,
-        instructorStatus: data.instructorStatus,
-        authMethod: data.authMethod ?? AuthMethod.EMAIL,
-      },
+    return prisma.$transaction(async (tx) => {
+      const user = await tx.user.create({
+        data: {
+          name: data.name,
+          email: data.email,
+          certificateName: data.name,
+          role: data.role,
+          expertise: data.expertise,
+          instructorStatus: data.instructorStatus,
+          authMethod: data.authMethod ?? AuthMethod.EMAIL,
+        },
+        omit: { passwordHash: true },
+      });
+
+      if (data.passwordHash) {
+        await tx.account.create({
+          data: {
+            id: randomUUID(),
+            accountId: user.id,
+            providerId: CREDENTIAL_PROVIDER,
+            userId: user.id,
+            password: data.passwordHash,
+          },
+        });
+      }
+
+      return user;
+    });
+  }
+
+  /** The bcrypt hash for email/password sign-in, if the user has one. */
+  async findPasswordHash(userId: string) {
+    const account = await prisma.account.findFirst({
+      where: { userId, providerId: CREDENTIAL_PROVIDER },
+      select: { password: true },
+    });
+
+    return account?.password ?? null;
+  }
+
+  async updatePasswordHash(userId: string, passwordHash: string) {
+    await prisma.account.updateMany({
+      where: { userId, providerId: CREDENTIAL_PROVIDER },
+      data: { password: passwordHash },
     });
   }
 
@@ -95,6 +134,7 @@ export class AuthRepository {
       select: {
         id: true,
         name: true,
+        certificateName: true,
         email: true,
         role: true,
         expertise: true,
@@ -109,6 +149,7 @@ export class AuthRepository {
     id: string,
     data: {
       name?: string;
+      certificateName?: string;
       expertise?: string | null;
     },
   ) {
@@ -120,6 +161,7 @@ export class AuthRepository {
       select: {
         id: true,
         name: true,
+        certificateName: true,
         email: true,
         role: true,
         expertise: true,
@@ -132,11 +174,15 @@ export class AuthRepository {
 
   async updateAccount(
   id: string,
-  data: {
+  { passwordHash, ...data }: {
     email?: string;
     passwordHash?: string;
   },
 ) {
+  if (passwordHash) {
+    await this.updatePasswordHash(id, passwordHash);
+  }
+
   return prisma.user.update({
     where: {
       id,

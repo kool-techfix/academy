@@ -87,7 +87,7 @@ export default function Certificate() {
 
 Certificate of completion
 
-${user.name} has completed ${course.title}.`,
+${user.certificateName ?? user.name} has completed ${course.title}.`,
     );
 
     setDownloaded(true);

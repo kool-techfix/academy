@@ -27,24 +27,35 @@ export const expertiseOptions = [
   'Other',
 ] as const;
 
+const expertiseFields = z.object({
+  expertise: z.enum(expertiseOptions, {
+    message: 'Select an area of expertise',
+  }),
+  otherExpertise: z.string().optional(),
+});
+
+const requireOtherExpertise = (
+  data: z.infer<typeof expertiseFields>,
+  context: z.RefinementCtx,
+) => {
+  if (data.expertise === 'Other' && !data.otherExpertise?.trim()) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Enter your area of expertise',
+      path: ['otherExpertise'],
+    });
+  }
+};
+
 export const instructorRegisterSchema = registerSchema
-  .and(
-    z.object({
-      expertise: z.enum(expertiseOptions, {
-        message: 'Select an area of expertise',
-      }),
-      otherExpertise: z.string().optional(),
-    }),
-  )
-  .superRefine((data, context) => {
-    if (data.expertise === 'Other' && !data.otherExpertise?.trim()) {
-      context.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Enter your area of expertise',
-        path: ['otherExpertise'],
-      });
-    }
-  });
+  .and(expertiseFields)
+  .superRefine(requireOtherExpertise);
+
+/** Expertise-only step after verifying an instructor's email with Google. */
+export const instructorExpertiseSchema =
+  expertiseFields.superRefine(requireOtherExpertise);
+
+export type InstructorExpertiseValues = z.infer<typeof instructorExpertiseSchema>;
 
 export type AuthValues = {
   name: string;

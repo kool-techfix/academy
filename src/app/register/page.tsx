@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useWatch } from "react-hook-form";
 import { Button } from "@/components/academy-ui";
 import { AuthLayout } from "@/components/auth-layout";
 import { FormField } from "@/components/form-field";
+// TODO(google-auth): re-enable once GOOGLE_CLIENT_ID/SECRET are set.
+// import { GoogleButton } from "@/components/google-button";
 import {
   expertiseOptions,
   instructorRegisterSchema,
@@ -20,13 +22,27 @@ import {
   useRegisterInstructor,
   useRegisterLearner,
 } from "@/hooks/auth/use-register";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { googleErrorMessage, INSTRUCTOR_STATUS_PATH } from "@/lib/auth/redirects";
 
 export default function Register() {
+  // useSearchParams needs a Suspense boundary for static rendering.
+  return (
+    <Suspense>
+      <RegisterContent />
+    </Suspense>
+  );
+}
+
+function RegisterContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const googleError = googleErrorMessage(searchParams.get("error"));
   const [success, setSuccess] = useState(false);
-  const [registrationRole, setRegistrationRole] = useState<UserRole>("learner");
+  const [registrationRole, setRegistrationRole] = useState<UserRole>(
+    searchParams.get("role") === "instructor" ? "instructor" : "learner",
+  );
   const registerLearner = useRegisterLearner();
   const registerInstructor = useRegisterInstructor();
 
@@ -49,10 +65,6 @@ export default function Register() {
   control: instructorForm.control,
   name: "expertise",
 });
-
-  const continueWithGoogle = () => {
-    console.log("Google authentication is not implemented yet");
-  };
 
   const submitLearnerForm = async (values: AuthValues) => {
     learnerForm.clearErrors("root");
@@ -99,7 +111,7 @@ export default function Register() {
       });
 
       setSuccess(true);
-      router.push("/instructor");
+      router.push(INSTRUCTOR_STATUS_PATH);
     } catch (error) {
       instructorForm.setError("root", {
         type: "server",
@@ -145,6 +157,11 @@ export default function Register() {
           I&apos;m an instructor
         </button>
       </div>
+      {googleError && !success && (
+        <div className="form-error" role="alert" data-testid="error-google">
+          {googleError}
+        </div>
+      )}
       {success ? (
         <div className="form-success" data-testid="status-auth-success">
           {registrationRole === "instructor" ? (
@@ -167,8 +184,25 @@ export default function Register() {
           <h2>Share practical expertise.</h2>
           <p>
             Create an instructor account and start managing practical IT
-            courses.
+            courses. Every application is reviewed before you can publish.
           </p>
+          {/* TODO(google-auth): re-enable once GOOGLE_CLIENT_ID/SECRET are set.
+          <div className="auth-step" data-testid="instructor-google-step">
+            <strong>Verify your email with Google</strong>
+            <span>
+              Then tell us your area of expertise on the next screen.
+            </span>
+            <GoogleButton
+              flow="instructor"
+              errorPath="/register?role=instructor"
+              label="Verify with Google"
+              testId="button-instructor-google"
+            />
+          </div>
+          <div className="auth-divider">
+            <span>or sign up with email</span>
+          </div>
+          */}
           <form
             onSubmit={instructorForm.handleSubmit(submitInstructorForm)}
             noValidate
@@ -325,19 +359,12 @@ export default function Register() {
               )}
             </Button>
           </form>
+          {/* TODO(google-auth): re-enable once GOOGLE_CLIENT_ID/SECRET are set.
           <div className="auth-divider">
             <span>or</span>
           </div>
-          <Button
-            variant="secondary"
-            onClick={continueWithGoogle}
-            testId="button-continue-google"
-          >
-            <span className="google-mark" aria-hidden="true">
-              G
-            </span>{" "}
-            Continue with Google
-          </Button>
+          <GoogleButton flow="learner" errorPath="/register" />
+          */}
         </>
       )}
       <div className="auth-switch">

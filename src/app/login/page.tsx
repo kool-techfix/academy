@@ -1,28 +1,40 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 
 import { ArrowRight } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 import { Button } from "@/components/academy-ui";
 import { AuthLayout } from "@/components/auth-layout";
 import { FormField } from "@/components/form-field";
+// TODO(google-auth): re-enable once GOOGLE_CLIENT_ID/SECRET are set.
+// import { GoogleButton } from "@/components/google-button";
 
 import {
   loginSchema,
   type AuthValues,
 } from "@/lib/auth";
 
-import { setMockAuthMethod } from "@/lib/user";
+import { googleErrorMessage, homePathFor } from "@/lib/auth/redirects";
 import { useLogin } from "@/hooks/auth/use-login";
 import { getApiErrorMessage } from "@/lib/api/api-error";
 
 export default function Login() {
+  // useSearchParams needs a Suspense boundary for static rendering.
+  return (
+    <Suspense>
+      <LoginContent />
+    </Suspense>
+  );
+}
+
+function LoginContent() {
   const router = useRouter();
+  const googleError = googleErrorMessage(useSearchParams().get("error"));
 
   const [success, setSuccess] = useState(false);
 
@@ -36,11 +48,6 @@ export default function Login() {
     },
   });
 
-  const continueWithGoogle = () => {
-    setMockAuthMethod("google");
-    router.push("/dashboard");
-  };
-
   const handleLogin = async (values: AuthValues) => {
     try {
       const { user } = await login.mutateAsync({
@@ -50,17 +57,7 @@ export default function Login() {
 
       setSuccess(true);
 
-      if (user.role === "INSTRUCTOR") {
-        router.push("/instructor");
-        return;
-      }
-
-      if (user.role === "ADMIN") {
-        router.push("/admin");
-        return;
-      }
-
-      router.push("/dashboard");
+      router.push(homePathFor(user));
     } catch (error) {
       const message = getApiErrorMessage(
         error,
@@ -94,6 +91,12 @@ export default function Login() {
           <p>
             Sign in to pick up exactly where you left off.
           </p>
+
+          {googleError && (
+            <div className="form-error" role="alert" data-testid="error-google">
+              {googleError}
+            </div>
+          )}
 
           <form
             onSubmit={form.handleSubmit(handleLogin)}
@@ -143,23 +146,13 @@ export default function Login() {
             </Button>
           </form>
 
+          {/* TODO(google-auth): re-enable once GOOGLE_CLIENT_ID/SECRET are set.
           <div className="auth-divider">
             <span>or</span>
           </div>
 
-          <Button
-            variant="secondary"
-            onClick={continueWithGoogle}
-            testId="button-continue-google"
-          >
-            <span
-              className="google-mark"
-              aria-hidden="true"
-            >
-              G
-            </span>{" "}
-            Continue with Google
-          </Button>
+          <GoogleButton flow="learner" errorPath="/login" />
+          */}
 
           <div className="auth-switch">
             New to KoolTech?{" "}

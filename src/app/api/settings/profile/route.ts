@@ -13,13 +13,14 @@ export async function PATCH(
 
     const body = await request.json();
 
-    const { name, expertise } = body;
+    const { name, certificateName, expertise } = body;
 
     const updatedUser =
       await authService.updateProfile(
         user.id,
         {
           name,
+          certificateName,
           expertise,
         },
       );
@@ -49,8 +50,8 @@ export async function PATCH(
     }
 
     if (
-      message ===
-      "Full name must be at least 2 characters"
+      message === "Full name must be at least 2 characters" ||
+      message === "Certificate name must be at least 2 characters"
     ) {
       status = 400;
     }
