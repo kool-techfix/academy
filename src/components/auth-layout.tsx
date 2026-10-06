@@ -22,7 +22,7 @@ export function AuthLayout({
             KoolTech is a focused place to build IT skills that hold up when the room is busy and the answer is not obvious.
           </p>
         </div>
-        <footer>© 2024 KoolTech Fix IT Academy</footer>
+        <footer>© 2024 Kool TechFix I.T Academy</footer>
       </section>
       <section className="auth-form-wrap">
         <div className="auth-form">

@@ -11,7 +11,7 @@
 - **Document `<title>`** (`src/app/layout.tsx`): "Kool TechFix ITAcad"
 - **Tagline** (`src/app/layout.tsx` metadata description): "Practical IT learning, built for the real world"
 
-> Note: older copy still says "KoolTech Fix IT Academy" in places (auth footer, emails, landing footer) — worth reconciling to one canonical spelling.
+> Canonical spelling: **Kool TechFix I.T Academy** (used in the brand lockup and the auth/landing footers). Older copy still says "KoolTech" in places — instructor emails (`ACADEMY_NAME` in `InstructorEmailService.ts`), the loading-screen alt text, the page `<title>`, and short in-copy mentions like "New to KoolTech?" — worth reconciling.
 
 ## Typography
 

@@ -133,7 +133,7 @@ export default function Landing() {
 
       <footer className="landing-footer">
         <Brand />
-        <span>© 2024 KoolTech Fix IT Academy</span>
+        <span>© 2024 Kool TechFix I.T Academy</span>
         <div>
           <Link href="/login">Log in</Link>
           <Link href="/register">Get Started</Link>
