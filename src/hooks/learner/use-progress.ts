@@ -16,11 +16,12 @@ export const LEARNER_ALL_COURSE_PROGRESS_QUERY_KEY = [
 export const learnerCourseProgressQueryKey = (courseId: string) =>
   ["learner", "progress", courseId] as const;
 
-export function useLearnerCourseProgress(courseId: string) {
+/** `enabled: false` skips the request (e.g. the learner isn't enrolled). */
+export function useLearnerCourseProgress(courseId: string, enabled = true) {
   return useQuery({
     queryKey: learnerCourseProgressQueryKey(courseId),
     queryFn: () => learnerProgressApi.getCourseProgress(courseId),
-    enabled: Boolean(courseId),
+    enabled: enabled && Boolean(courseId),
     staleTime: 60 * 1000,
   });
 }

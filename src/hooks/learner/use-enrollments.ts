@@ -4,6 +4,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { learnerEnrollmentApi } from "@/Services/enrollment.service";
 import { LEARNER_DASHBOARD_ACTIVITY_QUERY_KEY, LEARNER_DASHBOARD_STREAK_QUERY_KEY } from "./use-dashboard";
+import { learnerCoursesQueryKey } from "./use-course";
+import { LEARNER_ALL_COURSE_PROGRESS_QUERY_KEY } from "./use-progress";
 
 export const LEARNER_ENROLLMENTS_QUERY_KEY = [
   "learner",
@@ -25,17 +27,16 @@ export function useEnrollInCourse() {
     mutationFn: learnerEnrollmentApi.enroll,
 
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: LEARNER_ENROLLMENTS_QUERY_KEY,
-      });
-
-      queryClient.invalidateQueries({
-        queryKey: LEARNER_DASHBOARD_ACTIVITY_QUERY_KEY,
-      });
+      // Everything that changes once a learner has a new course.
+      for (const queryKey of [
+        LEARNER_ENROLLMENTS_QUERY_KEY,
+        LEARNER_ALL_COURSE_PROGRESS_QUERY_KEY,
+        learnerCoursesQueryKey,
+        LEARNER_DASHBOARD_ACTIVITY_QUERY_KEY,
+        LEARNER_DASHBOARD_STREAK_QUERY_KEY,
+      ]) {
+        queryClient.invalidateQueries({ queryKey });
+      }
     },
-  });
-
-  queryClient.invalidateQueries({
-    queryKey: LEARNER_DASHBOARD_STREAK_QUERY_KEY,
   });
 }

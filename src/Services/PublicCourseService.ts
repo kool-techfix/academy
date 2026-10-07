@@ -9,7 +9,9 @@ export class PublicCourseService {
    * Get all published courses available to the public.
    */
   async getPublishedCourses() {
-    return this.courseRepository.findPublished();
+    const courses = await this.courseRepository.findPublished();
+
+    return courses.map(flattenAuthors);
   }
 
   /**
@@ -23,6 +25,19 @@ export class PublicCourseService {
       throw new Error("Course not found");
     }
 
-    return course;
+    return flattenAuthors(course);
   }
+}
+
+/** Public shape: `authors: { id, name }[]` (matches PublicCourse on the client). */
+function flattenAuthors<
+  T extends { authors: { user: { id: string; name: string | null } }[] },
+>(course: T) {
+  return {
+    ...course,
+    authors: course.authors.map((author) => ({
+      id: author.user.id,
+      name: author.user.name,
+    })),
+  };
 }

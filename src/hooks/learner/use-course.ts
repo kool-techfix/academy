@@ -12,11 +12,12 @@ export const learnerCoursesQueryKey = [
   "courses",
 ] as const;
 
-export function useLearnerCourse(courseId: string) {
+/** `enabled: false` skips the request (e.g. the learner isn't enrolled). */
+export function useLearnerCourse(courseId: string, enabled = true) {
   return useQuery({
     queryKey: learnerCourseQueryKey(courseId),
     queryFn: () => learnerCourseApi.getCourse(courseId),
-    enabled: Boolean(courseId),
+    enabled: enabled && Boolean(courseId),
     staleTime: 5 * 60 * 1000,
   });
 }

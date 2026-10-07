@@ -1,6 +1,12 @@
 "use client";
 
-import { ArrowRight, CheckCircle2, Play, Trophy } from "lucide-react";
+import {
+  ArrowRight,
+  BookOpen,
+  CheckCircle2,
+  Play,
+  Trophy,
+} from "lucide-react";
 import { LearnerCourseCard, ProgressBar } from "@/components/academy-ui";
 import { Page } from "@/components/page-shell";
 import {
@@ -62,6 +68,17 @@ export default function Dashboard() {
 
   const enrolledCourseCount = enrolledCourses.length;
 
+  // Only claim "no courses" once enrollments have actually loaded.
+  const hasNoCourses =
+    !dashboardLoading && !dashboardError && enrollments?.length === 0;
+
+  const today = new Date().toLocaleDateString("en-GB", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+
   const inProgressCourseCount = enrolledCourses.filter(
     ({ progress }) =>
       progress !== null && progress.percentage > 0 && progress.percentage < 100,
@@ -85,16 +102,33 @@ export default function Dashboard() {
     <Page>
       <section className="dashboard-hero">
         <div className="welcome">
-          <span className="eyebrow">Tuesday, 18 June 2024</span>
-          <h1 style={{ marginTop: 12 }}>
-            Keep the momentum,
-            <br />
-            {firstName}!
-          </h1>
-          <p>
-            You are building the kind of practical knowledge that shows up in
-            the work. Two focused sessions this week and you are on track.
-          </p>
+          <span className="eyebrow">{today}</span>
+          {hasNoCourses ? (
+            <>
+              <h1 style={{ marginTop: 12 }}>
+                Welcome,
+                <br />
+                {firstName}!
+              </h1>
+              <p>
+                Pick your first course to get started. Short, practical lessons
+                you can apply straight away, with progress tracked as you go.
+              </p>
+            </>
+          ) : (
+            <>
+              <h1 style={{ marginTop: 12 }}>
+                Keep the momentum,
+                <br />
+                {firstName}!
+              </h1>
+              <p>
+                You are building the kind of practical knowledge that shows up
+                in the work. A couple of focused sessions this week keeps you on
+                track.
+              </p>
+            </>
+          )}
           {resumeHref ? (
             <Link
               href={resumeHref}
@@ -105,9 +139,9 @@ export default function Dashboard() {
             </Link>
           ) : (
             <Link
-              href="/catalog"
+              href="/courses"
               className="button button-primary"
-              data-testid="link-resume-learning"
+              data-testid="link-browse-courses-hero"
             >
               Browse courses <ArrowRight size={16} />
             </Link>
@@ -140,31 +174,51 @@ export default function Dashboard() {
       </section>
 
       <div className="section-head">
-        <h2>Continue learning</h2>
+        <h2>{hasNoCourses ? "Your courses" : "Continue learning"}</h2>
 
-        <Link
-          href="/courses"
-          className="button button-ghost"
-          data-testid="link-see-all-courses"
-        >
-          See all courses <ArrowRight size={15} />
-        </Link>
+        {!hasNoCourses && (
+          <Link
+            href="/courses"
+            className="button button-ghost"
+            data-testid="link-see-all-courses"
+          >
+            See all courses <ArrowRight size={15} />
+          </Link>
+        )}
       </div>
 
       {dashboardLoading && <Loader message="Loading your courses..." />}
 
       {dashboardError && (
-        <div className="card">
-          <p>We couldn&apos;t load your courses. Please try again.</p>
+        <div className="card panel" role="alert">
+          <p style={{ margin: 0 }}>
+            We couldn&apos;t load your courses. Please refresh the page to try
+            again.
+          </p>
         </div>
       )}
 
-      {!dashboardLoading && !dashboardError && enrollments?.length === 0 && (
-        <div className="card">
-          <h3>No courses yet</h3>
-          <p>You haven&apos;t enrolled in any courses yet.</p>
+      {hasNoCourses && (
+        <div
+          className="empty-state card dashboard-empty"
+          data-testid="card-no-enrollments"
+        >
+          <div className="empty-icon">
+            <BookOpen size={24} />
+          </div>
 
-          <Link href="/catalog" className="button button-primary">
+          <h3>You haven&apos;t enrolled in a course yet</h3>
+
+          <p>
+            Browse the catalog, pick a course that fits what you want to learn,
+            and it will show up here with your progress.
+          </p>
+
+          <Link
+            href="/courses"
+            className="button button-primary"
+            data-testid="link-browse-courses"
+          >
             Browse courses
             <ArrowRight size={15} />
           </Link>

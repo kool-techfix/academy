@@ -17,21 +17,43 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 
 import { useLearnerCourse } from "@/hooks/learner/use-course";
+import { useLearnerEnrollments } from "@/hooks/learner/use-enrollments";
 import { useLearnerCourseProgress } from "@/hooks/learner/use-progress";
 import { LoadingScreen } from "@/components/Loader";
+import { CourseEnrollOverview } from "@/components/learner/course-enroll-overview";
 
 export default function CourseDetail() {
   const { id } = useParams<{ id: string }>();
 
-  const { data: course, isLoading, isError } = useLearnerCourse(id);
+  // The learner course/progress endpoints are enrollment-only (403
+  // otherwise), so check enrollment first and show the overview if needed.
+  const { data: enrollments, isLoading: enrollmentsLoading } =
+    useLearnerEnrollments();
+
+  const isEnrolled =
+    enrollments?.some((enrollment) => enrollment.courseId === id) ?? false;
+
+  const { data: course, isLoading, isError } = useLearnerCourse(id, isEnrolled);
 
   const {
     data: progress,
     isLoading: progressLoading,
     isError: progressError,
-  } = useLearnerCourseProgress(id);
+  } = useLearnerCourseProgress(id, isEnrolled);
 
   const [saved, setSaved] = useState(false);
+
+  if (enrollmentsLoading) {
+    return (
+      <Page>
+        <LoadingScreen message="Loading course..." />
+      </Page>
+    );
+  }
+
+  if (enrollments && !isEnrolled) {
+    return <CourseEnrollOverview courseId={id} />;
+  }
 
   if (isLoading || progressLoading) {
     return (
@@ -73,7 +95,7 @@ export default function CourseDetail() {
   return (
     <Page>
       <Link
-        href="/catalog"
+        href="/courses"
         className="row"
         style={{
           color: "var(--brand-text-muted)",

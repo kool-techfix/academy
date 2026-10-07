@@ -572,14 +572,23 @@ input:focus-visible {
   justify-content: space-between;
   background: var(--brand-green-tint);
 }
-.stat-card strong {
+/* Headline figure and its label only — not the ProgressBar's own label/value
+   inside the learner card. Admin cards put them directly in .stat-card. */
+.stat-card > strong,
+.stat-card > div > strong {
   font: 700 49px/1 var(--app-font-display);
   letter-spacing: -0.06em;
 }
-.stat-card span {
+.stat-card > span:not(.eyebrow),
+.stat-card > div > span {
   color: var(--brand-green);
   font-size: 13px;
+}
+.stat-card > span:not(.eyebrow) {
   margin-top: 8px;
+}
+.stat-card > div > span {
+  margin-left: 6px;
 }
 .section-head {
   display: flex;
@@ -826,6 +835,29 @@ input:focus-visible {
   min-height: 290px;
   padding: 38px;
   color: var(--brand-text-muted);
+}
+.enroll-meta {
+  margin-top: 14px;
+  color: var(--brand-text-muted);
+  font-size: 13px;
+}
+.enroll-locked {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  margin-left: auto;
+  color: var(--brand-text-muted);
+}
+.dashboard-empty {
+  min-height: 0;
+}
+.dashboard-empty h3 {
+  color: var(--brand-black);
+}
+.dashboard-empty p {
+  max-width: 420px;
+  margin: 10px auto 22px;
 }
 .empty-icon {
   width: 52px;
