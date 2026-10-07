@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { requireInstructor } from "@/lib/auth/auth-guard";
+import { lessonErrorStatus } from "@/lib/storage/errors";
 import {
   QuizService,
   type CreateQuizData,
@@ -10,14 +11,14 @@ const quizService = new QuizService();
 
 export async function GET(
   _request: NextRequest,
-  { params }: { params: Promise<{ moduleId: string }> },
+  { params }: { params: Promise<{ id: string; moduleId: string }> },
 ) {
   try {
-    await requireInstructor();
+    const instructor = await requireInstructor();
 
-    const { moduleId } = await params;
+    const { id, moduleId } = await params;
 
-    const quiz = await quizService.getModuleQuiz(moduleId);
+    const quiz = await quizService.getModuleQuiz(instructor.id, id, moduleId);
 
     return NextResponse.json({
       data: quiz,
@@ -25,14 +26,12 @@ export async function GET(
   } catch (error) {
     console.error("GET module quiz error:", error);
 
+    const message =
+      error instanceof Error ? error.message : "Failed to get module quiz";
+
     return NextResponse.json(
-      {
-        message:
-          error instanceof Error
-            ? error.message
-            : "Failed to get module quiz",
-      },
-      { status: 500 },
+      { message },
+      { status: lessonErrorStatus(message) },
     );
   }
 }

@@ -12,15 +12,15 @@ const lessonService = new LessonService();
 
 export async function GET(
   _request: NextRequest,
-  { params }: { params: Promise<{ moduleId: string }> },
+  { params }: { params: Promise<{ id: string; moduleId: string }> },
 ) {
   try {
-    await requireInstructor();
+    const instructor = await requireInstructor();
 
-    const { moduleId } = await params;
+    const { id, moduleId } = await params;
 
     const lessons =
-      await lessonService.getLessonsByModule(moduleId);
+      await lessonService.getLessonsByModule(instructor.id, id, moduleId);
 
     return NextResponse.json({
       data: lessons,
@@ -33,12 +33,9 @@ export async function GET(
         ? error.message
         : "Failed to fetch lessons";
 
-    const status =
-      message === "Module not found" ? 404 : 500;
-
     return NextResponse.json(
       { message },
-      { status },
+      { status: lessonErrorStatus(message) },
     );
   }
 }

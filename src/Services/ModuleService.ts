@@ -5,22 +5,29 @@ const moduleRepository = new ModuleRepository();
 const courseRepository = new CourseRepository();
 
 export class ModuleService {
-  async getCourseModules(courseId: string) {
+  /** Modules with lessons and quiz answers — course authors only. */
+  async getCourseModules(instructorId: string, courseId: string) {
     const course = await courseRepository.findById(courseId);
 
     if (!course) {
       throw new Error("Course not found");
     }
 
+    await ensureAuthor(instructorId, courseId);
+
     return moduleRepository.findByCourseId(courseId);
   }
 
-  async getModule(id: string) {
+  /** One module of `courseId` (incl. quiz answers) — course authors only. */
+  async getModule(instructorId: string, courseId: string, id: string) {
     const courseModule = await moduleRepository.findById(id);
 
-    if (!courseModule) {
+    // A module from another course is reported as missing, not forbidden.
+    if (!courseModule || courseModule.courseId !== courseId) {
       throw new Error("Module not found");
     }
+
+    await ensureAuthor(instructorId, courseId);
 
     return courseModule;
   }
@@ -97,5 +104,11 @@ export class ModuleService {
     }
 
     return moduleRepository.delete(moduleId);
+  }
+}
+
+async function ensureAuthor(instructorId: string, courseId: string) {
+  if (!(await courseRepository.isAuthor(courseId, instructorId))) {
+    throw new Error("You do not have permission to view this course");
   }
 }

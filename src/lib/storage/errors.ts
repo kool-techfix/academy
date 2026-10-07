@@ -33,10 +33,14 @@ const FORBIDDEN = new Set<string>([
   "Forbidden",
   "Instructor account is not approved",
   "You do not have permission to manage this lesson",
+  "You do not have permission to manage this quiz",
+  "You do not have permission to view this course",
   ATTACHMENT_ERRORS.forbidden,
 ]);
 
 const NOT_FOUND = new Set<string>([
+  "Course not found",
+  "Quiz not found",
   "Lesson not found",
   "Module not found",
   ATTACHMENT_ERRORS.notFound,

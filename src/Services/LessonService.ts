@@ -91,16 +91,41 @@ export class LessonService {
   }
 
   /**
-   * Get all lessons belonging to a module.
+   * Lessons of a module that belongs to `courseId` — course authors only.
    */
-  async getLessonsByModule(moduleId: string) {
+  async getLessonsByModule(
+    instructorId: string,
+    courseId: string,
+    moduleId: string,
+  ) {
+    const courseModule = await this.getModuleWithCourse(moduleId);
+
+    if (courseModule.courseId !== courseId) {
+      throw new Error("Module not found");
+    }
+
+    await this.ensureInstructorHasAccess(instructorId, courseId);
+
     return this.lessonRepository.findByModule(moduleId);
   }
 
   /**
-   * Get a single lesson.
+   * One lesson of `courseId` — course authors only.
    */
-  async getLesson(lessonId: string) {
+  async getLesson(instructorId: string, courseId: string, lessonId: string) {
+    const lesson = await this.loadLesson(lessonId);
+
+    if (lesson.module.courseId !== courseId) {
+      throw new Error("Lesson not found");
+    }
+
+    await this.ensureInstructorHasAccess(instructorId, courseId);
+
+    return lesson;
+  }
+
+  /** Internal: reload a lesson the caller is already authorised for. */
+  private async loadLesson(lessonId: string) {
     const lesson = await this.lessonRepository.findById(lessonId);
 
     if (!lesson) {
@@ -162,7 +187,7 @@ export class LessonService {
 
     await this.saveAttachments(lesson.id, attachments);
 
-    return this.getLesson(lesson.id);
+    return this.loadLesson(lesson.id);
   }
 
   /**
@@ -221,7 +246,7 @@ export class LessonService {
 
     await this.saveAttachments(lessonId, attachments);
 
-    return this.getLesson(lessonId);
+    return this.loadLesson(lessonId);
   }
 
   /**

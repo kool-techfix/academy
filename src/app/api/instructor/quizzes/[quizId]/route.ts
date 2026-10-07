@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { requireInstructor } from "@/lib/auth/auth-guard";
+import { lessonErrorStatus } from "@/lib/storage/errors";
 import {
   QuizService,
   type UpdateQuizData,
@@ -13,11 +14,11 @@ export async function GET(
   { params }: { params: Promise<{ quizId: string }> },
 ) {
   try {
-    await requireInstructor();
+    const instructor = await requireInstructor();
 
     const { quizId } = await params;
 
-    const quiz = await quizService.getQuiz(quizId);
+    const quiz = await quizService.getQuiz(instructor.id, quizId);
 
     return NextResponse.json({
       data: quiz,
@@ -25,14 +26,12 @@ export async function GET(
   } catch (error) {
     console.error("GET quiz error:", error);
 
+    const message =
+      error instanceof Error ? error.message : "Failed to get quiz";
+
     return NextResponse.json(
-      {
-        message:
-          error instanceof Error
-            ? error.message
-            : "Failed to get quiz",
-      },
-      { status: 404 },
+      { message },
+      { status: lessonErrorStatus(message) },
     );
   }
 }

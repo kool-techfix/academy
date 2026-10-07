@@ -9,14 +9,14 @@ const lessonService = new LessonService();
 
 export async function GET(
   _request: NextRequest,
-  { params }: { params: Promise<{ lessonId: string }> },
+  { params }: { params: Promise<{ id: string; lessonId: string }> },
 ) {
   try {
-    await requireInstructor();
+    const instructor = await requireInstructor();
 
-    const { lessonId } = await params;
+    const { id, lessonId } = await params;
 
-    const lesson = await lessonService.getLesson(lessonId);
+    const lesson = await lessonService.getLesson(instructor.id, id, lessonId);
 
     return NextResponse.json({
       data: lesson,
@@ -27,9 +27,10 @@ export async function GET(
     const message =
       error instanceof Error ? error.message : "Failed to fetch lesson";
 
-    const status = message === "Lesson not found" ? 404 : 500;
-
-    return NextResponse.json({ message }, { status });
+    return NextResponse.json(
+      { message },
+      { status: lessonErrorStatus(message) },
+    );
   }
 }
 

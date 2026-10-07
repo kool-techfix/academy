@@ -30,21 +30,39 @@ export class QuizService {
     this.courseRepository = new CourseRepository();
   }
 
-  async getQuiz(quizId: string) {
+  /** Quiz with answers — authors of the quiz's course only. */
+  async getQuiz(instructorId: string, quizId: string) {
     const quiz = await this.quizRepository.findById(quizId);
 
     if (!quiz) {
       throw new Error("Quiz not found");
     }
 
+    await this.ensureInstructorHasAccess(
+      instructorId,
+      await this.getQuizCourseId(quiz),
+    );
+
     return quiz;
   }
 
-  async getModuleQuiz(moduleId: string) {
+  /** A module's quiz (with answers) — the module must belong to `courseId`. */
+  async getModuleQuiz(instructorId: string, courseId: string, moduleId: string) {
+    const courseModule = await this.getModuleWithCourse(moduleId);
+
+    if (courseModule.courseId !== courseId) {
+      throw new Error("Module not found");
+    }
+
+    await this.ensureInstructorHasAccess(instructorId, courseId);
+
     return this.quizRepository.findByModule(moduleId);
   }
 
-  async getCourseQuiz(courseId: string) {
+  /** The course's final quiz (with answers) — course authors only. */
+  async getCourseQuiz(instructorId: string, courseId: string) {
+    await this.ensureInstructorHasAccess(instructorId, courseId);
+
     return this.quizRepository.findByCourse(courseId);
   }
 

@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { requireInstructor } from "@/lib/auth/auth-guard";
+import { lessonErrorStatus } from "@/lib/storage/errors";
 import { ModuleService } from "@/Services/ModuleService";
 
 const moduleService = new ModuleService();
@@ -17,10 +18,13 @@ export async function GET(
   },
 ) {
   try {
+    // Includes quiz answers: approved course authors only.
+    const instructor = await requireInstructor();
+
     const { id } = await params;
 
     const modules =
-      await moduleService.getCourseModules(id);
+      await moduleService.getCourseModules(instructor.id, id);
 
     return NextResponse.json(modules);
   } catch (error) {
@@ -31,7 +35,7 @@ export async function GET(
 
     return NextResponse.json(
       { message },
-      { status: 400 },
+      { status: lessonErrorStatus(message) },
     );
   }
 }
