@@ -900,6 +900,13 @@ input:focus-visible {
 .detail-art .course-number {
   font-size: 88px;
 }
+/* "Modules" sits on the number's baseline, at a readable size. */
+.detail-art .course-number-label {
+  margin-left: 12px;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
 .meta-row {
   display: flex;
   flex-wrap: wrap;

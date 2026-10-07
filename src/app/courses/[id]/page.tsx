@@ -184,10 +184,13 @@ export default function CourseDetail() {
         </div>
 
         <div className="detail-art">
-          <span className="eyebrow">KoolTech / Academy</span>
+          <span className="eyebrow">Kool TechFix I.T Academy</span>
 
           <span className="course-number">
-            {String(course.modules.length).padStart(2, "0")}
+            {course.modules.length}
+            <span className="course-number-label">
+              {course.modules.length === 1 ? "Module" : "Modules"}
+            </span>
           </span>
 
           <span
@@ -200,7 +203,7 @@ export default function CourseDetail() {
               ? `Taught by ${course.authors
                   .map((author) => author.name)
                   .join(", ")}`
-              : "KoolTech Academy"}
+              : "Kool TechFix I.T Academy"}
           </span>
         </div>
       </section>
@@ -346,7 +349,7 @@ export default function CourseDetail() {
                 fontSize: 13,
               }}
             >
-              KoolTech Academy
+              Kool TechFix I.T Academy
             </p>
           )}
 

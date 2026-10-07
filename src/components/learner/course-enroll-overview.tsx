@@ -108,7 +108,10 @@ export function CourseEnrollOverview({ courseId }: { courseId: string }) {
           <span className="eyebrow">Kool TechFix I.T Academy</span>
 
           <span className="course-number">
-            {String(course.modules.length).padStart(2, "0")}
+            {course.modules.length}
+            <span className="course-number-label">
+              {course.modules.length === 1 ? "Module" : "Modules"}
+            </span>
           </span>
 
           <span style={{ fontSize: 13, fontWeight: 700 }}>
