@@ -121,6 +121,8 @@ export class CourseService {
       throw new Error("Course is already published");
     }
 
+    await this.assertCompletable(courseId);
+
     return this.courseRepository.updateStatus(courseId, CourseStatus.PUBLISHED);
   }
 
@@ -160,6 +162,47 @@ export class CourseService {
 
     if (!isAuthor) {
       throw new Error("You do not have permission to access this course");
+    }
+  }
+
+  /**
+   * A learner must be able to finish what we publish: progress counts a
+   * module as done when its quiz is passed, the final assessment unlocks
+   * after every module quiz, and the certificate needs the final passed.
+   */
+  private async assertCompletable(courseId: string) {
+    const course = await this.courseRepository.findForPublishCheck(courseId);
+
+    if (!course) {
+      throw new Error("Course not found");
+    }
+
+    const problems: string[] = [];
+
+    if (course.modules.length === 0) {
+      problems.push("the course must have at least one module");
+    }
+
+    course.modules.forEach((courseModule, index) => {
+      const label = `Module ${index + 1} ("${courseModule.title}")`;
+
+      if (courseModule._count.lessons === 0) {
+        problems.push(`${label} must have a lesson`);
+      }
+
+      if (!courseModule.quiz || courseModule.quiz._count.questions === 0) {
+        problems.push(`${label} must have a quiz with at least one question`);
+      }
+    });
+
+    if (!course.finalQuiz || course.finalQuiz._count.questions === 0) {
+      problems.push(
+        "the course must have a final assessment with at least one question",
+      );
+    }
+
+    if (problems.length > 0) {
+      throw new Error(`Before publishing: ${problems.join("; ")}.`);
     }
   }
 }

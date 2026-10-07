@@ -157,12 +157,33 @@ export default function CourseDetail() {
                   : "Start course"}
                 <ArrowRight size={16} />
               </Link>
-            ) : allModulesCompleted ? (
-              <span
+            ) : allModulesCompleted && progress.certificateEligible ? (
+              <Link
+                href={`/courses/${course.id}/certificate`}
                 className="button button-primary"
                 data-testid="link-course-primary-action"
               >
-                Modules complete
+                View your certificate
+                <ArrowRight size={16} />
+              </Link>
+            ) : allModulesCompleted && progress.finalQuiz.exists ? (
+              <Link
+                href={`/courses/${course.id}/quiz`}
+                className="button button-primary"
+                data-testid="link-course-primary-action"
+              >
+                {progress.finalQuiz.attempted
+                  ? "Retake the final assessment"
+                  : "Take the final assessment"}
+                <ArrowRight size={16} />
+              </Link>
+            ) : allModulesCompleted ? (
+              <span
+                className="button button-primary"
+                aria-disabled="true"
+                data-testid="link-course-primary-action"
+              >
+                Final assessment coming soon
               </span>
             ) : (
               <span

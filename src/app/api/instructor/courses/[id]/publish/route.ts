@@ -40,7 +40,8 @@ export async function PATCH(_request: Request, context: RouteContext) {
               ? 403
               : message.includes("already published")
                 ? 409
-                : message.includes("must have")
+                : message.includes("must have") ||
+                    message.startsWith("Before publishing:")
                   ? 400
                   : 500;
 

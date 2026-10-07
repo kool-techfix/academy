@@ -68,6 +68,28 @@ export default function Quiz() {
     );
   }
 
+  // A quiz without questions can't be taken; never index into an empty list.
+  if (quiz.questions.length === 0) {
+    return (
+      <Page>
+        <div className="card panel">
+          <span className="eyebrow">Knowledge check</span>
+
+          <h1 style={{ marginTop: 10 }}>This quiz isn&apos;t ready yet</h1>
+
+          <p>
+            The instructor hasn&apos;t added any questions. Please check back
+            later.
+          </p>
+
+          <Link href={`/courses/${id}`} className="button button-ghost">
+            Back to course
+          </Link>
+        </div>
+      </Page>
+    );
+  }
+
   const question = quiz.questions[step];
 
   if (!question) {

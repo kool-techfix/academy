@@ -265,11 +265,35 @@ export class CourseRepository {
           },
         },
 
+        finalQuiz: {
+          select: {
+            id: true,
+          },
+        },
+
         _count: {
           select: {
             enrollments: true,
           },
         },
+      },
+    });
+  }
+
+  /** What a course needs before it can be published (counts only). */
+  async findForPublishCheck(courseId: string) {
+    return prisma.course.findUnique({
+      where: { id: courseId },
+      select: {
+        modules: {
+          orderBy: { order: "asc" },
+          select: {
+            title: true,
+            _count: { select: { lessons: true } },
+            quiz: { select: { _count: { select: { questions: true } } } },
+          },
+        },
+        finalQuiz: { select: { _count: { select: { questions: true } } } },
       },
     });
   }

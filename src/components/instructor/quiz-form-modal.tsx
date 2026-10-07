@@ -42,7 +42,7 @@ const quizSchema = z.object({
         .min(0)
         .max(3),
     }),
-  ),
+  ).min(1, "Add at least one question"),
 });
 
 export type QuizFormData = z.infer<
@@ -153,6 +153,12 @@ export function QuizFormModal({
         className="stack"
         style={{ gap: 24 }}
       >
+        {(errors.questions?.root?.message || errors.questions?.message) && (
+          <div className="form-error" role="alert">
+            {errors.questions?.root?.message ?? errors.questions?.message}
+          </div>
+        )}
+
         {fields.map((field, index) => (
           <div
             key={field.id}

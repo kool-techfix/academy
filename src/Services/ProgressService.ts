@@ -102,6 +102,7 @@ export class LearnerProgressService {
       completedModuleIds,
 
       finalQuiz: {
+        exists: Boolean(course.finalQuiz),
         attempted: finalQuizStatus.attempted,
         passed: finalQuizStatus.passed,
         lastAttemptAt: finalQuizStatus.lastAttemptAt,

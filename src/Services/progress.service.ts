@@ -1,6 +1,8 @@
 import { api } from "@/lib/api/axios";
 
 export type LearnerFinalQuizProgress = {
+  /** Whether the course has a final assessment at all. */
+  exists: boolean;
   attempted: boolean;
   passed: boolean;
   lastAttemptAt: string | null;
