@@ -26,6 +26,10 @@ export class EnrollmentRepository {
   /**
    * Find a learner's enrollment for a specific course.
    */
+  async countByCourse(courseId: string) {
+    return prisma.enrollment.count({ where: { courseId } });
+  }
+
   async findByUserAndCourse(userId: string, courseId: string) {
     return prisma.enrollment.findUnique({
       where: {

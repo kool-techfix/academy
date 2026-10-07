@@ -206,10 +206,9 @@ export class QuizService {
       courseId,
     );
 
-    await this.quizRepository.deleteQuestionsByQuiz(
-      quizId,
-    );
-
+    // Questions and learner attempts cascade, so this is a single atomic
+    // delete (deleting questions first used to leave an empty quiz behind
+    // when the quiz delete then failed).
     await this.quizRepository.delete(quizId);
   }
 

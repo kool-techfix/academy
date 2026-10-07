@@ -17,6 +17,9 @@ export const STORAGE_ERRORS = {
   unavailable: "File storage is unavailable right now. Please try again.",
 } as const;
 
+export const COURSE_HAS_LEARNERS =
+  "This course has enrolled learners, so it can't be deleted. Unpublish it instead.";
+
 export const MODULE_LESSON_LIMIT =
   "This module already has a lesson. Each module can only have one lesson.";
 
@@ -31,6 +34,7 @@ const BAD_REQUEST = new Set<string>([
 
 const FORBIDDEN = new Set<string>([
   "Forbidden",
+  "You do not have permission to delete this module",
   "Instructor account is not approved",
   "You do not have permission to manage this lesson",
   "You do not have permission to manage this quiz",
@@ -52,7 +56,9 @@ export function lessonErrorStatus(message: string) {
   if (FORBIDDEN.has(message)) return 403;
   if (NOT_FOUND.has(message)) return 404;
   if (BAD_REQUEST.has(message)) return 400;
-  if (message === MODULE_LESSON_LIMIT) return 409;
+  if (message === MODULE_LESSON_LIMIT || message === COURSE_HAS_LEARNERS) {
+    return 409;
+  }
   if (message === "File storage is not configured") return 503;
   if (message === STORAGE_ERRORS.denied || message === STORAGE_ERRORS.unavailable) {
     return 502;

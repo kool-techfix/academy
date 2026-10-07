@@ -182,7 +182,7 @@ model Module {
   title    String
   order    Int
 
-  course  Course   @relation(fields: [courseId], references: [id])
+  course  Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
   lessons Lesson[]
   quiz    Quiz?
 }
@@ -195,7 +195,7 @@ model Lesson {
   notesFileUrl   String?
   order          Int
 
-  module      Module             @relation(fields: [moduleId], references: [id])
+  module      Module             @relation(fields: [moduleId], references: [id], onDelete: Cascade)
   progress    Progress[]
   attachments LessonAttachment[]
 }
@@ -224,8 +224,8 @@ model Quiz {
   passScore   Int      @default(70)
   allowRetake Boolean  @default(true)
 
-  module    Module?       @relation(fields: [moduleId], references: [id])
-  course    Course?       @relation(fields: [courseId], references: [id])
+  module    Module?       @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  course    Course?       @relation(fields: [courseId], references: [id], onDelete: Cascade)
   questions Question[]
   attempts  QuizAttempt[]
 }
@@ -237,7 +237,7 @@ model Question {
   options       Json
   correctAnswer String
 
-  quiz Quiz @relation(fields: [quizId], references: [id])
+  quiz Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
 }
 
 model Enrollment {
@@ -249,6 +249,8 @@ model Enrollment {
   completedAt DateTime?
 
   user   User   @relation(fields: [userId], references: [id])
+  // RESTRICT on purpose: courses with enrolled learners can't be deleted
+  // (CourseService.deleteCourse refuses first; unpublish instead).
   course Course @relation(fields: [courseId], references: [id])
 
   @@unique([userId, courseId])
@@ -261,7 +263,7 @@ model Progress {
   completedAt DateTime @default(now())
 
   user   User   @relation(fields: [userId], references: [id])
-  lesson Lesson @relation(fields: [lessonId], references: [id])
+  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
 
   @@unique([userId, lessonId])
 }
@@ -275,5 +277,5 @@ model QuizAttempt {
   attemptedAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id])
-  quiz Quiz @relation(fields: [quizId], references: [id])
+  quiz Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
 }

@@ -2,10 +2,18 @@
 
 import { CourseStatus, type Prisma } from "@/generated/prisma/client";
 
+import { deleteObjectsBestEffort } from "@/lib/storage/r2";
+import { COURSE_HAS_LEARNERS } from "@/lib/storage/errors";
 import { CourseRepository } from "@/Repositories/CourseRepository";
+import { EnrollmentRepository } from "@/Repositories/EnrollmentRepository";
+import { LessonAttachmentRepository } from "@/Repositories/LessonAttachmentRepository";
 
 export class CourseService {
-  constructor(private readonly courseRepository = new CourseRepository()) {}
+  constructor(
+    private readonly courseRepository = new CourseRepository(),
+    private readonly enrollmentRepository = new EnrollmentRepository(),
+    private readonly attachmentRepository = new LessonAttachmentRepository(),
+  ) {}
 
   /**
    * Create a new course and assign the instructor as the owner.
@@ -75,7 +83,18 @@ export class CourseService {
   async deleteCourse(instructorId: string, courseId: string) {
     await this.ensureInstructorHasAccess(instructorId, courseId);
 
+    // Never wipe learners' enrollments and progress; unpublish instead.
+    if ((await this.enrollmentRepository.countByCourse(courseId)) > 0) {
+      throw new Error(COURSE_HAS_LEARNERS);
+    }
+
+    const storageKeys =
+      await this.attachmentRepository.listStorageKeysByCourse(courseId);
+
+    // Modules, lessons, quizzes, questions and attachment rows cascade.
     await this.courseRepository.delete(courseId);
+
+    await deleteObjectsBestEffort(storageKeys);
 
     return {
       success: true,

@@ -152,6 +152,19 @@ export async function deleteObject(key: string) {
   }
 }
 
+/** Storage cleanup must never fail the request that triggered it. */
+export async function deleteObjectsBestEffort(keys: string[]) {
+  await Promise.all(
+    keys.map(async (key) => {
+      try {
+        await deleteObject(key);
+      } catch (error) {
+        console.error(`Failed to delete R2 object ${key}:`, error);
+      }
+    }),
+  );
+}
+
 function httpStatus(error: unknown) {
   return (error as { $metadata?: { httpStatusCode?: number } }).$metadata
     ?.httpStatusCode;

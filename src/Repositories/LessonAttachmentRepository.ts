@@ -47,6 +47,26 @@ export class LessonAttachmentRepository {
     return rows.map((row) => row.storageKey);
   }
 
+  /** Storage keys of every attachment in a module (server-side only). */
+  async listStorageKeysByModule(moduleId: string) {
+    const rows = await prisma.lessonAttachment.findMany({
+      where: { lesson: { moduleId } },
+      select: { storageKey: true },
+    });
+
+    return rows.map((row) => row.storageKey);
+  }
+
+  /** Storage keys of every attachment in a course (server-side only). */
+  async listStorageKeysByCourse(courseId: string) {
+    const rows = await prisma.lessonAttachment.findMany({
+      where: { lesson: { module: { courseId } } },
+      select: { storageKey: true },
+    });
+
+    return rows.map((row) => row.storageKey);
+  }
+
   async countByLesson(lessonId: string) {
     return prisma.lessonAttachment.count({ where: { lessonId } });
   }

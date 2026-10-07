@@ -1,3 +1,4 @@
+import { COURSE_HAS_LEARNERS } from "@/lib/storage/errors";
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 
@@ -114,13 +115,15 @@ export async function DELETE(_request: Request, context: RouteContext) {
       error instanceof Error ? error.message : "Failed to delete course";
 
     const status =
-      message === "Unauthorized"
-        ? 401
-        : message === "Forbidden"
-          ? 403
-          : message.includes("permission")
+      message === COURSE_HAS_LEARNERS
+        ? 409
+        : message === "Unauthorized"
+          ? 401
+          : message === "Forbidden"
             ? 403
-            : 500;
+            : message.includes("permission")
+              ? 403
+              : 500;
 
     return NextResponse.json({ message }, { status });
   }

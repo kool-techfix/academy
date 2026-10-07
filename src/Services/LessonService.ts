@@ -10,7 +10,7 @@ import {
 import {
   createDownloadUrl,
   createUploadUrl,
-  deleteObject,
+  deleteObjectsBestEffort,
   headObject,
 } from "@/lib/storage/r2";
 import { ATTACHMENT_ERRORS, MODULE_LESSON_LIMIT } from "@/lib/storage/errors";
@@ -62,19 +62,6 @@ function sanitizeFilename(filename: string, extension: string) {
     .slice(0, 80);
 
   return `${base || "file"}.${extension}`;
-}
-
-/** Storage cleanup must never fail the request that triggered it. */
-async function deleteObjectsBestEffort(keys: string[]) {
-  await Promise.all(
-    keys.map(async (key) => {
-      try {
-        await deleteObject(key);
-      } catch (error) {
-        console.error(`Failed to delete R2 object ${key}:`, error);
-      }
-    }),
-  );
 }
 
 export class LessonService {

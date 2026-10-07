@@ -1,8 +1,11 @@
-import { ModuleRepository } from "@/Repositories/ModuleRepository";
+import { deleteObjectsBestEffort } from "@/lib/storage/r2";
 import { CourseRepository } from "@/Repositories/CourseRepository";
+import { LessonAttachmentRepository } from "@/Repositories/LessonAttachmentRepository";
+import { ModuleRepository } from "@/Repositories/ModuleRepository";
 
 const moduleRepository = new ModuleRepository();
 const courseRepository = new CourseRepository();
+const attachmentRepository = new LessonAttachmentRepository();
 
 export class ModuleService {
   /** Modules with lessons and quiz answers — course authors only. */
@@ -103,7 +106,16 @@ export class ModuleService {
       throw new Error("You do not have permission to delete this module");
     }
 
-    return moduleRepository.delete(moduleId);
+    const storageKeys =
+      await attachmentRepository.listStorageKeysByModule(moduleId);
+
+    // Lessons, the module quiz, questions, learner progress/attempts and
+    // attachment rows cascade in the database.
+    const deleted = await moduleRepository.delete(moduleId);
+
+    await deleteObjectsBestEffort(storageKeys);
+
+    return deleted;
   }
 }
 

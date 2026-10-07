@@ -110,6 +110,8 @@ export async function DELETE(
       message: "Module deleted successfully",
     });
   } catch (error) {
+    console.error("DELETE module error:", error);
+
     const message =
       error instanceof Error
         ? error.message
@@ -117,7 +119,7 @@ export async function DELETE(
 
     return NextResponse.json(
       { message },
-      { status: 400 },
+      { status: lessonErrorStatus(message) },
     );
   }
 }

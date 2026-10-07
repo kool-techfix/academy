@@ -115,12 +115,4 @@ export class QuizRepository {
       },
     });
   }
-
-  async deleteQuestionsByQuiz(quizId: string) {
-    return prisma.question.deleteMany({
-      where: {
-        quizId,
-      },
-    });
-  }
 }
