@@ -318,7 +318,16 @@ export class AuthService {
     return this.authRepository.updateNotifications(userId, updateData);
   }
 
-  async updateAccount(userId: string, input: UpdateAccountInput) {
+  /**
+   * Change email and/or password. Both require the current password, so a
+   * hijacked session can't take over the account (change email → reset
+   * password). Other sessions are signed out after a change.
+   */
+  async updateAccount(
+    userId: string,
+    input: UpdateAccountInput,
+    keepSessionToken?: string,
+  ) {
     const user = await this.authRepository.findById(userId);
 
     if (!user) {
@@ -360,30 +369,34 @@ export class AuthService {
     const hasNewPassword =
       input.newPassword !== undefined && input.newPassword.length > 0;
 
-    if (hasNewPassword && !hasCurrentPassword) {
-      throw new Error("Current password is required to change your password");
+    const changingEmail = updateData.email !== undefined;
+
+    if (!changingEmail && !hasNewPassword) {
+      throw new Error("No account changes provided");
     }
 
-    if (hasCurrentPassword && !hasNewPassword) {
-      throw new Error("New password is required to change your password");
+    if (!hasCurrentPassword) {
+      throw new Error(
+        "Enter your current password to change your email or password",
+      );
+    }
+
+    const currentHash = await this.authRepository.findPasswordHash(userId);
+
+    if (!currentHash) {
+      throw new Error("This account does not have a password");
+    }
+
+    const passwordIsValid = await comparePassword(
+      input.currentPassword!,
+      currentHash,
+    );
+
+    if (!passwordIsValid) {
+      throw new Error("Current password is incorrect");
     }
 
     if (hasNewPassword) {
-      const currentHash = await this.authRepository.findPasswordHash(userId);
-
-      if (!currentHash) {
-        throw new Error("This account does not have a password");
-      }
-
-      const passwordIsValid = await comparePassword(
-        input.currentPassword!,
-        currentHash,
-      );
-
-      if (!passwordIsValid) {
-        throw new Error("Current password is incorrect");
-      }
-
       if (input.newPassword!.length < 8) {
         throw new Error("New password must be at least 8 characters");
       }
@@ -391,11 +404,11 @@ export class AuthService {
       updateData.passwordHash = await hashPassword(input.newPassword!);
     }
 
-    if (Object.keys(updateData).length === 0) {
-      throw new Error("No account changes provided");
-    }
+    const updated = await this.authRepository.updateAccount(userId, updateData);
 
-    return this.authRepository.updateAccount(userId, updateData);
+    await this.authRepository.deleteOtherSessions(userId, keepSessionToken);
+
+    return updated;
   }
 
   private sanitizeUser<T extends object>(user: T): Omit<T, "passwordHash"> {

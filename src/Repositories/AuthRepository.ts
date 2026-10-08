@@ -84,6 +84,16 @@ export class AuthRepository {
     });
   }
 
+  /** Sign out everywhere except the session making the change. */
+  async deleteOtherSessions(userId: string, keepToken?: string) {
+    await prisma.session.deleteMany({
+      where: {
+        userId,
+        ...(keepToken && { token: { not: keepToken } }),
+      },
+    });
+  }
+
   /** Revoke one Better Auth session by its token. */
   async deleteSessionByToken(token: string) {
     await prisma.session.deleteMany({ where: { token } });

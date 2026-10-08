@@ -111,3 +111,8 @@ export type Progress = Prisma.ProgressModel
  * 
  */
 export type QuizAttempt = Prisma.QuizAttemptModel
+/**
+ * Model RateLimit
+ * 
+ */
+export type RateLimit = Prisma.RateLimitModel

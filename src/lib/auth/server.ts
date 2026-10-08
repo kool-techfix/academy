@@ -6,6 +6,7 @@ import { after } from "next/server";
 
 import { comparePassword, hashPassword } from "@/lib/password";
 import { prisma } from "@/lib/prisma";
+import { RateLimitService } from "@/Services/RateLimitService";
 import {
   PASSWORD_RESET_EXPIRY_MINUTES,
   PasswordResetEmailService,
@@ -70,8 +71,13 @@ export const auth = betterAuth({
   },
 
   rateLimit: {
-    // Better Auth rate-limits in production by default; tighten the
-    // endpoints that send email or accept reset tokens.
+    // Better Auth rate-limits in production by default. Counters live in
+    // Postgres so limits hold across serverless instances (the default
+    // in-memory store is per instance on Vercel).
+    customStorage: {
+      consume: (key, rule) =>
+        new RateLimitService().consume(`ba:${key}`, rule.window, rule.max),
+    },
     customRules: {
       "/request-password-reset": { window: 60, max: 3 },
       "/reset-password": { window: 60, max: 5 },

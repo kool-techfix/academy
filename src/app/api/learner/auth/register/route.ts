@@ -2,11 +2,25 @@ import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 
 import { auth } from "@/lib/auth/server";
+import { clientIp, tooManyRequests } from "@/lib/rate-limit";
 import { AuthService } from "@/Services/AuthService";
+import { AUTH_RATE_LIMITS, RateLimitService } from "@/Services/RateLimitService";
 
 const authService = new AuthService();
+const rateLimitService = new RateLimitService();
 
 export async function POST(request: Request) {
+  const blocked = await rateLimitService.check([
+    {
+      key: `register:ip:${clientIp(request.headers)}`,
+      ...AUTH_RATE_LIMITS.registerPerIp,
+    },
+  ]);
+
+  if (blocked) {
+    return tooManyRequests(blocked.retryAfter, "sign-up");
+  }
+
   try {
     const body = await request.json();
 

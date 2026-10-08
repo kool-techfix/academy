@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { AuthService } from "@/Services/AuthService";
-import { requireAuth } from "@/lib/auth/auth-guard";
+import { getSession, requireAuth } from "@/lib/auth/auth-guard";
+import { tooManyRequests } from "@/lib/rate-limit";
+import { AUTH_RATE_LIMITS, RateLimitService } from "@/Services/RateLimitService";
 
 const authService = new AuthService();
+const rateLimitService = new RateLimitService();
 
 export async function PATCH(
   request: NextRequest,
@@ -55,6 +58,23 @@ export async function PATCH(
       );
     }
 
+    // Each request that checks the current password counts, so a stolen
+    // session can't be used to guess it.
+    if (currentPassword) {
+      const blocked = await rateLimitService.check([
+        {
+          key: `account-change:user:${user.id}`,
+          ...AUTH_RATE_LIMITS.accountChangePerUser,
+        },
+      ]);
+
+      if (blocked) {
+        return tooManyRequests(blocked.retryAfter, "account change");
+      }
+    }
+
+    const session = await getSession();
+
     const updatedUser =
       await authService.updateAccount(
         user.id,
@@ -63,6 +83,7 @@ export async function PATCH(
           currentPassword,
           newPassword,
         },
+        session?.session.token,
       );
 
     return NextResponse.json({
@@ -96,9 +117,8 @@ export async function PATCH(
     if (
       message === "Email is required" ||
       message ===
-        "Current password is required to change your password" ||
-      message ===
-        "New password is required to change your password" ||
+        "Enter your current password to change your email or password" ||
+      message === "This account does not have a password" ||
       message ===
         "New password must be at least 8 characters" ||
       message === "No account changes provided"

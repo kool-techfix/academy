@@ -279,3 +279,13 @@ model QuizAttempt {
   user User @relation(fields: [userId], references: [id])
   quiz Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
 }
+
+// Fixed-window request counters (login, registration, Better Auth endpoints).
+// Lives in Postgres so limits hold across serverless instances.
+model RateLimit {
+  key         String   @id
+  count       Int
+  windowStart DateTime @default(now())
+
+  @@index([windowStart])
+}

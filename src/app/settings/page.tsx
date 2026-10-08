@@ -8,6 +8,7 @@ import { useForm } from "react-hook-form";
 import { ArrowLeft, Check } from "lucide-react";
 import Link from "next/link";
 import { z } from "zod";
+import { getApiErrorMessage } from "@/lib/api/api-error";
 
 import { Button } from "@/components/academy-ui";
 import { FormField } from "@/components/form-field";
@@ -33,17 +34,38 @@ const accountSchema = z
   .object({
     email: z.string().min(1, "Email is required").email("Enter a valid email"),
 
-    currentPassword: z.string().min(1, "Current password is required"),
-
-    newPassword: z
+    // Required for any account change (email or password), so a hijacked
+    // session can't take the account over.
+    currentPassword: z
       .string()
-      .min(8, "New password must be at least 8 characters"),
+      .min(1, "Enter your current password to change your email or password"),
 
-    confirmNewPassword: z.string().min(1, "Please confirm your new password"),
+    newPassword: z.string().optional(),
+
+    confirmNewPassword: z.string().optional(),
   })
-  .refine((data) => data.newPassword === data.confirmNewPassword, {
-    message: "Passwords do not match",
-    path: ["confirmNewPassword"],
+  .superRefine((data, ctx) => {
+    const hasNewPassword = !!data.newPassword;
+    const hasConfirmation = !!data.confirmNewPassword;
+
+    if (hasNewPassword && data.newPassword!.length < 8) {
+      ctx.addIssue({
+        code: "custom",
+        message: "New password must be at least 8 characters",
+        path: ["newPassword"],
+      });
+    }
+
+    if (
+      (hasNewPassword || hasConfirmation) &&
+      data.newPassword !== data.confirmNewPassword
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Passwords do not match",
+        path: ["confirmNewPassword"],
+      });
+    }
   });
 
 type AccountValues = z.infer<typeof accountSchema>;
@@ -127,7 +149,7 @@ export default function Settings() {
       await updateAccount.mutateAsync({
         email: data.email,
         currentPassword: data.currentPassword,
-        newPassword: data.newPassword,
+        newPassword: data.newPassword || undefined,
       });
 
       account.reset({
@@ -138,8 +160,11 @@ export default function Settings() {
       });
 
       setAccountSaved(true);
-    } catch {
+    } catch (error) {
       setAccountSaved(false);
+      account.setError("root", {
+        message: getApiErrorMessage(error, "Couldn't update your account."),
+      });
     }
   };
 
@@ -304,18 +329,23 @@ export default function Settings() {
                 autoComplete="email"
               />
 
-              <div className="settings-subform">
-                <span className="eyebrow">Change password</span>
+              <FormField
+                label="Current password"
+                name="currentPassword"
+                type="password"
+                placeholder="Enter current password"
+                register={account.register}
+                error={account.formState.errors.currentPassword?.message}
+                autoComplete="current-password"
+              />
 
-                <FormField
-                  label="Current password"
-                  name="currentPassword"
-                  type="password"
-                  placeholder="Enter current password"
-                  register={account.register}
-                  error={account.formState.errors.currentPassword?.message}
-                  autoComplete="current-password"
-                />
+              <p className="field-help">
+                Required to change your email or password. Changing either
+                signs you out on your other devices.
+              </p>
+
+              <div className="settings-subform">
+                <span className="eyebrow">Change password (optional)</span>
 
                 <div className="settings-form-grid">
                   <FormField
@@ -339,6 +369,12 @@ export default function Settings() {
                   />
                 </div>
               </div>
+
+              {account.formState.errors.root?.message && (
+                <div className="form-error" role="alert">
+                  {account.formState.errors.root.message}
+                </div>
+              )}
 
               <Button
                 type="submit"

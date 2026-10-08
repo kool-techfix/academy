@@ -8,6 +8,7 @@ import { useForm } from "react-hook-form";
 import { ArrowLeft, Check, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { z } from "zod";
+import { getApiErrorMessage } from "@/lib/api/api-error";
 
 import { Button } from "@/components/academy-ui";
 import { FormField } from "@/components/form-field";
@@ -30,57 +31,37 @@ const accountSchema = z
   .object({
     email: z.string().min(1, "Email is required").email("Enter a valid email"),
 
-    currentPassword: z.string().optional(),
+    // Required for any account change (email or password), so a hijacked
+    // session can't take the account over.
+    currentPassword: z
+      .string()
+      .min(1, "Enter your current password to change your email or password"),
 
     newPassword: z.string().optional(),
 
     confirmNewPassword: z.string().optional(),
   })
   .superRefine((data, ctx) => {
-    const hasNewPassword = !!data.newPassword?.trim();
+    const hasNewPassword = !!data.newPassword;
+    const hasConfirmation = !!data.confirmNewPassword;
 
-    const hasCurrentPassword = !!data.currentPassword?.trim();
-
-    const hasConfirmation = !!data.confirmNewPassword?.trim();
-
-    if (hasNewPassword || hasConfirmation) {
-      if (!hasCurrentPassword) {
-        ctx.addIssue({
-          code: "custom",
-          message: "Current password is required to change your password",
-          path: ["currentPassword"],
-        });
-      }
+    if (hasNewPassword && data.newPassword!.length < 8) {
+      ctx.addIssue({
+        code: "custom",
+        message: "New password must be at least 8 characters",
+        path: ["newPassword"],
+      });
     }
 
-    if (hasNewPassword || hasCurrentPassword) {
-      if (!hasNewPassword) {
-        ctx.addIssue({
-          code: "custom",
-          message: "New password is required to change your password",
-          path: ["newPassword"],
-        });
-      }
-    }
-
-    if (hasNewPassword) {
-      if (data.newPassword!.length < 8) {
-        ctx.addIssue({
-          code: "custom",
-          message: "New password must be at least 8 characters",
-          path: ["newPassword"],
-        });
-      }
-    }
-
-    if (hasNewPassword || hasConfirmation) {
-      if (data.newPassword !== data.confirmNewPassword) {
-        ctx.addIssue({
-          code: "custom",
-          message: "Passwords do not match",
-          path: ["confirmNewPassword"],
-        });
-      }
+    if (
+      (hasNewPassword || hasConfirmation) &&
+      data.newPassword !== data.confirmNewPassword
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Passwords do not match",
+        path: ["confirmNewPassword"],
+      });
     }
   });
 
@@ -199,7 +180,7 @@ export default function InstructorSettings() {
     try {
       await updateAccount.mutateAsync({
         email: values.email,
-        currentPassword: values.currentPassword || undefined,
+        currentPassword: values.currentPassword,
         newPassword: values.newPassword || undefined,
       });
 
@@ -211,8 +192,11 @@ export default function InstructorSettings() {
         newPassword: "",
         confirmNewPassword: "",
       });
-    } catch {
+    } catch (error) {
       setAccountSaved(false);
+      account.setError("root", {
+        message: getApiErrorMessage(error, "Couldn't update your account."),
+      });
     }
   };
 
@@ -391,18 +375,23 @@ export default function InstructorSettings() {
                 autoComplete="email"
               />
 
-              <div className="settings-subform">
-                <span className="eyebrow">Change password</span>
+              <FormField
+                label="Current password"
+                name="currentPassword"
+                type="password"
+                placeholder="Enter current password"
+                register={account.register}
+                error={account.formState.errors.currentPassword?.message}
+                autoComplete="current-password"
+              />
 
-                <FormField
-                  label="Current password"
-                  name="currentPassword"
-                  type="password"
-                  placeholder="Enter current password"
-                  register={account.register}
-                  error={account.formState.errors.currentPassword?.message}
-                  autoComplete="current-password"
-                />
+              <p className="field-help">
+                Required to change your email or password. Changing either
+                signs you out on your other devices.
+              </p>
+
+              <div className="settings-subform">
+                <span className="eyebrow">Change password (optional)</span>
 
                 <div className="settings-form-grid">
                   <FormField
@@ -426,6 +415,12 @@ export default function InstructorSettings() {
                   />
                 </div>
               </div>
+
+              {account.formState.errors.root?.message && (
+                <div className="form-error" role="alert">
+                  {account.formState.errors.root.message}
+                </div>
+              )}
 
               <Button
                 type="submit"
