@@ -836,6 +836,12 @@ input:focus-visible {
   padding: 38px;
   color: var(--brand-text-muted);
 }
+.restart-note {
+  max-width: 520px;
+  margin-top: 14px;
+  color: var(--brand-text-muted);
+  font-size: 13px;
+}
 .enroll-meta {
   margin-top: 14px;
   color: var(--brand-text-muted);

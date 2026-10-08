@@ -66,6 +66,10 @@ export class QuizAttemptRepository {
       lastAttemptAt: attempts[0].attemptedAt,
     };
   }
+  async countByUserAndQuiz(userId: string, quizId: string) {
+    return prisma.quizAttempt.count({ where: { userId, quizId } });
+  }
+
   async createAttempt(
     userId: string,
     quizId: string,

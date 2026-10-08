@@ -20,6 +20,11 @@ export class EnrollmentService {
     const existingEnrollment =
       await this.enrollmentRepository.findByUserAndCourse(userId, courseId);
 
+    // A cancelled enrollment can be picked up again; progress is kept.
+    if (existingEnrollment?.status === "CANCELLED") {
+      return this.enrollmentRepository.reactivate(existingEnrollment.id);
+    }
+
     if (existingEnrollment) {
       throw new Error("You are already enrolled in this course");
     }

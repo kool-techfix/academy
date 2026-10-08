@@ -1,13 +1,13 @@
-import { EnrollmentRepository } from "@/Repositories/EnrollmentRepository";
 import { LessonRepository } from "@/Repositories/LessonRepository";
+import { LearnerAccessService } from "@/Services/LearnerAccessService";
 
 export class LearnerLessonService {
   constructor(
     private readonly lessonRepository =
       new LessonRepository(),
 
-    private readonly enrollmentRepository =
-      new EnrollmentRepository(),
+    private readonly access =
+      new LearnerAccessService(),
   ) {}
 
   /**
@@ -28,17 +28,13 @@ export class LearnerLessonService {
 
     const courseId = lesson.module.courseId;
 
-    const enrollment =
-      await this.enrollmentRepository.findByUserAndCourse(
-        userId,
-        courseId,
-      );
+    await this.access.assertEnrolled(userId, courseId);
 
-    if (!enrollment) {
-      throw new Error(
-        "You are not enrolled in this course",
-      );
-    }
+    await this.access.assertModuleUnlocked(
+      userId,
+      courseId,
+      lesson.module.id,
+    );
 
     return lesson;
   }

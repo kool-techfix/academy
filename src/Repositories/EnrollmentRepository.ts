@@ -26,6 +26,35 @@ export class EnrollmentRepository {
   /**
    * Find a learner's enrollment for a specific course.
    */
+  /**
+   * Clear a learner's attempts (module + final) and lesson progress for a
+   * course in one transaction, so they can work through it again.
+   */
+  async resetCourseProgress(userId: string, courseId: string) {
+    const [attempts, lessons] = await prisma.$transaction([
+      prisma.quizAttempt.deleteMany({
+        where: {
+          userId,
+          quiz: {
+            OR: [{ courseId }, { module: { courseId } }],
+          },
+        },
+      }),
+      prisma.progress.deleteMany({
+        where: { userId, lesson: { module: { courseId } } },
+      }),
+    ]);
+
+    return { attempts: attempts.count, lessons: lessons.count };
+  }
+
+  async reactivate(id: string) {
+    return prisma.enrollment.update({
+      where: { id },
+      data: { status: "ACTIVE", completedAt: null },
+    });
+  }
+
   async countByCourse(courseId: string) {
     return prisma.enrollment.count({ where: { courseId } });
   }

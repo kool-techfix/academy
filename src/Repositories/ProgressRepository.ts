@@ -78,6 +78,7 @@ export class ProgressRepository {
         id: true,
         module: {
           select: {
+            id: true,
             courseId: true,
           },
         },

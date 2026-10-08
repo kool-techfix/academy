@@ -1,3 +1,4 @@
+import { learnerAccessErrorStatus } from "@/lib/learner-access";
 import { NextResponse } from "next/server";
 
 import { LearnerQuizService, SubmitQuizData } from "@/Services/LearnerQuizService";
@@ -32,6 +33,15 @@ export async function GET(
       data: quiz,
     });
   } catch (error) {
+    const accessStatus = learnerAccessErrorStatus(error);
+
+    if (accessStatus) {
+      return NextResponse.json(
+        { message: (error as Error).message },
+        { status: accessStatus },
+      );
+    }
+
     if (
       error instanceof Error &&
       error.message === "Unauthorized"
@@ -122,6 +132,15 @@ export async function POST(
       { status: 200 },
     );
   } catch (error) {
+    const accessStatus = learnerAccessErrorStatus(error);
+
+    if (accessStatus) {
+      return NextResponse.json(
+        { message: (error as Error).message },
+        { status: accessStatus },
+      );
+    }
+
     const message =
       error instanceof Error
         ? error.message

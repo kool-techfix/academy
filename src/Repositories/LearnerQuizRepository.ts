@@ -95,6 +95,10 @@ export class LearnerQuizRepository {
     select: {
       id: true,
       modules: {
+        // Unlock order follows module order.
+        orderBy: {
+          order: "asc",
+        },
         select: {
           id: true,
           quiz: {

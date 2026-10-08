@@ -1,3 +1,4 @@
+import { learnerAccessErrorStatus } from "@/lib/learner-access";
 import { NextResponse } from "next/server";
 
 import { LearnerLessonService } from "@/Services/LearnerLessonService";
@@ -29,6 +30,15 @@ export async function GET(
       data: lesson,
     });
   } catch (error) {
+    const accessStatus = learnerAccessErrorStatus(error);
+
+    if (accessStatus) {
+      return NextResponse.json(
+        { message: (error as Error).message },
+        { status: accessStatus },
+      );
+    }
+
     console.error(
       "GET /api/learner/lessons/[lessonId] error:",
       error,

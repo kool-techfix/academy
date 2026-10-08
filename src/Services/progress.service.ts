@@ -3,6 +3,8 @@ import { api } from "@/lib/api/axios";
 export type LearnerFinalQuizProgress = {
   /** Whether the course has a final assessment at all. */
   exists: boolean;
+  /** False when the final assessment accepts a single attempt. */
+  allowRetake: boolean;
   attempted: boolean;
   passed: boolean;
   lastAttemptAt: string | null;
@@ -60,7 +62,14 @@ export const learnerProgressApi = {
     return response.data.data;
   },
 
-  
+  /** Reset attempts and progress after failing a no-retake final. */
+  async restartCourse(courseId: string): Promise<LearnerCourseProgress> {
+    const response = await api.post<CourseProgressResponse>(
+      `/learner/courses/${courseId}/restart`,
+    );
+
+    return response.data.data;
+  },
 
   async getAllCourseProgress(): Promise<LearnerCourseProgress[]> {
     const response =

@@ -1,3 +1,4 @@
+import { learnerAccessErrorStatus } from "@/lib/learner-access";
 import { NextResponse } from "next/server";
 
 import { LearnerProgressService } from "@/Services/ProgressService";
@@ -28,6 +29,15 @@ export async function POST(
       { status: 200 },
     );
   } catch (error) {
+    const accessStatus = learnerAccessErrorStatus(error);
+
+    if (accessStatus) {
+      return NextResponse.json(
+        { message: (error as Error).message },
+        { status: accessStatus },
+      );
+    }
+
     console.error(
       "POST /api/learner/lessons/[lessonId]/complete error:",
       error,

@@ -1,4 +1,4 @@
-import { EnrollmentRepository } from "@/Repositories/EnrollmentRepository";
+import { LearnerAccessService } from "@/Services/LearnerAccessService";
 import { LearnerQuizRepository } from "@/Repositories/LearnerQuizRepository";
 import { QuizAttemptRepository } from "@/Repositories/QuizAttemptRepository";
 
@@ -15,19 +15,14 @@ export type SubmitQuizData = {
 export class LearnerQuizService {
   constructor(
     private readonly quizRepository = new LearnerQuizRepository(),
-    private readonly enrollmentRepository = new EnrollmentRepository(),
+    private readonly access = new LearnerAccessService(),
     private readonly quizAttemptRepository = new QuizAttemptRepository(),
   ) {}
 
   async getModuleQuiz(userId: string, courseId: string, moduleId: string) {
-    const enrollment = await this.enrollmentRepository.findByUserAndCourse(
-      userId,
-      courseId,
-    );
+    await this.access.assertEnrolled(userId, courseId);
 
-    if (!enrollment) {
-      throw new Error("You are not enrolled in this course");
-    }
+    await this.access.assertModuleUnlocked(userId, courseId, moduleId);
 
     const quiz = await this.quizRepository.findModuleQuizForLearner(
       moduleId,
@@ -47,14 +42,9 @@ export class LearnerQuizService {
     moduleId: string,
     data: SubmitQuizData,
   ) {
-    const enrollment = await this.enrollmentRepository.findByUserAndCourse(
-      userId,
-      courseId,
-    );
+    await this.access.assertEnrolled(userId, courseId);
 
-    if (!enrollment) {
-      throw new Error("You are not enrolled in this course");
-    }
+    await this.access.assertModuleUnlocked(userId, courseId, moduleId);
 
     if (!data.quizId) {
       throw new Error("Quiz ID is required");
@@ -81,6 +71,8 @@ export class LearnerQuizService {
     if (quiz.questions.length === 0) {
       throw new Error("Quiz has no questions");
     }
+
+    await this.access.assertCanAttempt(userId, quiz);
 
     if (data.answers.length !== quiz.questions.length) {
       throw new Error("All quiz questions must be answered");
@@ -136,14 +128,7 @@ export class LearnerQuizService {
   }
 
   async getFinalQuiz(userId: string, courseId: string) {
-    const enrollment = await this.enrollmentRepository.findByUserAndCourse(
-      userId,
-      courseId,
-    );
-
-    if (!enrollment) {
-      throw new Error("You are not enrolled in this course");
-    }
+    await this.access.assertEnrolled(userId, courseId);
 
     const passedModuleQuizIds =
       await this.quizAttemptRepository.findPassedModuleQuizIds(
@@ -189,14 +174,7 @@ export class LearnerQuizService {
     courseId: string,
     data: SubmitQuizData,
   ) {
-    const enrollment = await this.enrollmentRepository.findByUserAndCourse(
-      userId,
-      courseId,
-    );
-
-    if (!enrollment) {
-      throw new Error("You are not enrolled in this course");
-    }
+    await this.access.assertEnrolled(userId, courseId);
 
     const passedModuleQuizIds =
       await this.quizAttemptRepository.findPassedModuleQuizIds(
@@ -245,6 +223,8 @@ export class LearnerQuizService {
     if (quiz.questions.length === 0) {
       throw new Error("Final quiz has no questions");
     }
+
+    await this.access.assertCanAttempt(userId, quiz);
 
     if (data.answers.length !== quiz.questions.length) {
       throw new Error("All quiz questions must be answered");

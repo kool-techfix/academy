@@ -18,7 +18,11 @@ import Link from "next/link";
 
 import { useLearnerCourse } from "@/hooks/learner/use-course";
 import { useLearnerEnrollments } from "@/hooks/learner/use-enrollments";
-import { useLearnerCourseProgress } from "@/hooks/learner/use-progress";
+import {
+  useLearnerCourseProgress,
+  useRestartCourse,
+} from "@/hooks/learner/use-progress";
+import { getApiErrorMessage } from "@/lib/api/api-error";
 import { LoadingScreen } from "@/components/Loader";
 import { CourseEnrollOverview } from "@/components/learner/course-enroll-overview";
 
@@ -30,8 +34,12 @@ export default function CourseDetail() {
   const { data: enrollments, isLoading: enrollmentsLoading } =
     useLearnerEnrollments();
 
+  // Cancelled enrollments lose access (the server enforces this too).
   const isEnrolled =
-    enrollments?.some((enrollment) => enrollment.courseId === id) ?? false;
+    enrollments?.some(
+      (enrollment) =>
+        enrollment.courseId === id && enrollment.status !== "CANCELLED",
+    ) ?? false;
 
   const { data: course, isLoading, isError } = useLearnerCourse(id, isEnrolled);
 
@@ -42,6 +50,9 @@ export default function CourseDetail() {
   } = useLearnerCourseProgress(id, isEnrolled);
 
   const [saved, setSaved] = useState(false);
+
+  const restartCourse = useRestartCourse(id);
+  const [confirmRestart, setConfirmRestart] = useState(false);
 
   if (enrollmentsLoading) {
     return (
@@ -91,6 +102,15 @@ export default function CourseDetail() {
   const allModulesCompleted =
     course.modules.length > 0 &&
     course.modules.every((module) => completedModuleIds.includes(module.id));
+
+  // Failed a final assessment that allows a single attempt: the way forward
+  // is to restart the course (attempts and lesson progress are cleared).
+  const mustRestart =
+    allModulesCompleted &&
+    progress.finalQuiz.exists &&
+    progress.finalQuiz.attempted &&
+    !progress.finalQuiz.passed &&
+    !progress.finalQuiz.allowRetake;
 
   return (
     <Page>
@@ -166,7 +186,10 @@ export default function CourseDetail() {
                 View your certificate
                 <ArrowRight size={16} />
               </Link>
-            ) : allModulesCompleted && progress.finalQuiz.exists ? (
+            ) : allModulesCompleted &&
+              progress.finalQuiz.exists &&
+              (!progress.finalQuiz.attempted ||
+                progress.finalQuiz.allowRetake) ? (
               <Link
                 href={`/courses/${course.id}/quiz`}
                 className="button button-primary"
@@ -177,6 +200,38 @@ export default function CourseDetail() {
                   : "Take the final assessment"}
                 <ArrowRight size={16} />
               </Link>
+            ) : mustRestart && confirmRestart ? (
+              <>
+                <Button
+                  onClick={() =>
+                    restartCourse.mutate(undefined, {
+                      onSuccess: () => setConfirmRestart(false),
+                    })
+                  }
+                  disabled={restartCourse.isPending}
+                  testId="button-confirm-restart-course"
+                >
+                  {restartCourse.isPending
+                    ? "Restarting..."
+                    : "Yes, restart the course"}
+                </Button>
+                <Button
+                  variant="ghost"
+                  onClick={() => setConfirmRestart(false)}
+                  disabled={restartCourse.isPending}
+                  testId="button-cancel-restart-course"
+                >
+                  Cancel
+                </Button>
+              </>
+            ) : mustRestart ? (
+              <Button
+                onClick={() => setConfirmRestart(true)}
+                testId="link-course-primary-action"
+              >
+                Restart the course
+                <ArrowRight size={16} />
+              </Button>
             ) : allModulesCompleted ? (
               <span
                 className="button button-primary"
@@ -202,6 +257,23 @@ export default function CourseDetail() {
               {saved ? "Saved" : "Save for later"}
             </Button>
           </div>
+
+          {mustRestart && (
+            <p className="restart-note" data-testid="text-restart-note">
+              {confirmRestart
+                ? "Restarting clears your quiz results and lesson progress for this course, so you can work through every module and take the final assessment again."
+                : "You didn't pass the final assessment, and it allows only one attempt. Restart the course to go through it again and retake the final."}
+            </p>
+          )}
+
+          {restartCourse.isError && (
+            <div className="form-error" role="alert">
+              {getApiErrorMessage(
+                restartCourse.error,
+                "We couldn't restart the course. Please try again.",
+              )}
+            </div>
+          )}
         </div>
 
         <div className="detail-art">

@@ -268,6 +268,7 @@ export class CourseRepository {
         finalQuiz: {
           select: {
             id: true,
+            allowRetake: true,
           },
         },
 

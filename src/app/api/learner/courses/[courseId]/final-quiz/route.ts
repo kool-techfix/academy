@@ -1,3 +1,4 @@
+import { learnerAccessErrorStatus } from "@/lib/learner-access";
 import { NextResponse } from "next/server";
 
 import { requireLearner } from "@/lib/auth/auth-guard";
@@ -23,6 +24,15 @@ export async function GET(
       data: quiz,
     });
   } catch (error) {
+    const accessStatus = learnerAccessErrorStatus(error);
+
+    if (accessStatus) {
+      return NextResponse.json(
+        { message: (error as Error).message },
+        { status: accessStatus },
+      );
+    }
+
     console.error(
       "GET /api/learner/courses/[courseId]/final-quiz error:",
       error,
@@ -64,6 +74,15 @@ export async function POST(
       data: result,
     });
   } catch (error) {
+    const accessStatus = learnerAccessErrorStatus(error);
+
+    if (accessStatus) {
+      return NextResponse.json(
+        { message: (error as Error).message },
+        { status: accessStatus },
+      );
+    }
+
     console.error(
       "POST /api/learner/courses/[courseId]/final-quiz error:",
       error,

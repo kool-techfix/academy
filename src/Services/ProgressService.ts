@@ -2,6 +2,8 @@ import { CourseRepository } from "@/Repositories/CourseRepository";
 import { EnrollmentRepository } from "@/Repositories/EnrollmentRepository";
 import { ProgressRepository } from "@/Repositories/ProgressRepository";
 import { QuizAttemptRepository } from "@/Repositories/QuizAttemptRepository";
+import { RESTART_NOT_AVAILABLE } from "@/lib/learner-access";
+import { LearnerAccessService } from "@/Services/LearnerAccessService";
 
 export class LearnerProgressService {
   constructor(
@@ -9,6 +11,7 @@ export class LearnerProgressService {
     private readonly courseRepository = new CourseRepository(),
     private readonly enrollmentRepository = new EnrollmentRepository(),
     private readonly quizAttemptRepository = new QuizAttemptRepository(),
+    private readonly access = new LearnerAccessService(),
   ) {}
 
   /**
@@ -26,16 +29,33 @@ export class LearnerProgressService {
 
     const courseId = lesson.module.courseId;
 
-    const enrollment = await this.enrollmentRepository.findByUserAndCourse(
-      userId,
-      courseId,
-    );
+    await this.access.assertEnrolled(userId, courseId);
 
-    if (!enrollment) {
-      throw new Error("You are not enrolled in this course");
-    }
+    await this.access.assertModuleUnlocked(userId, courseId, lesson.module.id);
 
     return this.progressRepository.markLessonCompleted(userId, lessonId);
+  }
+
+  /**
+   * Start a course over after failing a final assessment that doesn't
+   * allow retakes. The enrollment is kept; attempts and progress reset.
+   */
+  async restartCourse(userId: string, courseId: string) {
+    const progress = await this.getCourseProgress(userId, courseId);
+
+    const failedFinalWithoutRetakes =
+      progress.finalQuiz.exists &&
+      !progress.finalQuiz.allowRetake &&
+      progress.finalQuiz.attempted &&
+      !progress.finalQuiz.passed;
+
+    if (!failedFinalWithoutRetakes) {
+      throw new Error(RESTART_NOT_AVAILABLE);
+    }
+
+    await this.enrollmentRepository.resetCourseProgress(userId, courseId);
+
+    return this.getCourseProgress(userId, courseId);
   }
 
   /**
@@ -52,14 +72,7 @@ export class LearnerProgressService {
       throw new Error("Course not found");
     }
 
-    const enrollment = await this.enrollmentRepository.findByUserAndCourse(
-      userId,
-      courseId,
-    );
-
-    if (!enrollment) {
-      throw new Error("You are not enrolled in this course");
-    }
+    await this.access.assertEnrolled(userId, courseId);
 
     const passedModuleQuizIds =
       await this.quizAttemptRepository.findPassedModuleQuizIds(
@@ -103,6 +116,7 @@ export class LearnerProgressService {
 
       finalQuiz: {
         exists: Boolean(course.finalQuiz),
+        allowRetake: course.finalQuiz?.allowRetake ?? true,
         attempted: finalQuizStatus.attempted,
         passed: finalQuizStatus.passed,
         lastAttemptAt: finalQuizStatus.lastAttemptAt,

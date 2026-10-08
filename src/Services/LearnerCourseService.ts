@@ -1,21 +1,14 @@
 import { CourseRepository } from "@/Repositories/CourseRepository";
-import { EnrollmentRepository } from "@/Repositories/EnrollmentRepository";
+import { LearnerAccessService } from "@/Services/LearnerAccessService";
 
 export class LearnerCourseService {
   constructor(
     private readonly courseRepository = new CourseRepository(),
-    private readonly enrollmentRepository = new EnrollmentRepository(),
+    private readonly access = new LearnerAccessService(),
   ) {}
 
   async getCourse(userId: string, courseId: string) {
-    const enrollment = await this.enrollmentRepository.findByUserAndCourse(
-      userId,
-      courseId,
-    );
-
-    if (!enrollment) {
-      throw new Error("You are not enrolled in this course");
-    }
+    await this.access.assertEnrolled(userId, courseId);
 
     // Enrollment is checked above, so learners keep access to courses that
     // an admin removed after they enrolled.

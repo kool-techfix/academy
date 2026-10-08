@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { ArrowLeft, ArrowRight, Check, Trophy } from "lucide-react";
 
+import { getApiErrorMessage } from "@/lib/api/api-error";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 
@@ -55,9 +56,7 @@ export default function Quiz() {
           <h1 style={{ marginTop: 10 }}>Unable to load the final assessment</h1>
 
           <p>
-            {error instanceof Error
-              ? error.message
-              : "Something went wrong while loading the final assessment."}
+            {getApiErrorMessage(error, "Something went wrong while loading the final assessment.")}
           </p>
 
           <Link href={`/courses/${courseId}`} className="button button-ghost">
@@ -254,9 +253,7 @@ export default function Quiz() {
 
         {submitFinalQuiz.isError && (
           <p role="alert" style={{ marginTop: 16 }}>
-            {submitFinalQuiz.error instanceof Error
-              ? submitFinalQuiz.error.message
-              : "Failed to submit the final assessment."}
+            {getApiErrorMessage(submitFinalQuiz.error, "Failed to submit the final assessment.")}
           </p>
         )}
 

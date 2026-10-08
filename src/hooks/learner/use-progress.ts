@@ -52,6 +52,26 @@ export function useCompleteLesson(courseId: string) {
   });
 }
 
+/** Start a course over after failing a final that doesn't allow retakes. */
+export function useRestartCourse(courseId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => learnerProgressApi.restartCourse(courseId),
+
+    onSuccess: () => {
+      for (const queryKey of [
+        learnerCourseProgressQueryKey(courseId),
+        LEARNER_ALL_COURSE_PROGRESS_QUERY_KEY,
+        LEARNER_DASHBOARD_ACTIVITY_QUERY_KEY,
+        LEARNER_DASHBOARD_STREAK_QUERY_KEY,
+      ]) {
+        queryClient.invalidateQueries({ queryKey });
+      }
+    },
+  });
+}
+
 export function useLearnerAllCourseProgress() {
   return useQuery({
     queryKey: LEARNER_ALL_COURSE_PROGRESS_QUERY_KEY,
