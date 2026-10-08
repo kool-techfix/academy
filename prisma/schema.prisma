@@ -193,6 +193,8 @@ model Lesson {
   title          String
   youtubeVideoLink String
   notesFileUrl   String?
+  // Lecture note shown under the video (plain text; files are attachments).
+  notes          String?
   order          Int
 
   module      Module             @relation(fields: [moduleId], references: [id], onDelete: Cascade)

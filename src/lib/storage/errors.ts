@@ -20,6 +20,11 @@ export const STORAGE_ERRORS = {
 export const COURSE_HAS_LEARNERS =
   "This course has enrolled learners, so it can't be deleted. Unpublish it instead.";
 
+export const LESSON_NOTES_MAX_LENGTH = 20_000;
+
+export const LESSON_NOTES_TOO_LONG =
+  "Lecture notes must be 20,000 characters or fewer";
+
 export const MODULE_LESSON_LIMIT =
   "This module already has a lesson. Each module can only have one lesson.";
 
@@ -29,6 +34,7 @@ const BAD_REQUEST = new Set<string>([
   ATTACHMENT_ERRORS.tooLarge,
   ATTACHMENT_ERRORS.tooMany,
   "Lesson title is required",
+  LESSON_NOTES_TOO_LONG,
   "YouTube video Link is required",
 ]);
 

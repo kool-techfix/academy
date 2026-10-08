@@ -25,14 +25,18 @@ export type Lesson = {
   title: string;
   youtubeVideoLink: string;
   notesFileUrl?: string | null;
+  /** Written lecture note shown under the video. */
+  notes?: string | null;
   order: number;
   attachments: LessonAttachment[];
 };
 
 export type CreateLessonPayload = {
-  title: string;
+  /** Optional: the server names the lesson after its module. */
+  title?: string;
   youtubeVideoLink: string;
   notesFileUrl?: string | null;
+  notes?: string | null;
   order?: number;
   attachments?: LessonAttachmentInput[];
 };
@@ -41,6 +45,7 @@ export type UpdateLessonPayload = {
   title?: string;
   youtubeVideoLink?: string;
   notesFileUrl?: string | null;
+  notes?: string | null;
   order?: number;
   attachments?: LessonAttachmentInput[];
 };

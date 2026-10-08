@@ -13,7 +13,12 @@ import {
   deleteObjectsBestEffort,
   headObject,
 } from "@/lib/storage/r2";
-import { ATTACHMENT_ERRORS, MODULE_LESSON_LIMIT } from "@/lib/storage/errors";
+import {
+  ATTACHMENT_ERRORS,
+  LESSON_NOTES_MAX_LENGTH,
+  LESSON_NOTES_TOO_LONG,
+  MODULE_LESSON_LIMIT,
+} from "@/lib/storage/errors";
 import { CourseRepository } from "@/Repositories/CourseRepository";
 import { EnrollmentRepository } from "@/Repositories/EnrollmentRepository";
 import { LessonAttachmentRepository } from "@/Repositories/LessonAttachmentRepository";
@@ -24,9 +29,11 @@ import type {
 } from "@/Schemas/lesson-attachment.schema";
 
 export type CreateLessonData = {
-  title: string;
+  /** Optional: a module has one lesson, so it's named after the module. */
+  title?: string;
   youtubeVideoLink: string;
   notesFileUrl?: string | null;
+  notes?: string | null;
   order?: number;
   attachments?: LessonAttachmentPayload[];
 };
@@ -35,6 +42,7 @@ export type UpdateLessonData = {
   title?: string;
   youtubeVideoLink?: string;
   notesFileUrl?: string | null;
+  notes?: string | null;
   order?: number;
   attachments?: LessonAttachmentPayload[];
 };
@@ -62,6 +70,17 @@ function sanitizeFilename(filename: string, extension: string) {
     .slice(0, 80);
 
   return `${base || "file"}.${extension}`;
+}
+
+/** Trim the lecture note; empty means "no note". */
+function normalizeNotes(notes: string | null | undefined) {
+  const trimmed = notes?.trim() ?? "";
+
+  if (trimmed.length > LESSON_NOTES_MAX_LENGTH) {
+    throw new Error(LESSON_NOTES_TOO_LONG);
+  }
+
+  return trimmed || null;
 }
 
 export class LessonService {
@@ -134,10 +153,6 @@ export class LessonService {
 
     await this.ensureInstructorHasAccess(instructorId, courseModule.courseId);
 
-    if (!data.title?.trim()) {
-      throw new Error("Lesson title is required");
-    }
-
     if (!data.youtubeVideoLink) {
       throw new Error("YouTube video Link is required");
     }
@@ -157,9 +172,10 @@ export class LessonService {
       data.order ?? (await this.lessonRepository.getNextOrder(moduleId));
 
     const lesson = await this.lessonRepository.create({
-      title: data.title.trim(),
+      title: data.title?.trim() || courseModule.title,
       youtubeVideoLink: data.youtubeVideoLink.trim(),
       notesFileUrl: data.notesFileUrl ?? null,
+      notes: normalizeNotes(data.notes),
       order,
       module: {
         connect: {
@@ -207,6 +223,10 @@ export class LessonService {
       }
 
       updateData.title = data.title.trim();
+    }
+
+    if (data.notes !== undefined) {
+      updateData.notes = normalizeNotes(data.notes);
     }
 
     if (data.youtubeVideoLink !== undefined) {

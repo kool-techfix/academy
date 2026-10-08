@@ -194,6 +194,7 @@ export const LessonScalarFieldEnum = {
   title: 'title',
   youtubeVideoLink: 'youtubeVideoLink',
   notesFileUrl: 'notesFileUrl',
+  notes: 'notes',
   order: 'order'
 } as const
 

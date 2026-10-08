@@ -26,6 +26,8 @@ export type LearnerLesson = {
   title: string;
   youtubeVideoLink: string;
   notesFileUrl: string | null;
+  /** Written lecture note shown under the video. */
+  notes: string | null;
   order: number;
   attachments: LearnerLessonAttachment[];
   module: LearnerLessonModule & {

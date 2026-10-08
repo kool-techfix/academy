@@ -95,8 +95,8 @@ function ModuleItem({
         moduleId: module.id,
         courseId,
         data: {
-          title: data.title,
           youtubeVideoLink: data.youtubeVideoLink,
+          notes: data.notes,
           notesFileUrl: data.notesFileUrl,
           attachments: data.attachments,
         },
@@ -118,8 +118,8 @@ function ModuleItem({
         courseId: module.courseId,
         moduleId: module.id,
         data: {
-          title: data.title,
           youtubeVideoLink: data.youtubeVideoLink,
+          notes: data.notes,
           notesFileUrl: data.notesFileUrl,
           attachments: data.attachments,
         },
@@ -323,7 +323,7 @@ function ModuleItem({
                 style={{ justifyContent: "space-between", marginBottom: 12 }}
               >
                 <h4 style={{ margin: 0, fontSize: 15, color: "var(--brand-black)" }}>
-                  Lessons
+                  Lesson
                 </h4>
                 {/* One lesson per module: offer "Add Lesson" only when empty. */}
                 {!lessonsLoading && !lessonsError && lessons.length === 0 && (
@@ -374,7 +374,7 @@ function ModuleItem({
                     textAlign: "center",
                   }}
                 >
-                  No lessons in this module.
+                  No lesson yet.
                 </div>
               ) : (
                 <div className="stack" style={{ gap: 8 }}>
@@ -390,8 +390,18 @@ function ModuleItem({
                       <div className="row">
                         <Video size={16} style={{ color: "var(--brand-text-muted)" }} />
                         <span style={{ fontWeight: 600, fontSize: 14 }}>
-                          {lesson.title}
+                          Video lesson
                         </span>
+                        {lesson.notes && (
+                          <div
+                            className="badge badge-muted"
+                            style={{ padding: "3px 6px", fontSize: 10 }}
+                            data-testid={`badge-notes-${lesson.id}`}
+                          >
+                            <FileText size={10} style={{ marginRight: 4 }} />{" "}
+                            Notes
+                          </div>
+                        )}
                         {lesson.notesFileUrl && (
                           <div
                             className="badge badge-muted"
@@ -418,7 +428,7 @@ function ModuleItem({
                         className="icon-button"
                         style={{ width: 32, height: 32 }}
                         onClick={() => setEditingLesson(lesson)}
-                        aria-label={`Edit lesson: ${lesson.title}`}
+                        aria-label={`Edit the lesson for ${module.title}`}
                       >
                         <Pencil size={14} />
                       </button>

@@ -1375,6 +1375,34 @@ input:focus-visible {
   font-size: 13px;
 }
 /* Lesson attachments (instructor modal + learner lesson page). */
+/* Lecture note under the lesson video; keeps the instructor's line breaks. */
+.lesson-notes-text {
+  color: var(--brand-black);
+  font-size: 15px;
+  line-height: 1.75;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.lesson-notes-input {
+  width: 100%;
+  min-height: 160px;
+  padding: 12px 13px;
+  border: 1px solid var(--brand-gray);
+  border-radius: 6px;
+  background: var(--brand-white);
+  color: var(--brand-black);
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.6;
+  resize: vertical;
+}
+.lesson-notes-input[aria-invalid="true"] {
+  border-color: var(--brand-red);
+}
+.lesson-notes-input:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--brand-green) 70%, transparent);
+  outline-offset: 2px;
+}
 .attachment-dropzone {
   display: flex;
   align-items: center;

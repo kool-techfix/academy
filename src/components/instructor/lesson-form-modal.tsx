@@ -33,7 +33,6 @@ const attachmentRowSchema = z.object({
 type AttachmentRow = z.infer<typeof attachmentRowSchema>;
 
 const lessonSchema = z.object({
-  title: z.string().min(3, "Title must be at least 3 characters"),
   youtubeVideoLink: z
     .string()
     .url("Must be a valid URL")
@@ -53,6 +52,9 @@ const lessonSchema = z.object({
       });
     }
   }),
+  notes: z
+    .string()
+    .max(20_000, "Lecture notes must be 20,000 characters or fewer"),
   /** Saved attachments the instructor removed; deleted when the lesson is saved. */
   removedAttachmentIds: z.array(z.string()),
 });
@@ -60,8 +62,8 @@ const lessonSchema = z.object({
 type LessonFormData = z.infer<typeof lessonSchema>;
 
 export type LessonFormSaveData = {
-  title: string;
   youtubeVideoLink: string;
+  notes: string;
   notesFileUrl: string | null;
   attachments: LessonAttachmentInput[];
   removedAttachmentIds: string[];
@@ -113,7 +115,7 @@ export function LessonFormModal({
   } = useForm<LessonFormData>({
     resolver: zodResolver(lessonSchema),
     defaultValues: {
-      title: lesson?.title || "",
+      notes: lesson?.notes ?? "",
       youtubeVideoLink: lesson?.youtubeVideoLink || "",
       attachments: (lesson?.attachments ?? []).map((attachment) => ({
         rowId: attachment.id,
@@ -214,8 +216,8 @@ export function LessonFormModal({
 
   const onSubmit = (data: LessonFormData) => {
     onSave({
-      title: data.title,
       youtubeVideoLink: data.youtubeVideoLink,
+      notes: data.notes,
       // Legacy single-notes field; kept as-is (no longer edited here).
       notesFileUrl: lesson?.notesFileUrl ?? null,
       attachments: data.attachments.flatMap((row) =>
@@ -229,13 +231,6 @@ export function LessonFormModal({
     <Modal title={lesson ? "Edit Lesson" : "Add Lesson"} onClose={onClose}>
       <form onSubmit={handleSubmit(onSubmit)} className="stack">
         <FormField
-          label="Lesson Title"
-          name="title"
-          register={register}
-          error={errors.title?.message as string}
-          placeholder="e.g. Capacitor Testing"
-        />
-        <FormField
           label="YouTube Link"
           name="youtubeVideoLink"
           register={register}
@@ -243,8 +238,24 @@ export function LessonFormModal({
           placeholder="https://youtube.com/watch?v=..."
         />
 
-        <div className="form-field" style={{ marginTop: 12 }}>
-          <label htmlFor="lesson-attachments">Attachments (Optional)</label>
+        <div className="form-field">
+          <label htmlFor="lesson-notes">Lecture notes (Optional)</label>
+          <textarea
+            id="lesson-notes"
+            className="lesson-notes-input"
+            rows={8}
+            placeholder="Paste or write the lecture notes learners will read under the video."
+            aria-invalid={Boolean(errors.notes)}
+            {...register("notes")}
+            data-testid="input-lesson-notes"
+          />
+          {errors.notes?.message && (
+            <div className="field-error">{errors.notes.message}</div>
+          )}
+        </div>
+
+        <div className="form-field" style={{ marginTop: 4 }}>
+          <label htmlFor="lesson-attachments">Note files (Optional)</label>
           <label
             className={`attachment-dropzone ${isDragging ? "dragging" : ""}`}
             onDragOver={(event) => {

@@ -82,6 +82,7 @@ export class LessonRepository {
       },
       select: {
         id: true,
+        title: true,
         courseId: true,
       },
     });
@@ -112,6 +113,7 @@ export class LessonRepository {
         title: true,
         youtubeVideoLink: true,
         notesFileUrl: true,
+        notes: true,
         order: true,
         attachments: attachmentsInclude,
         module: {

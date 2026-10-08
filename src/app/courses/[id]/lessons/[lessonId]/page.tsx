@@ -160,7 +160,7 @@ export default function LessonViewer() {
             {videoEmbedUrl ? (
               <iframe
                 src={videoEmbedUrl}
-                title={`${lesson.title} lesson video`}
+                title={`${lesson.module.title} lesson video`}
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 referrerPolicy="strict-origin-when-cross-origin"
                 allowFullScreen
@@ -171,15 +171,30 @@ export default function LessonViewer() {
           </div>
 
           <div className="lesson-copy">
-            <span className="eyebrow">Module {lesson.module.order + 1}</span>
+            <span className="eyebrow">Module {currentModuleIndex + 1}</span>
 
-            <h1 style={{ marginTop: 10 }}>{lesson.title}</h1>
+            {/* One lesson per module, so the lesson is named by its module. */}
+            <h1 style={{ marginTop: 10 }}>{lesson.module.title}</h1>
 
-            <p>
-              Good technicians slow down just enough to see the pattern. In this
-              lesson, you will work through the clues, the checks, and the small
-              decision that gets you unstuck.
-            </p>
+            {lesson.notes && (
+              <section
+                className="card notes lesson-notes"
+                data-testid="card-lecture-notes"
+              >
+                <h3>
+                  <FileText
+                    size={18}
+                    style={{
+                      verticalAlign: "middle",
+                      marginRight: 7,
+                    }}
+                  />
+                  Lecture notes
+                </h3>
+
+                <div className="lesson-notes-text">{lesson.notes}</div>
+              </section>
+            )}
 
             {lesson.notesFileUrl && (
               <div className="card notes">
