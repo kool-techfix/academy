@@ -34,7 +34,7 @@ export function InstructorCourseCard({ course }: { course: InstructorCourse }) {
               color: "var(--brand-text-muted)",
             }}
           >
-            {enrolleeCount} enrollees
+            {enrolleeCount} {enrolleeCount === 1 ? "enrollee" : "enrollees"}
           </span>
         </div>
 

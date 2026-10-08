@@ -293,13 +293,9 @@ function ModuleItem({
           >
             {expanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <span style={{ fontWeight: 700, color: "var(--brand-text-muted)", fontSize: 13 }}>
-              Module {module.order}
-            </span>
-            <strong style={{ fontSize: 16, color: "var(--brand-black)" }}>
-              {module.title}
-            </strong>
+          <div className="module-row-title">
+            <span>Module {module.order}</span>
+            <strong>{module.title}</strong>
           </div>
         </button>
         <button

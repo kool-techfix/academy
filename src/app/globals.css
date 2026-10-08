@@ -1376,6 +1376,35 @@ input:focus-visible {
 }
 /* Lesson attachments (instructor modal + learner lesson page). */
 /* Lecture note under the lesson video; keeps the instructor's line breaks. */
+/* Instructor module row: "Module N" label + title. */
+.module-row-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.module-row-title span {
+  color: var(--brand-text-muted);
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.module-row-title strong {
+  color: var(--brand-black);
+  font-size: 16px;
+}
+@media (max-width: 640px) {
+  .module-row-title {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+  .module-row-title span {
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+}
 .lesson-notes-text {
   color: var(--brand-black);
   font-size: 15px;
@@ -1667,6 +1696,9 @@ input:focus-visible {
   font-size: 13px;
   font-weight: 700;
 }
+.landing-login-mobile {
+  display: none;
+}
 .landing-hero {
   max-width: 1240px;
   display: grid;
@@ -1947,6 +1979,10 @@ input:focus-visible {
   padding: 24px;
 }
 @media (max-width: 900px) {
+  /* The desktop left offset wastes a third of a phone screen; use full width. */
+  .main {
+    margin-left: 0;
+  }
   .course-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -2024,6 +2060,13 @@ input:focus-visible {
   }
   .main {
     padding: 30px 16px 54px;
+  }
+  .section-head {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .section-head .button {
+    white-space: nowrap;
   }
   .page-head {
     display: block;
@@ -2110,8 +2153,13 @@ input:focus-visible {
     margin-left: auto;
     gap: 11px;
   }
-  .landing-login {
-    font-size: 12px;
+  /* One "Log in" button on phones instead of "Log in" + "Get Started". */
+  .landing-login,
+  .landing-actions .landing-get-started {
+    display: none;
+  }
+  .landing-actions .landing-login-mobile {
+    display: inline-flex;
   }
   .landing-actions .button {
     min-height: 36px;

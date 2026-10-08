@@ -28,10 +28,18 @@ export default function Landing() {
           </Link>
           <Link
             href="/register"
-            className="button button-primary"
+            className="button button-primary landing-get-started"
             data-testid="link-landing-get-started"
           >
             Get Started
+          </Link>
+          {/* Phones: a single "Log in" button replaces both links above. */}
+          <Link
+            href="/login"
+            className="button button-primary landing-login-mobile"
+            data-testid="link-landing-login-mobile"
+          >
+            Log in
           </Link>
         </div>
       </header>
