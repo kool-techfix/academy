@@ -1707,18 +1707,180 @@ input:focus-visible {
   margin: 0 auto;
   padding: 88px 32px 92px;
 }
+/* Registered so the panel tint (and the scrim built from it) can animate. */
+@property --hero-tint {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #e8f0ea;
+}
 .landing-hero-copy {
   max-width: 735px;
+  padding: 40px;
+  /* The h1 sizes against this panel's width (cqi) — see below. */
+  container-type: inline-size;
+  border-radius: var(--radius);
+  --hero-tint: var(--brand-green-tint);
+  background: var(--hero-tint);
+  transition: --hero-tint 900ms ease;
+  position: relative;
+  isolation: isolate;
+}
+/* Decorative photo layer: sits above the panel tint, below the copy. The
+   photos are softened (lower contrast); a scrim in the panel tint (::after)
+   keeps the brand colour and holds the copy at ≥ 4.5:1 even over the
+   darkest pixels. */
+.landing-hero-media {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+}
+.landing-hero-media::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--hero-tint) 85%, transparent),
+    color-mix(in srgb, var(--hero-tint) 70%, transparent) 45%,
+    color-mix(in srgb, var(--hero-tint) 25%, transparent)
+  );
+}
+/* Over a photo, muted gray drops below AA; use full black instead. */
+.landing-hero-copy .eyebrow {
+  color: var(--brand-black);
+}
+.landing-hero-media span {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-repeat: no-repeat;
+  filter: contrast(0.7) brightness(1.1);
+  opacity: 0;
+  transition: opacity 900ms ease;
+}
+.landing-hero-media span[data-active="true"] {
+  opacity: 0.8;
+}
+.landing-hero-media span[data-value="learn"] {
+  background-image: url("/images/hero/learn.webp");
+  background-position: 20% 30%;
+}
+.landing-hero-media span[data-value="apply"] {
+  background-image: url("/images/hero/apply.webp");
+  background-position: 40% center;
+}
+.landing-hero-media span[data-value="innovate"] {
+  background-image: url("/images/hero/innovate.webp");
+  background-position: center 40%;
+}
+/* One brand tint per core value, reused from the course-card accents. */
+/* gray-light, not gray: the ghost CTA's gray border must stay visible. */
+.landing-hero-copy[data-value="apply"] {
+  --hero-tint: var(--brand-gray-light);
+}
+.landing-hero-copy[data-value="innovate"] {
+  --hero-tint: var(--brand-red-tint);
+}
+/* All slides share one grid cell, so the block is sized by the longest copy. */
+.landing-hero-rotate {
+  display: grid;
+  /* Shorter copy hugs the content below it, keeping the CTAs close. */
+  align-items: end;
+}
+.landing-hero-slide {
+  grid-area: 1 / 1;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(10px);
+  /* Outgoing: fade in place, then reset position once invisible. */
+  transition:
+    opacity 300ms ease,
+    transform 0s linear 300ms,
+    visibility 0s linear 300ms;
+}
+.landing-hero-line {
+  display: block;
+  white-space: nowrap;
+}
+.landing-hero-slide[data-active="true"] {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  /* Incoming: starts after the outgoing slide has faded, so they never overlap. */
+  transition:
+    opacity 500ms ease 300ms,
+    transform 600ms cubic-bezier(0.2, 0.7, 0.2, 1) 300ms,
+    visibility 0s linear 300ms;
+}
+.landing-hero-values {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-top: 30px;
+}
+.landing-hero-values button {
+  padding: 4px 0;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: var(--brand-text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    color 300ms ease,
+    border-color 300ms ease;
+}
+.landing-hero-values button[aria-pressed="true"] {
+  color: var(--brand-green);
+  border-bottom-color: currentColor;
+}
+.landing-hero-copy[data-value="apply"] .landing-hero-values button[aria-pressed="true"] {
+  color: var(--brand-black);
+}
+.landing-hero-copy[data-value="innovate"] .landing-hero-values button[aria-pressed="true"] {
+  color: var(--brand-red);
+}
+.landing-hero-values .landing-hero-pause {
+  display: inline-flex;
+  margin-left: auto;
+  padding: 6px;
+  border-bottom: 0;
+  border-radius: 50%;
+  color: var(--brand-black);
+}
+.landing-hero-values .landing-hero-pause:hover {
+  background: color-mix(in srgb, var(--brand-black) 8%, transparent);
+}
+@media (prefers-reduced-motion: reduce) {
+  .landing-hero-copy,
+  .landing-hero-media span,
+  .landing-hero-slide,
+  .landing-hero-slide[data-active="true"],
+  .landing-hero-values button {
+    transition: none;
+  }
+  .landing-hero-slide {
+    transform: none;
+  }
 }
 .landing-hero-copy h1 {
   margin-top: 18px;
-  font-size: clamp(48px, 7vw, 88px);
+  /* Each heading is two fixed lines; the longest ("Innovate with skills")
+     is ~7.45em wide, so 12.5cqi always fits it with a small margin. */
+  font-size: min(88px, 12.5cqi);
   max-width: 760px;
 }
 .landing-hero-copy p {
   max-width: 590px;
   margin: 24px 0 30px;
-  color: var(--brand-text-muted);
+  /* Black, not muted: it sits over the hero photo (see .landing-hero-media). */
+  color: var(--brand-black);
   font-size: 17px;
 }
 .landing-hero-actions {
@@ -1746,6 +1908,70 @@ input:focus-visible {
   color: var(--brand-green);
   font-size: 13px;
   line-height: 1.55;
+}
+/* Side column: the brand signature fills the space above the note. The copy
+   spans both rows, so the signature can never overlap it or the note. */
+.landing-hero {
+  grid-template-rows: 1fr auto;
+}
+.landing-hero > .landing-hero-copy {
+  grid-row: 1 / span 2;
+}
+.brand-signature {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: center;
+  justify-self: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 24px 0;
+  font-family: var(--app-font-display);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--brand-black);
+  animation: brand-signature-in 700ms cubic-bezier(0.2, 0.7, 0.2, 1) 150ms both;
+}
+.brand-signature-badge {
+  display: grid;
+  place-items: center;
+  width: 112px;
+  height: 112px;
+  border: 1px solid var(--brand-gray);
+  border-radius: 50%;
+  background: var(--brand-white);
+  /* Thin brand-green ring a few px outside the plate. */
+  box-shadow:
+    0 0 0 6px var(--brand-white),
+    0 0 0 7px var(--brand-green-soft);
+  animation: brand-signature-float 7s ease-in-out 900ms infinite alternate;
+}
+.brand-signature-badge img {
+  object-fit: contain;
+}
+.brand-signature .brand-wordmark {
+  font-size: 20px;
+}
+.brand-signature .brand-motto {
+  font-size: 9px;
+}
+@keyframes brand-signature-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+@keyframes brand-signature-float {
+  to {
+    transform: translateY(-5px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .brand-signature,
+  .brand-signature-badge {
+    animation: none;
+  }
 }
 .landing-section {
   max-width: 1240px;
@@ -2008,6 +2234,33 @@ input:focus-visible {
     grid-template-columns: 1fr;
     padding-top: 62px;
   }
+  .landing-hero {
+    grid-template-rows: none;
+  }
+  .landing-hero > .landing-hero-copy {
+    grid-row: auto;
+  }
+  /* Compact horizontal signature between the copy and the note. */
+  .brand-signature {
+    grid-column: auto;
+    grid-row: auto;
+    justify-self: start;
+    flex-direction: row;
+    gap: 18px;
+    /* 7px = the badge ring, so it lines up with the copy panel's edge. */
+    padding: 8px 0 8px 7px;
+  }
+  .brand-signature-badge {
+    width: 72px;
+    height: 72px;
+  }
+  .brand-signature-badge img {
+    width: 56px;
+    height: 56px;
+  }
+  .brand-signature .brand-wordmark {
+    font-size: 17px;
+  }
   .landing-hero-note {
     max-width: 440px;
   }
@@ -2169,8 +2422,23 @@ input:focus-visible {
   .landing-hero {
     padding: 52px 16px 64px;
   }
+  .landing-hero-copy {
+    padding: 28px 20px;
+  }
+  /* Tall, narrow panel: copy spans the full width, so scrim evenly,
+     heavier towards the paragraph and CTAs. */
+  .landing-hero-media::after {
+    background: linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--hero-tint) 55%, transparent),
+      color-mix(in srgb, var(--hero-tint) 80%, transparent)
+    );
+  }
+  .landing-hero-media span[data-value="learn"] {
+    background-position: 30% center;
+  }
   .landing-hero-copy h1 {
-    font-size: 48px;
+    font-size: min(48px, 12.5cqi);
   }
   .landing-hero-copy p {
     font-size: 15px;

@@ -1,8 +1,9 @@
 "use client";
 
 import { ArrowRight } from "lucide-react";
-import { Brand } from "@/components/academy-brand";
+import { Brand, BrandSignature } from "@/components/academy-brand";
 import { CourseCard } from "@/components/academy-ui";
+import { LandingHeroRotator } from "@/components/landing-hero-rotator";
 import { LanguageSwitch } from "@/components/language-switch";
 import Link from "next/link";
 import { usePublicCourses } from "@/hooks/use-public-courses";
@@ -46,16 +47,7 @@ export default function Landing() {
 
       <main>
         <section className="landing-hero">
-          <div className="landing-hero-copy">
-            <span className="eyebrow">
-              Practical IT learning, built for the real world
-            </span>
-            <h1>Learn the work behind the work.</h1>
-            <p>
-              Build calm, useful IT skills with short courses, working
-              instructors, and progress you can see every time you sit down to
-              learn.
-            </p>
+          <LandingHeroRotator>
             <div className="landing-hero-actions">
               <Link
                 href="/register"
@@ -68,7 +60,8 @@ export default function Landing() {
                 Explore courses
               </Link>
             </div>
-          </div>
+          </LandingHeroRotator>
+          <BrandSignature />
           <div className="landing-hero-note">
             <span className="eyebrow">The KoolTech approach</span>
             <strong>Learn a little. Practise a lot. Keep the proof.</strong>
