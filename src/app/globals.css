@@ -1876,6 +1876,10 @@ input:focus-visible {
   font-size: min(88px, 12.5cqi);
   max-width: 760px;
 }
+/* Hausa lines run longer (widest: "Ƙirƙira da ƙwarewa", ~8em). */
+.landing-hero-copy:lang(ha) h1 {
+  font-size: min(88px, 11.5cqi);
+}
 .landing-hero-copy p {
   max-width: 590px;
   margin: 24px 0 30px;
@@ -2439,6 +2443,9 @@ input:focus-visible {
   }
   .landing-hero-copy h1 {
     font-size: min(48px, 12.5cqi);
+  }
+  .landing-hero-copy:lang(ha) h1 {
+    font-size: min(48px, 11.5cqi);
   }
   .landing-hero-copy p {
     font-size: 15px;

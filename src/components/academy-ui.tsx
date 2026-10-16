@@ -5,6 +5,10 @@ import { PublicCourse } from "@/Services/public-course.service";
 import { LearnerEnrollment } from "@/Services/enrollment.service";
 import { LearnerCourseProgress } from "@/Services/progress.service";
 import { getLearnerCourseStatus } from "@/lib/course-progress";
+import {
+  landingMessages,
+  type CourseCardLabels,
+} from "@/lib/landing-messages";
 
 export function Button({
   children,
@@ -84,10 +88,13 @@ export function CourseCard({
   course,
   index,
   mode = "grid",
+  labels = landingMessages.en.courseCard,
 }: {
   course: PublicCourse;
   index: number;
   mode?: "grid" | "list";
+  /** UI labels; English unless a translated set is passed (landing page). */
+  labels?: CourseCardLabels;
 }) {
   const courseNumber = String(index + 1).padStart(2, "0");
 
@@ -102,7 +109,7 @@ export function CourseCard({
         href={`/courses/${course.id}`}
         className="course-art"
         data-accent={accent}
-        aria-label={`Open ${course.title}`}
+        aria-label={labels.open(course.title)}
       >
         <span
           className={`course-number ${
@@ -115,7 +122,7 @@ export function CourseCard({
 
       <div className="course-card-body">
         <div className="row" style={{ justifyContent: "space-between" }}>
-          <Badge tone="muted">Available</Badge>
+          <Badge tone="muted">{labels.available}</Badge>
 
           <span
             style={{
@@ -123,8 +130,7 @@ export function CourseCard({
               color: "var(--brand-text-muted)",
             }}
           >
-            {course.modules.length}{" "}
-            {course.modules.length === 1 ? "module" : "modules"}
+            {labels.modules(course.modules.length)}
           </span>
         </div>
 
@@ -138,10 +144,7 @@ export function CourseCard({
         <p>{course.description}</p>
 
         <div className="course-card-foot mt-3">
-          <span>
-            {course._count.enrollments}{" "}
-            {course._count.enrollments === 1 ? "learner" : "learners"}
-          </span>
+          <span>{labels.learners(course._count.enrollments)}</span>
 
           <Link
             href={`/courses/${course.id}`}
@@ -153,9 +156,9 @@ export function CourseCard({
             data-testid={`link-course-action-${course.id}`}
           >
             {mode === "list" ? (
-              "View course"
+              labels.viewCourse
             ) : (
-              <ChevronRight size={16} aria-label="View course" />
+              <ChevronRight size={16} aria-label={labels.viewCourse} />
             )}
           </Link>
         </div>

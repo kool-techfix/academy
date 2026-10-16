@@ -2,29 +2,12 @@
 
 import { Pause, Play } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
+import type { LandingMessages } from "@/lib/landing-messages";
 
-// Learn → Apply → Innovate. Each value gets its own brand tint (see
-// `.landing-hero-copy[data-value=…]` in globals.css).
-const HERO_STATES = [
-  {
-    value: "learn",
-    label: "Learn",
-    heading: ["Learn the work", "behind the work."],
-    body: "Build practical IT knowledge with focused courses, experienced instructors, and clear progress that moves you closer to real-world confidence.",
-  },
-  {
-    value: "apply",
-    label: "Apply",
-    heading: ["Apply your skills", "to real work."],
-    body: "Put your knowledge into practice, strengthen your technical skills, and develop the confidence to solve real IT challenges.",
-  },
-  {
-    value: "innovate",
-    label: "Innovate",
-    heading: ["Innovate with skills", "that move you."],
-    body: "Go beyond the basics, explore new possibilities, and apply your skills to create smarter solutions for a world that never stops evolving.",
-  },
-] as const;
+// Learn → Apply → Innovate. Each value gets its own brand tint and photo (see
+// `.landing-hero-copy[data-value=…]` in globals.css); the copy comes from
+// landing-messages.ts in the same order.
+const HERO_VALUES = ["learn", "apply", "innovate"] as const;
 
 const ROTATE_MS = 4500;
 
@@ -35,7 +18,17 @@ const ROTATE_MS = 4500;
  * All three headings/paragraphs are stacked in one grid cell so the panel is
  * always as tall as the longest copy — no layout shift between states.
  */
-export function LandingHeroRotator({ children }: { children: ReactNode }) {
+export function LandingHeroRotator({
+  copy,
+  children,
+}: {
+  copy: LandingMessages["hero"];
+  children: ReactNode;
+}) {
+  const states = HERO_VALUES.map((value, i) => ({
+    value,
+    ...copy.states[i],
+  }));
   const [active, setActive] = useState(0);
   const [paused, setPaused] = useState(false);
   const [hovering, setHovering] = useState(false);
@@ -54,7 +47,7 @@ export function LandingHeroRotator({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!rotating) return;
     const id = window.setInterval(
-      () => setActive((i) => (i + 1) % HERO_STATES.length),
+      () => setActive((i) => (i + 1) % HERO_VALUES.length),
       ROTATE_MS,
     );
     return () => window.clearInterval(id);
@@ -63,13 +56,13 @@ export function LandingHeroRotator({ children }: { children: ReactNode }) {
   return (
     <div
       className="landing-hero-copy"
-      data-value={HERO_STATES[active].value}
+      data-value={HERO_VALUES[active]}
       onMouseEnter={() => setHovering(true)}
       onMouseLeave={() => setHovering(false)}
     >
       {/* Decorative photo per value; crossfades with the copy (globals.css). */}
       <div className="landing-hero-media" aria-hidden="true">
-        {HERO_STATES.map((state, i) => (
+        {states.map((state, i) => (
           <span
             key={state.value}
             data-value={state.value}
@@ -77,11 +70,9 @@ export function LandingHeroRotator({ children }: { children: ReactNode }) {
           />
         ))}
       </div>
-      <span className="eyebrow">
-        Practical IT learning, built for the real world
-      </span>
+      <span className="eyebrow">{copy.eyebrow}</span>
       <h1 className="landing-hero-rotate">
-        {HERO_STATES.map((state, i) => (
+        {states.map((state, i) => (
           <span
             key={state.value}
             className="landing-hero-slide"
@@ -94,7 +85,7 @@ export function LandingHeroRotator({ children }: { children: ReactNode }) {
         ))}
       </h1>
       <p className="landing-hero-rotate">
-        {HERO_STATES.map((state, i) => (
+        {states.map((state, i) => (
           <span
             key={state.value}
             className="landing-hero-slide text-[14px]"
@@ -107,7 +98,7 @@ export function LandingHeroRotator({ children }: { children: ReactNode }) {
       </p>
       {children}
       <div className="landing-hero-values">
-        {HERO_STATES.map((state, i) => (
+        {states.map((state, i) => (
           <button
             key={state.value}
             type="button"
@@ -124,7 +115,7 @@ export function LandingHeroRotator({ children }: { children: ReactNode }) {
           <button
             type="button"
             className="landing-hero-pause"
-            aria-label={paused ? "Resume rotation" : "Pause rotation"}
+            aria-label={paused ? copy.resume : copy.pause}
             onClick={() => setPaused((p) => !p)}
           >
             {paused ? <Play size={12} /> : <Pause size={12} />}
