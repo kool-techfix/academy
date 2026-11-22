@@ -384,9 +384,13 @@ function ModuleItem({
                       }}
                     >
                       <div className="row">
-                        <Video size={16} style={{ color: "var(--brand-text-muted)" }} />
+                        {lesson.youtubeVideoLink ? (
+                          <Video size={16} style={{ color: "var(--brand-text-muted)" }} />
+                        ) : (
+                          <FileText size={16} style={{ color: "var(--brand-text-muted)" }} />
+                        )}
                         <span style={{ fontWeight: 600, fontSize: 14 }}>
-                          Video lesson
+                          {lesson.youtubeVideoLink ? "Video lesson" : "Reading lesson"}
                         </span>
                         {lesson.notes && (
                           <div

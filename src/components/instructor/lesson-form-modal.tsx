@@ -32,37 +32,65 @@ const attachmentRowSchema = z.object({
 
 type AttachmentRow = z.infer<typeof attachmentRowSchema>;
 
-const lessonSchema = z.object({
-  youtubeVideoLink: z
-    .string()
-    .url("Must be a valid URL")
-    .refine((val) => val.includes("youtube.com") || val.includes("youtu.be"), {
-      message: "Must be a YouTube link",
+const LESSON_CONTENT_REQUIRED =
+  "Add at least one: a YouTube link, lecture notes or a note file";
+
+const lessonSchema = z
+  .object({
+    youtubeVideoLink: z
+      .string()
+      .trim()
+      .refine((val) => val === "" || z.string().url().safeParse(val).success, {
+        message: "Must be a valid URL",
+      })
+      .refine(
+        (val) => val === "" || val.includes("youtube.com") || val.includes("youtu.be"),
+        { message: "Must be a YouTube link" },
+      ),
+    attachments: z.array(attachmentRowSchema).superRefine((rows, context) => {
+      if (rows.some((row) => row.status === "uploading")) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Wait for uploads to finish before saving",
+        });
+      } else if (rows.some((row) => row.status === "failed")) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Remove failed uploads before saving",
+        });
+      }
     }),
-  attachments: z.array(attachmentRowSchema).superRefine((rows, context) => {
-    if (rows.some((row) => row.status === "uploading")) {
+    notes: z
+      .string()
+      .max(20_000, "Lecture notes must be 20,000 characters or fewer"),
+    /** Saved attachments the instructor removed; deleted when the lesson is saved. */
+    removedAttachmentIds: z.array(z.string()),
+    /** Legacy single notes file; counts as content if the lesson still has one. */
+    hasLegacyNotesFile: z.boolean(),
+  })
+  .superRefine((data, context) => {
+    const hasContent =
+      data.youtubeVideoLink !== "" ||
+      data.notes.trim() !== "" ||
+      data.hasLegacyNotesFile ||
+      data.attachments.some(
+        (row) => row.status === "existing" || row.status === "uploaded",
+      );
+
+    if (!hasContent) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "Wait for uploads to finish before saving",
-      });
-    } else if (rows.some((row) => row.status === "failed")) {
-      context.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Remove failed uploads before saving",
+        path: ["root"],
+        message: LESSON_CONTENT_REQUIRED,
       });
     }
-  }),
-  notes: z
-    .string()
-    .max(20_000, "Lecture notes must be 20,000 characters or fewer"),
-  /** Saved attachments the instructor removed; deleted when the lesson is saved. */
-  removedAttachmentIds: z.array(z.string()),
-});
+  });
 
 type LessonFormData = z.infer<typeof lessonSchema>;
 
 export type LessonFormSaveData = {
-  youtubeVideoLink: string;
+  /** null = no video. */
+  youtubeVideoLink: string | null;
   notes: string;
   notesFileUrl: string | null;
   attachments: LessonAttachmentInput[];
@@ -126,6 +154,7 @@ export function LessonFormModal({
         attachmentId: attachment.id,
       })),
       removedAttachmentIds: [],
+      hasLegacyNotesFile: Boolean(lesson?.notesFileUrl),
     },
   });
 
@@ -216,7 +245,7 @@ export function LessonFormModal({
 
   const onSubmit = (data: LessonFormData) => {
     onSave({
-      youtubeVideoLink: data.youtubeVideoLink,
+      youtubeVideoLink: data.youtubeVideoLink || null,
       notes: data.notes,
       // Legacy single-notes field; kept as-is (no longer edited here).
       notesFileUrl: lesson?.notesFileUrl ?? null,
@@ -230,8 +259,11 @@ export function LessonFormModal({
   return (
     <Modal title={lesson ? "Edit Lesson" : "Add Lesson"} onClose={onClose}>
       <form onSubmit={handleSubmit(onSubmit)} className="stack">
+        <p className="form-hint" style={{ margin: 0, color: "var(--brand-text-muted)", fontSize: 13 }}>
+          Add at least one of: a YouTube link, lecture notes or a note file.
+        </p>
         <FormField
-          label="YouTube Link"
+          label="YouTube Link (Optional)"
           name="youtubeVideoLink"
           register={register}
           error={errors.youtubeVideoLink?.message as string}
@@ -338,6 +370,12 @@ export function LessonFormModal({
             </div>
           )}
         </div>
+
+        {errors.root?.message && (
+          <div className="form-error" role="alert" data-testid="error-lesson-content">
+            {errors.root.message}
+          </div>
+        )}
 
         <div
           className="row"

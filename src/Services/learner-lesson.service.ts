@@ -24,7 +24,7 @@ export type LearnerLessonCourse = {
 export type LearnerLesson = {
   id: string;
   title: string;
-  youtubeVideoLink: string;
+  youtubeVideoLink: string | null;
   notesFileUrl: string | null;
   /** Written lecture note shown under the video. */
   notes: string | null;

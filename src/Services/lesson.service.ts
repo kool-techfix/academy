@@ -23,7 +23,7 @@ export type Lesson = {
   id: string;
   moduleId: string;
   title: string;
-  youtubeVideoLink: string;
+  youtubeVideoLink: string | null;
   notesFileUrl?: string | null;
   /** Written lecture note shown under the video. */
   notes?: string | null;
@@ -34,7 +34,7 @@ export type Lesson = {
 export type CreateLessonPayload = {
   /** Optional: the server names the lesson after its module. */
   title?: string;
-  youtubeVideoLink: string;
+  youtubeVideoLink?: string | null;
   notesFileUrl?: string | null;
   notes?: string | null;
   order?: number;
@@ -43,7 +43,7 @@ export type CreateLessonPayload = {
 
 export type UpdateLessonPayload = {
   title?: string;
-  youtubeVideoLink?: string;
+  youtubeVideoLink?: string | null;
   notesFileUrl?: string | null;
   notes?: string | null;
   order?: number;

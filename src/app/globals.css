@@ -1296,29 +1296,6 @@ input:focus-visible {
   color: var(--brand-black);
   border-bottom-color: var(--brand-green);
 }
-.registration-role-switch {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 4px;
-  margin: -6px 0 26px;
-  padding: 4px;
-  border: 1px solid var(--brand-gray);
-  border-radius: 8px;
-  background: var(--brand-gray-light);
-}
-.registration-role-switch button {
-  min-height: 42px;
-  border: 0;
-  border-radius: 5px;
-  background: transparent;
-  color: var(--brand-text-muted);
-  font-weight: 750;
-}
-.registration-role-switch button.active {
-  background: var(--brand-white);
-  color: var(--brand-black);
-  box-shadow: 0 2px 8px color-mix(in srgb, var(--brand-black) 8%, transparent);
-}
 .form-field select {
   width: 100%;
   min-height: 44px;

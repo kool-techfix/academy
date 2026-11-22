@@ -81,7 +81,7 @@ export type AdminCourseReview = Omit<AdminCourse, "_count"> & {
       id: string;
       title: string;
       order: number;
-      youtubeVideoLink: string;
+      youtubeVideoLink: string | null;
       notesFileUrl: string | null;
     }[];
     quiz: AdminQuiz | null;

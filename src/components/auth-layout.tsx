@@ -4,9 +4,12 @@ import Link from 'next/link';
 
 export function AuthLayout({
   activePage,
+  registerHref = '/register',
   children,
 }: {
   activePage: 'login' | 'register';
+  /** Where the "Create account" tab points; the instructor page keeps itself. */
+  registerHref?: string;
   children: ReactNode;
 }) {
   return (
@@ -37,7 +40,7 @@ export function AuthLayout({
             </Link>
             <Link
               className={`auth-tab ${activePage === 'register' ? 'active' : ''}`}
-              href="/register"
+              href={registerHref}
               aria-current={activePage === 'register' ? 'page' : undefined}
               data-testid="link-register-tab"
             >

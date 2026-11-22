@@ -195,7 +195,9 @@ export default function AdminCourseReviewPage() {
                           <PlayCircle size={14} /> Video
                         </a>
                       ) : (
-                        <span className="admin-sub">No valid video</span>
+                        <span className="admin-sub">
+                          {lesson.youtubeVideoLink ? "No valid video" : "No video"}
+                        </span>
                       )}
                       {notesUrl ? (
                         <a href={notesUrl} target="_blank" rel="noopener noreferrer">

@@ -8,7 +8,7 @@ export type QuizQuestion = {
 export type Lesson = {
   id: string;
   title: string;
-  youtubeVideoLink: string;
+  youtubeVideoLink: string | null;
   notesFilename?: string;
 };
 

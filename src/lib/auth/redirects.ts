@@ -10,6 +10,8 @@ export type HomePathUser = {
 
 export const INSTRUCTOR_APPLICATION_PATH = "/instructor-application";
 export const INSTRUCTOR_STATUS_PATH = "/instructor-status";
+/** Invite-only instructor sign-up; never linked publicly. */
+export const INSTRUCTOR_REGISTER_PATH = "/register/instructor";
 
 export function homePathFor(user: HomePathUser): string {
   if (user.role === "ADMIN") return "/admin";

@@ -15,6 +15,7 @@ import {
 } from "@/lib/storage/r2";
 import {
   ATTACHMENT_ERRORS,
+  LESSON_CONTENT_REQUIRED,
   LESSON_NOTES_MAX_LENGTH,
   LESSON_NOTES_TOO_LONG,
   MODULE_LESSON_LIMIT,
@@ -31,7 +32,7 @@ import type {
 export type CreateLessonData = {
   /** Optional: a module has one lesson, so it's named after the module. */
   title?: string;
-  youtubeVideoLink: string;
+  youtubeVideoLink?: string | null;
   notesFileUrl?: string | null;
   notes?: string | null;
   order?: number;
@@ -40,7 +41,7 @@ export type CreateLessonData = {
 
 export type UpdateLessonData = {
   title?: string;
-  youtubeVideoLink?: string;
+  youtubeVideoLink?: string | null;
   notesFileUrl?: string | null;
   notes?: string | null;
   order?: number;
@@ -81,6 +82,28 @@ function normalizeNotes(notes: string | null | undefined) {
   }
 
   return trimmed || null;
+}
+
+/** Trim the video link; empty means "no video". */
+function normalizeVideoLink(link: string | null | undefined) {
+  return link?.trim() || null;
+}
+
+/** A lesson must carry at least one of: video, lecture notes, note files. */
+function ensureLessonHasContent(content: {
+  youtubeVideoLink: string | null;
+  notes: string | null;
+  notesFileUrl: string | null;
+  attachmentCount: number;
+}) {
+  if (
+    !content.youtubeVideoLink &&
+    !content.notes &&
+    !content.notesFileUrl &&
+    content.attachmentCount === 0
+  ) {
+    throw new Error(LESSON_CONTENT_REQUIRED);
+  }
 }
 
 export class LessonService {
@@ -153,9 +176,16 @@ export class LessonService {
 
     await this.ensureInstructorHasAccess(instructorId, courseModule.courseId);
 
-    if (!data.youtubeVideoLink) {
-      throw new Error("YouTube video Link is required");
-    }
+    const youtubeVideoLink = normalizeVideoLink(data.youtubeVideoLink);
+    const notes = normalizeNotes(data.notes);
+    const notesFileUrl = data.notesFileUrl ?? null;
+
+    ensureLessonHasContent({
+      youtubeVideoLink,
+      notes,
+      notesFileUrl,
+      attachmentCount: data.attachments?.length ?? 0,
+    });
 
     // Each module holds exactly one lesson.
     if ((await this.lessonRepository.countByModule(moduleId)) > 0) {
@@ -173,9 +203,9 @@ export class LessonService {
 
     const lesson = await this.lessonRepository.create({
       title: data.title?.trim() || courseModule.title,
-      youtubeVideoLink: data.youtubeVideoLink.trim(),
-      notesFileUrl: data.notesFileUrl ?? null,
-      notes: normalizeNotes(data.notes),
+      youtubeVideoLink,
+      notesFileUrl,
+      notes,
       order,
       module: {
         connect: {
@@ -209,10 +239,13 @@ export class LessonService {
 
     await this.ensureInstructorHasAccess(instructorId, lesson.module.courseId);
 
+    const existingAttachmentCount =
+      await this.attachmentRepository.countByLesson(lessonId);
+
     const attachments = await this.validateNewAttachments(
       lesson.module.courseId,
       data.attachments ?? [],
-      await this.attachmentRepository.countByLesson(lessonId),
+      existingAttachmentCount,
     );
 
     const updateData: Omit<UpdateLessonData, "attachments"> = {};
@@ -230,16 +263,25 @@ export class LessonService {
     }
 
     if (data.youtubeVideoLink !== undefined) {
-      if (!data.youtubeVideoLink.trim()) {
-        throw new Error("YouTube video Link is required");
-      }
-
-      updateData.youtubeVideoLink = data.youtubeVideoLink.trim();
+      updateData.youtubeVideoLink = normalizeVideoLink(data.youtubeVideoLink);
     }
 
     if (data.notesFileUrl !== undefined) {
       updateData.notesFileUrl = data.notesFileUrl;
     }
+
+    ensureLessonHasContent({
+      youtubeVideoLink:
+        updateData.youtubeVideoLink !== undefined
+          ? updateData.youtubeVideoLink
+          : lesson.youtubeVideoLink,
+      notes: updateData.notes !== undefined ? updateData.notes : lesson.notes,
+      notesFileUrl:
+        updateData.notesFileUrl !== undefined
+          ? updateData.notesFileUrl
+          : lesson.notesFileUrl,
+      attachmentCount: existingAttachmentCount + attachments.length,
+    });
 
     if (data.order !== undefined) {
       updateData.order = data.order;
@@ -336,6 +378,16 @@ export class LessonService {
       instructorId,
       attachment.lesson.module.courseId,
     );
+
+    // Removing the last file must not leave the lesson empty.
+    const lesson = await this.loadLesson(lessonId);
+
+    ensureLessonHasContent({
+      youtubeVideoLink: lesson.youtubeVideoLink,
+      notes: lesson.notes,
+      notesFileUrl: lesson.notesFileUrl,
+      attachmentCount: lesson.attachments.length - 1,
+    });
 
     await this.attachmentRepository.delete(attachmentId);
 

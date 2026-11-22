@@ -191,7 +191,8 @@ model Lesson {
   id             String  @id @default(cuid())
   moduleId       String
   title          String
-  youtubeVideoLink String
+  // Optional: a lesson needs at least one of video, notes or an attachment.
+  youtubeVideoLink String?
   notesFileUrl   String?
   // Lecture note shown under the video (plain text; files are attachments).
   notes          String?

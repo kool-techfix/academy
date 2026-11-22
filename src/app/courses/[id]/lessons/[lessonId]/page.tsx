@@ -136,7 +136,9 @@ export default function LessonViewer() {
     setDownloaded(true);
   };
 
-  const videoEmbedUrl = getYouTubeEmbedUrl(lesson.youtubeVideoLink);
+  const videoEmbedUrl = lesson.youtubeVideoLink
+    ? getYouTubeEmbedUrl(lesson.youtubeVideoLink)
+    : null;
 
   return (
     <Page>
@@ -156,19 +158,22 @@ export default function LessonViewer() {
 
       <div className="lesson-layout">
         <section>
-          <div className="video-frame" data-testid="video-player">
-            {videoEmbedUrl ? (
-              <iframe
-                src={videoEmbedUrl}
-                title={`${lesson.module.title} lesson video`}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                referrerPolicy="strict-origin-when-cross-origin"
-                allowFullScreen
-              />
-            ) : (
-              <p>Unable to load this lesson video.</p>
-            )}
-          </div>
+          {/* Video is optional: a lesson may be notes or files only. */}
+          {lesson.youtubeVideoLink && (
+            <div className="video-frame" data-testid="video-player">
+              {videoEmbedUrl ? (
+                <iframe
+                  src={videoEmbedUrl}
+                  title={`${lesson.module.title} lesson video`}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  referrerPolicy="strict-origin-when-cross-origin"
+                  allowFullScreen
+                />
+              ) : (
+                <p>Unable to load this lesson video.</p>
+              )}
+            </div>
+          )}
 
           <div className="lesson-copy">
             <span className="eyebrow">Module {currentModuleIndex + 1}</span>
