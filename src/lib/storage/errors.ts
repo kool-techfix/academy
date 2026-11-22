@@ -25,6 +25,9 @@ export const LESSON_NOTES_MAX_LENGTH = 20_000;
 export const LESSON_NOTES_TOO_LONG =
   "Lecture notes must be 20,000 characters or fewer";
 
+export const LESSON_CONTENT_REQUIRED =
+  "Add a YouTube link, lecture notes or a note file to the lesson";
+
 export const MODULE_LESSON_LIMIT =
   "This module already has a lesson. Each module can only have one lesson.";
 
@@ -35,7 +38,7 @@ const BAD_REQUEST = new Set<string>([
   ATTACHMENT_ERRORS.tooMany,
   "Lesson title is required",
   LESSON_NOTES_TOO_LONG,
-  "YouTube video Link is required",
+  LESSON_CONTENT_REQUIRED,
 ]);
 
 const FORBIDDEN = new Set<string>([

@@ -28,7 +28,7 @@ export function Navbar({ variant }: { variant?: NavbarVariant } = {}) {
   const accountMenuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const pathname = usePathname();
-  const isAuth = pathname === "/login" || pathname === "/register";
+  const isAuth = pathname === "/login" || pathname.startsWith("/register");
   const { data: user } = useCurrentUser();
   const logout = useLogout();
 

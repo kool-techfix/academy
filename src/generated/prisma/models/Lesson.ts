@@ -195,7 +195,7 @@ export type LessonGroupByOutputType = {
   id: string
   moduleId: string
   title: string
-  youtubeVideoLink: string
+  youtubeVideoLink: string | null
   notesFileUrl: string | null
   notes: string | null
   order: number
@@ -228,7 +228,7 @@ export type LessonWhereInput = {
   id?: Prisma.StringFilter<"Lesson"> | string
   moduleId?: Prisma.StringFilter<"Lesson"> | string
   title?: Prisma.StringFilter<"Lesson"> | string
-  youtubeVideoLink?: Prisma.StringFilter<"Lesson"> | string
+  youtubeVideoLink?: Prisma.StringNullableFilter<"Lesson"> | string | null
   notesFileUrl?: Prisma.StringNullableFilter<"Lesson"> | string | null
   notes?: Prisma.StringNullableFilter<"Lesson"> | string | null
   order?: Prisma.IntFilter<"Lesson"> | number
@@ -241,7 +241,7 @@ export type LessonOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   moduleId?: Prisma.SortOrder
   title?: Prisma.SortOrder
-  youtubeVideoLink?: Prisma.SortOrder
+  youtubeVideoLink?: Prisma.SortOrderInput | Prisma.SortOrder
   notesFileUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   order?: Prisma.SortOrder
@@ -257,7 +257,7 @@ export type LessonWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.LessonWhereInput | Prisma.LessonWhereInput[]
   moduleId?: Prisma.StringFilter<"Lesson"> | string
   title?: Prisma.StringFilter<"Lesson"> | string
-  youtubeVideoLink?: Prisma.StringFilter<"Lesson"> | string
+  youtubeVideoLink?: Prisma.StringNullableFilter<"Lesson"> | string | null
   notesFileUrl?: Prisma.StringNullableFilter<"Lesson"> | string | null
   notes?: Prisma.StringNullableFilter<"Lesson"> | string | null
   order?: Prisma.IntFilter<"Lesson"> | number
@@ -270,7 +270,7 @@ export type LessonOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   moduleId?: Prisma.SortOrder
   title?: Prisma.SortOrder
-  youtubeVideoLink?: Prisma.SortOrder
+  youtubeVideoLink?: Prisma.SortOrderInput | Prisma.SortOrder
   notesFileUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   order?: Prisma.SortOrder
@@ -288,7 +288,7 @@ export type LessonScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"Lesson"> | string
   moduleId?: Prisma.StringWithAggregatesFilter<"Lesson"> | string
   title?: Prisma.StringWithAggregatesFilter<"Lesson"> | string
-  youtubeVideoLink?: Prisma.StringWithAggregatesFilter<"Lesson"> | string
+  youtubeVideoLink?: Prisma.StringNullableWithAggregatesFilter<"Lesson"> | string | null
   notesFileUrl?: Prisma.StringNullableWithAggregatesFilter<"Lesson"> | string | null
   notes?: Prisma.StringNullableWithAggregatesFilter<"Lesson"> | string | null
   order?: Prisma.IntWithAggregatesFilter<"Lesson"> | number
@@ -297,7 +297,7 @@ export type LessonScalarWhereWithAggregatesInput = {
 export type LessonCreateInput = {
   id?: string
   title: string
-  youtubeVideoLink: string
+  youtubeVideoLink?: string | null
   notesFileUrl?: string | null
   notes?: string | null
   order: number
@@ -310,7 +310,7 @@ export type LessonUncheckedCreateInput = {
   id?: string
   moduleId: string
   title: string
-  youtubeVideoLink: string
+  youtubeVideoLink?: string | null
   notesFileUrl?: string | null
   notes?: string | null
   order: number
@@ -321,7 +321,7 @@ export type LessonUncheckedCreateInput = {
 export type LessonUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  youtubeVideoLink?: Prisma.StringFieldUpdateOperationsInput | string
+  youtubeVideoLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notesFileUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   order?: Prisma.IntFieldUpdateOperationsInput | number
@@ -334,7 +334,7 @@ export type LessonUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   moduleId?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  youtubeVideoLink?: Prisma.StringFieldUpdateOperationsInput | string
+  youtubeVideoLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notesFileUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   order?: Prisma.IntFieldUpdateOperationsInput | number
@@ -346,7 +346,7 @@ export type LessonCreateManyInput = {
   id?: string
   moduleId: string
   title: string
-  youtubeVideoLink: string
+  youtubeVideoLink?: string | null
   notesFileUrl?: string | null
   notes?: string | null
   order: number
@@ -355,7 +355,7 @@ export type LessonCreateManyInput = {
 export type LessonUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  youtubeVideoLink?: Prisma.StringFieldUpdateOperationsInput | string
+  youtubeVideoLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notesFileUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   order?: Prisma.IntFieldUpdateOperationsInput | number
@@ -365,7 +365,7 @@ export type LessonUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   moduleId?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  youtubeVideoLink?: Prisma.StringFieldUpdateOperationsInput | string
+  youtubeVideoLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notesFileUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   order?: Prisma.IntFieldUpdateOperationsInput | number
@@ -497,7 +497,7 @@ export type LessonUpdateOneRequiredWithoutProgressNestedInput = {
 export type LessonCreateWithoutModuleInput = {
   id?: string
   title: string
-  youtubeVideoLink: string
+  youtubeVideoLink?: string | null
   notesFileUrl?: string | null
   notes?: string | null
   order: number
@@ -508,7 +508,7 @@ export type LessonCreateWithoutModuleInput = {
 export type LessonUncheckedCreateWithoutModuleInput = {
   id?: string
   title: string
-  youtubeVideoLink: string
+  youtubeVideoLink?: string | null
   notesFileUrl?: string | null
   notes?: string | null
   order: number
@@ -549,7 +549,7 @@ export type LessonScalarWhereInput = {
   id?: Prisma.StringFilter<"Lesson"> | string
   moduleId?: Prisma.StringFilter<"Lesson"> | string
   title?: Prisma.StringFilter<"Lesson"> | string
-  youtubeVideoLink?: Prisma.StringFilter<"Lesson"> | string
+  youtubeVideoLink?: Prisma.StringNullableFilter<"Lesson"> | string | null
   notesFileUrl?: Prisma.StringNullableFilter<"Lesson"> | string | null
   notes?: Prisma.StringNullableFilter<"Lesson"> | string | null
   order?: Prisma.IntFilter<"Lesson"> | number
@@ -558,7 +558,7 @@ export type LessonScalarWhereInput = {
 export type LessonCreateWithoutAttachmentsInput = {
   id?: string
   title: string
-  youtubeVideoLink: string
+  youtubeVideoLink?: string | null
   notesFileUrl?: string | null
   notes?: string | null
   order: number
@@ -570,7 +570,7 @@ export type LessonUncheckedCreateWithoutAttachmentsInput = {
   id?: string
   moduleId: string
   title: string
-  youtubeVideoLink: string
+  youtubeVideoLink?: string | null
   notesFileUrl?: string | null
   notes?: string | null
   order: number
@@ -596,7 +596,7 @@ export type LessonUpdateToOneWithWhereWithoutAttachmentsInput = {
 export type LessonUpdateWithoutAttachmentsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  youtubeVideoLink?: Prisma.StringFieldUpdateOperationsInput | string
+  youtubeVideoLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notesFileUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   order?: Prisma.IntFieldUpdateOperationsInput | number
@@ -608,7 +608,7 @@ export type LessonUncheckedUpdateWithoutAttachmentsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   moduleId?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  youtubeVideoLink?: Prisma.StringFieldUpdateOperationsInput | string
+  youtubeVideoLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notesFileUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   order?: Prisma.IntFieldUpdateOperationsInput | number
@@ -618,7 +618,7 @@ export type LessonUncheckedUpdateWithoutAttachmentsInput = {
 export type LessonCreateWithoutProgressInput = {
   id?: string
   title: string
-  youtubeVideoLink: string
+  youtubeVideoLink?: string | null
   notesFileUrl?: string | null
   notes?: string | null
   order: number
@@ -630,7 +630,7 @@ export type LessonUncheckedCreateWithoutProgressInput = {
   id?: string
   moduleId: string
   title: string
-  youtubeVideoLink: string
+  youtubeVideoLink?: string | null
   notesFileUrl?: string | null
   notes?: string | null
   order: number
@@ -656,7 +656,7 @@ export type LessonUpdateToOneWithWhereWithoutProgressInput = {
 export type LessonUpdateWithoutProgressInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  youtubeVideoLink?: Prisma.StringFieldUpdateOperationsInput | string
+  youtubeVideoLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notesFileUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   order?: Prisma.IntFieldUpdateOperationsInput | number
@@ -668,7 +668,7 @@ export type LessonUncheckedUpdateWithoutProgressInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   moduleId?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  youtubeVideoLink?: Prisma.StringFieldUpdateOperationsInput | string
+  youtubeVideoLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notesFileUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   order?: Prisma.IntFieldUpdateOperationsInput | number
@@ -678,7 +678,7 @@ export type LessonUncheckedUpdateWithoutProgressInput = {
 export type LessonCreateManyModuleInput = {
   id?: string
   title: string
-  youtubeVideoLink: string
+  youtubeVideoLink?: string | null
   notesFileUrl?: string | null
   notes?: string | null
   order: number
@@ -687,7 +687,7 @@ export type LessonCreateManyModuleInput = {
 export type LessonUpdateWithoutModuleInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  youtubeVideoLink?: Prisma.StringFieldUpdateOperationsInput | string
+  youtubeVideoLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notesFileUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   order?: Prisma.IntFieldUpdateOperationsInput | number
@@ -698,7 +698,7 @@ export type LessonUpdateWithoutModuleInput = {
 export type LessonUncheckedUpdateWithoutModuleInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  youtubeVideoLink?: Prisma.StringFieldUpdateOperationsInput | string
+  youtubeVideoLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notesFileUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   order?: Prisma.IntFieldUpdateOperationsInput | number
@@ -709,7 +709,7 @@ export type LessonUncheckedUpdateWithoutModuleInput = {
 export type LessonUncheckedUpdateManyWithoutModuleInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
-  youtubeVideoLink?: Prisma.StringFieldUpdateOperationsInput | string
+  youtubeVideoLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notesFileUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   order?: Prisma.IntFieldUpdateOperationsInput | number
@@ -826,7 +826,7 @@ export type $LessonPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     id: string
     moduleId: string
     title: string
-    youtubeVideoLink: string
+    youtubeVideoLink: string | null
     notesFileUrl: string | null
     notes: string | null
     order: number
